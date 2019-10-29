@@ -25,13 +25,19 @@ C. Siegenthaler, C2SM(ETHZ) , 2019-10
     '''
     # Read in file
     filename = os.path.join(p_time_serie, exp,'Data','timeser_{}_2003-2012.nc'.format(exp))
+    if not os.path.isfile(filename): 
+        print('File {} does not exists'.format(filename))
+        return None
+    if not os.access(filename,os.R_OK):
+        print('No reading permissions for file {}'.format(filename))
+        return None
     data = xr.open_dataset(filename)
 
     # removed degenarated dimensions
     data = data.squeeze(drop = True)
 
     # delete 3D vars
-    data.drop(labels = ['time_bnds', 'bnds', 'AOD', 'W_LARGE', 'W_TURB', 'u', 'v', 'omega', 'incl_cdnc', 'incl_icnc'])
+    data.drop(labels = ['AOD', 'W_LARGE', 'W_TURB', 'u', 'v', 'omega', 'incl_cdnc', 'incl_icnc'])
 
     # transforms into dataframe
     df_data = data.to_dataframe()
