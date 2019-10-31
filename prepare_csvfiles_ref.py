@@ -10,9 +10,9 @@ import pandas as pd
 @begin.start
 
 
-def run(p_time_serie='/project/s903/nedavid/plattform_comparison/', \
-        file_sum = '/project/s903/colombsi/plattform_comparison/Platform_comparison.xlsx',\
-        wrk_dir = '/project/s903/colombsi/plattform_comparison') :
+def run(p_time_serie      = '/project/s903/nedavid/plattform_comparison/', \
+        p_output_csv_file = '/project/s903/colombsi/plattform_comparison/timeseries_csv/', \
+        lo_export_csvfile = True)
 
     # get experiments to consider
     exps = os.listdir(p_time_serie)
@@ -24,7 +24,6 @@ def run(p_time_serie='/project/s903/nedavid/plattform_comparison/', \
     exps.remove('emi_input')
 
     # initialize dataframe
-    df_tot = None
     df = None
 
     # loop over exps
@@ -38,10 +37,9 @@ def run(p_time_serie='/project/s903/nedavid/plattform_comparison/', \
             print('Warning : Folder does not exist: {}'.format(p_time_serie))
 
        # read data for exp
-       #   try:
        df = nc_to_df(exp, \
                      p_time_serie = p_time_serie, \
-             #        p_output = '/project/s903/colombsi/plattform_comparison/timeseries_csv/', \
-                     lo_export_csvfile=True)
+                     p_output = p_output_csv_file, \
+                     lo_export_csvfile = lo_export_csvfile)
 
 
