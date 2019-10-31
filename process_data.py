@@ -33,11 +33,14 @@ C. Siegenthaler, C2SM(ETHZ) , 2019-10
         return None
     data = xr.open_dataset(filename)
 
-    # removed degenarated dimensions
-    data = data.squeeze(drop = True)
-
-    # delete 3D vars
+    # Delete variables
+    # useless variable time_bnds
+    data = data.drop('time_bnds')
+    # 3D vars
     data.drop(labels = ['AOD', 'W_LARGE', 'W_TURB', 'u', 'v', 'omega', 'incl_cdnc', 'incl_icnc'])
+
+    # removed degenerated dimensions
+    data = data.squeeze(drop = True)
 
     # transforms into dataframe
     df_data = data.to_dataframe()
