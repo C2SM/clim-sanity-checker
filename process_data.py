@@ -25,17 +25,25 @@ C. Siegenthaler, C2SM(ETHZ) , 2019-10
     '''
     # Read in file
     filename = os.path.join(p_time_serie, exp,'Data','timeser_{}_2003-2012.nc'.format(exp))
+
+    # print warnings
     if not os.path.isfile(filename): 
         print('File {} does not exists'.format(filename))
         return None
     if not os.access(filename,os.R_OK):
         print('No reading permissions for file {}'.format(filename))
         return None
+    # print info
+    print('Processing file: {}'.format(filename))
+
+
+    # open dataset
     data = xr.open_dataset(filename)
 
     # Delete variables
     # useless variable time_bnds
-    data = data.drop('time_bnds')
+    if ('time_bnds' in data.keys()):
+        data = data.drop('time_bnds')
     # 3D vars
     data.drop(labels = ['AOD', 'W_LARGE', 'W_TURB', 'u', 'v', 'omega', 'incl_cdnc', 'incl_icnc'])
 
