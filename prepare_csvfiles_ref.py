@@ -29,10 +29,13 @@ def run(p_time_serie='/project/s903/nedavid/plattform_comparison/', \
 
     # loop over exps
     for iexp, exp in enumerate(exps):
+
+       # print info
+       print('Processing file: {}'.format(exp))
         
        # test if file exist:
-       if not os.path.isfile(p_time_serie):
-            print('Warning : File does not exist: {}'.format(p_time_serie))
+       if not os.path.isdir(p_time_serie):
+            print('Warning : Folder does not exist: {}'.format(p_time_serie))
 
        # read data for exp
        #   try:
