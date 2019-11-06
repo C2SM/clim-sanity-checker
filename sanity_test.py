@@ -7,9 +7,10 @@ from process_data import nc_to_df
 import begin
 import os
 import pandas as pd
+import glob
+from scipy import stats
+import plot_mean_std as plt
 
-def cdo_process(filename) :
-    return()
 
 class table_ref:
     def __init__(self, file_summary):
@@ -25,86 +26,147 @@ class table_ref:
         # keep track of the tab names
         self.tabs = tabs_table
 
+def create_big_df(list_csv_files, filename_csv=''):
+    '''
+    Create big dataframe form list of csv files
+    :param list_csv_files: list of csv files for the big dataframe
+    :return: big dataframe containing the whole data
+    '''
+
+    # initialise big empty dataframe
+    df_tot = pd.DataFrame()
+
+    # create big dataframe
+    for fexp in list_csv_files:
+
+        exp = os.path.basename(fexp).rstrip('.csv').lstrip('glob_means_')
+
+        # read the csv file
+        if os.path.isfile(fexp):
+            df_exp = pd.read_csv(fexp, sep=';')
+            df_exp['exp'] = exp
+
+            # append dataframe of exp to the total dataframe
+            df_tot = df_tot.append(df_exp, sort = False)
+
+        else:
+            print('Warning csv file is not a file : {}'.format(fexp))
+
+    if len(filename_csv) > 0 :
+        df_tot.to_csv(filename_csv, sep = ';')
+
+    return df_tot
+
+def welch_test_all_var(df_a, df_b , filename_student_test = ''):
+    '''
+    Perform Welch t-test for each variable fo dataframe df_b
+    :param df_a: reference datframe, containing big sample
+    :param df_b: datframe containing data to test
+    :param filename_student_test: filename for writing result of t-test result into a csv file
+    :return: result of the student test in a dataframe
+    '''
+
+    # initialisation for construction dataframe (much faster to use list than dataframe.append)
+    row_list_df = []
+
+    for var in df_b.keys():
+        if 'exp' in var:
+            continue
+
+        # Welch's t-test
+        t, p = stats.ttest_ind(df_a[var], df_b[var], equal_var = False, nan_policy='omit')
+
+        # append results for construction datframe df_result
+        dict1 = {'variable' : var, 't-value' : t , 'p-value' : p}
+        row_list_df.append(dict1)
+
+    # construction dataframe
+    df_result = pd.DataFrame(row_list_df, columns=['variable','t-value','p-value'] )
+
+    # sort per p value
+    df_result.sort_values(by=['p-value'], inplace=True)
+
+    # if a filename is given, write the student-stest result into the file named filename_student_test
+    if len(filename_student_test) > 0 :
+        df_result.to_csv(filename_student_test, sep = ',')
+
+    return (df_result)
+
+def print_warnings_pvalues(df_result, p_treshold, new_exp):
+    ''' Print warnings for the variables which have a small p value '''
+
+    label_new_col = 'p-value < {} %'.format(p_treshold * 100.)
+
+    # Chek if p value small
+    df_result[label_new_col] = df_result['p-value'] < p_treshold
+
+    # datframe containing only variable with low p (for print the warnings
+    df_low_p = df_result[df_result[label_new_col]]
+
+    if (df_low_p.size > 0):
+        print('WARNING :: the following variables gives low p-value in the comparison between the references and the new experiment {} :'.format(new_exp))
+        print (df_low_p)
+
+    return (df_result)
+
+
+import pathes_mac as pathes
 @begin.start
 
-def run(p_time_serie='/project/s903/nedavid/plattform_comparison/', \
-        file_sum = '/project/s903/colombsi/plattform_comparison/Platform_comparison.xlsx',\
-        wrk_dir = '/project/s903/colombsi/plattform_comparison') :
+def run(p_ref_csv_files = pathes.p_ref_csv_files,\
+        wrk_dir = pathes.wrk_dir,
+        p_new_exp = pathes.p_new_exp):
+
+
+     # go in workdir
+     if len(wrk_dir) > 0 :
+         os.chdir((wrk_dir))
+
 
      # new experiment to test
      # -------------------------------------------------------------
      # name and path of experiment to test
      new_exp = 'euler_REF_10y_i18'
-     p_new_exp = '/project/s903/nedavid/plattform_comparison/'
 
-     # create dataframe out of netcdf timeserie
-     df_new_exp = nc_to_df(new_exp, \
-                           p_time_serie = p_new_exp, \
-             #        p_output = '/project/s903/colombsi/plattform_comparison/timeseries_csv/', \
-                           lo_export_csvfile=True)
-
+     # get data new exp in dataframe
+     f_new_exp_csv = os.path.join(p_new_exp, 'glob_means_{}.csv'.format(new_exp))
+     if os.path.isfile(f_new_exp_csv):
+         df_new_exp = pd.read_csv(f_new_exp_csv, sep=';')
+     else:
+         # create dataframe out of netcdf timeserie
+         df_new_exp = nc_to_df(new_exp,\
+                               p_time_serie=p_new_exp,\
+                               p_output=p_new_exp,\
+                               lo_export_csvfile=True)
+     df_new_exp['exp'] = new_exp
 
      # data of reference pool
      # ---------------------------------------------------------------
-     # get experiments of reference folder
-     p_csv_ref = '/project/s903/colombsi/plattform_comparison/timeseries_csv'
+     # get experiments of reference folder (in the fiuture, download from Git)
+     # download files into p_csv_files
 
      # get experiments to consider
-     exps = os.listdir(p_csv_ref)
+     exps = os.listdir(p_ref_csv_files)
 
-     # create big dataframe 
-     #for fexp in exps:
+     # list of paths to all csv files
+     p_csv_files = glob.glob(os.path.join(p_ref_csv_files,'*csv'))
 
-      #   # full path to csv file
-      #   f_fp_exp = os.path.join(p_csv_ref,fexp)
-
-         # read the csv file
-       #  df_exp = pd.read_csv(f_fp_exp)
-
-        # # put all data in one big dataframe
-        # if (df_exp is not None):
-        #    print('Hello 0')
-        #    df[experiment] = exp
-
-         #   print(df)
-#
-#            if (df_tot is None):
-#                df_tot = df
-#                print('Hello 1')
-#            else:
-#                print('Heloo 2')
-#                print(df_tot)
-#                print(df_tot.merge(df))
-#             #   exit()
-
-#       print('----------------------------------')
-
-        
-
-#    print('HEllo end')
-#
-#    expname=exp
-#    # prepare working directory
-#    os.makedirs(wrk_dir,exist_ok=True)
-#    os.chdir(wrk_dir)
-#
-#    # data of reference experiments
-#    data_ref_file = table_ref(file_summary)
-#
-#    # global mean new experiment
-#    p_globmean_newexp = os.path.join(oldexps_path, expname , 'Data/analysis_{}_2003-2012.txt'.format(expname))
- #   data_newexp_glob = pd.read_csv(p_globmean_newexp, sep='\s+', header=1)
-
-    # standard deviation new experiment
-#    tmp_timeser_newexp = p_globmean_newexp.replace('analysis', 'timeser').rstrip('.txt')
-#    p_timeser_newexp = os.path.join(wrk_dir, (os.path.basename(tmp_timeser_newexp) + '.txt'))
-    # compute std deviation
-#    sys_cmd('cdo infov -timstd {}.nc > {}'.format(tmp_timeser_newexp, p_timeser_newexp))
-#    data_newexp_std = pd.read_csv(p_timeser_newexp, sep=' : ', usecols=[2,3], skiprows = [0], names = ['std','name'])
-
-#    data_newexp_std = data_newexp_std.reindex(columns=['name','std'])
-#    print(data_newexp_std)
-#    print(data_newexp_glob)
+     # create big dataframe containung all reference exps
+     df_ref = create_big_df(list_csv_files=p_csv_files)
 
 
+     # Perform Welch's t-test for each variable
+     # ----------------------------------------------------------------
+     file_result_welche = os.path.join(pathes.p_new_exp, 'result_welchs_test.csv')
+     df_result = welch_test_all_var(df_a=df_ref, df_b=df_new_exp,filename_student_test=file_result_welche)
 
+
+     # print infos
+     # -------------------------------------------------------------------
+     # print warnings for small p-values
+     print_warnings_pvalues(df_result,p_treshold=0.1,new_exp=new_exp)
+     print('To see the whole table containing p-values, please the file:{}'.format(file_result_welche))
+
+     # plot
+     # -------------------------------------------------------------------
+     plt.plt_var(df_ref,df_new_exp,new_exp)

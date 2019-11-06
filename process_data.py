@@ -5,9 +5,9 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-def nc_to_df(exp = None, \
+def nc_to_df(exp     = None, \
         p_time_serie = '/project/s903/nedavid/plattform_comparison/', \
-        p_output = '/project/s903/colombsi/plattform_comparison/timeseries_csv/', \
+        p_output     = '/project/s903/colombsi/plattform_comparison/timeseries_csv/', \
         lo_export_csvfile = False):
 
     '''
