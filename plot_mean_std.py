@@ -1,11 +1,11 @@
 
-import pandas as pd
+import os
 import numpy as np
-
 import matplotlib
 matplotlib.use('Agg') #for saving plot
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages  # multiple pages in pdf
+from config_path import paths_mac as paths
 
 def plt_var(df_ref,df_new_exp,new_exp):
 
@@ -33,7 +33,8 @@ def plt_var(df_ref,df_new_exp,new_exp):
     nplot = nlin * ncol
 
     # needed for multipage pdf file
-    pp = PdfPages('plots_variables.pdf')
+    p_pdf_file_var = os.path.join(paths.p_new_exp,'plots_variables.pdf')
+    pp = PdfPages(p_pdf_file_var)
 
     # needed to count on which plot we are
     ivar = 0
@@ -98,4 +99,6 @@ def plt_var(df_ref,df_new_exp,new_exp):
     # save and close odf file file
     fig.savefig(pp, format='pdf')
     pp.close()
+
+    print('Detailed plots of mean and stanadrd deviation per variable can be found in the file {}'.format(p_pdf_file_var))
 

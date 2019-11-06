@@ -10,6 +10,7 @@ import pandas as pd
 import glob
 from scipy import stats
 import plot_mean_std as plt
+from config_path import paths_mac as paths
 
 
 class table_ref:
@@ -110,13 +111,11 @@ def print_warnings_pvalues(df_result, p_treshold, new_exp):
     return (df_result)
 
 
-import pathes_mac as pathes
 @begin.start
 
-def run(p_ref_csv_files = pathes.p_ref_csv_files,\
-        wrk_dir = pathes.wrk_dir,
-        p_new_exp = pathes.p_new_exp):
-
+def run(p_ref_csv_files = paths.p_ref_csv_files,\
+        wrk_dir = paths.wrk_dir,
+        p_new_exp = paths.p_new_exp):
 
      # go in workdir
      if len(wrk_dir) > 0 :
@@ -157,7 +156,7 @@ def run(p_ref_csv_files = pathes.p_ref_csv_files,\
 
      # Perform Welch's t-test for each variable
      # ----------------------------------------------------------------
-     file_result_welche = os.path.join(pathes.p_new_exp, 'result_welchs_test.csv')
+     file_result_welche = os.path.join(paths.p_new_exp, 'result_welchs_test.csv')
      df_result = welch_test_all_var(df_a=df_ref, df_b=df_new_exp,filename_student_test=file_result_welche)
 
 
@@ -166,6 +165,7 @@ def run(p_ref_csv_files = pathes.p_ref_csv_files,\
      # print warnings for small p-values
      print_warnings_pvalues(df_result,p_treshold=0.1,new_exp=new_exp)
      print('To see the whole table containing p-values, please the file:{}'.format(file_result_welche))
+     print()
 
      # plot
      # -------------------------------------------------------------------
