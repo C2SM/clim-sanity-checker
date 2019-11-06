@@ -7,25 +7,12 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages  # multiple pages in pdf
 from config_path import paths_mac as paths
 
-def plt_var(df_ref,df_new_exp,new_exp):
-
+def plt_var(df_tot,new_exp,df_result):
 
     # simple statistics
-    df_ref_mean = df_ref.groupby(['exp'], as_index=False).mean()
+    df_tot_mean = df_tot.groupby(['exp'], as_index=False).mean()
     # for std, the panda std has a bug cf https://github.com/pandas-dev/pandas/issues/16799
-    df_ref_std = df_ref.groupby(['exp']).std().reset_index()
-
-    # to be sure all the exps are in the same order
-    df_ref_mean.sort_values(by=['exp'],inplace=True)
-    df_ref_std.sort_values(by=['exp'],inplace=True)
-
-    # compute same statistics on df_new_exp and include them in df_tot (new tot dataframe)
-    dict_new_exp_mean = dict(df_new_exp.mean())
-    dict_new_exp_mean['exp'] = new_exp
-    df_tot_mean = df_ref_mean.append(dict_new_exp_mean,ignore_index=True)
-    dict_new_exp_std = dict(df_new_exp.std())
-    dict_new_exp_std['exp'] = new_exp
-    df_tot_std = df_ref_std.append(dict_new_exp_std, ignore_index=True)
+    df_tot_std = df_tot.groupby(['exp']).std().reset_index()
 
     # number col/rows per page
     nlin = 3
@@ -36,13 +23,8 @@ def plt_var(df_ref,df_new_exp,new_exp):
     p_pdf_file_var = os.path.join(paths.p_new_exp,'plots_variables.pdf')
     pp = PdfPages(p_pdf_file_var)
 
-    # needed to count on which plot we are
-    ivar = 0
-
     # loop over all variables
-    for var in df_new_exp.keys():
-        if 'exp' in var:
-            continue
+    for ivar,var in enumerate(df_result.variable):
 
         # subplot preparation
         # ------------------------------------------------------------------------
@@ -74,8 +56,8 @@ def plt_var(df_ref,df_new_exp,new_exp):
         act_plt.errorbar(xaxis, df_tot_mean[var], yerr=df_tot_std[var],fmt='+',ecolor = colors)
 
         # plot average reference experiments (green band)
-        m_ref = df_ref[var].mean()
-        s_ref = df_ref[var].std()
+        m_ref = df_tot[df_tot.exp != new_exp][var].mean()
+        s_ref = df_tot[df_tot.exp != new_exp][var].std()
         act_plt.axhline(m_ref, c = 'green')
         act_plt.fill_between([-1, max(xaxis)+1], m_ref-s_ref, m_ref+s_ref, facecolor='green',alpha=0.4)
 
@@ -86,15 +68,14 @@ def plt_var(df_ref,df_new_exp,new_exp):
         act_plt.set_xticklabels(df_tot_mean['exp'],rotation=90)
 
         # title settings
-        act_plt.set_title(var)
+        pvalue = float(df_result[df_result.variable == var]['p-value'])
+        act_plt.set_title('{}, p-value = {:.2%}'.format(var,pvalue))
 
         # Saving page & increase number var
         # --------------------------------------------------------------------------------
         # save full page
         if (iplot == (nplot - 1)):
             pp.savefig()
-
-        ivar = ivar + 1
 
     # save and close odf file file
     fig.savefig(pp, format='pdf')

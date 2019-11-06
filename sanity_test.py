@@ -167,7 +167,7 @@ def run(p_ref_csv_files = paths.p_ref_csv_files,\
 
      # Perform Welch's t-test for each variable
      # ----------------------------------------------------------------
-     file_result_welche = os.path.join(paths.p_new_exp, 'result_welchs_test.csv')
+     file_result_welche = os.path.join(paths.p_new_exp,'result_welchs_test.csv')
      df_result = welch_test_all_var(df_a=df_ref, df_b=df_new_exp,filename_student_test=file_result_welche)
 
 
@@ -180,4 +180,4 @@ def run(p_ref_csv_files = paths.p_ref_csv_files,\
 
      # plot
      # -------------------------------------------------------------------
-     plt.plt_var(df_ref,df_new_exp,new_exp)
+     plt.plt_var(df_ref.append(df_new_exp,sort=False), new_exp, df_result)
