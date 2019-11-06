@@ -27,6 +27,17 @@ class table_ref:
         # keep track of the tab names
         self.tabs = tabs_table
 
+def df_drop_inplace(df,col_list):
+    ''' Drop columns in col_list if the column exists '''
+
+    # list of columns to drop (which are present in df
+    list_to_drop = [col for col in col_list if col in df.keys()]
+
+    # drop list of existing columns
+    df.drop(labels=list_to_drop,axis=1,inplace=True)
+
+    return
+
 def create_big_df(list_csv_files, filename_csv=''):
     '''
     Create big dataframe form list of csv files
@@ -40,7 +51,7 @@ def create_big_df(list_csv_files, filename_csv=''):
     # create big dataframe
     for fexp in list_csv_files:
 
-        exp = os.path.basename(fexp).rstrip('.csv').lstrip('glob_means_')
+        exp = os.path.basename(fexp).rstrip('.csv').replace('glob_means_','')
 
         # read the csv file
         if os.path.isfile(fexp):
@@ -144,15 +155,15 @@ def run(p_ref_csv_files = paths.p_ref_csv_files,\
      # get experiments of reference folder (in the fiuture, download from Git)
      # download files into p_csv_files
 
-     # get experiments to consider
-     exps = os.listdir(p_ref_csv_files)
-
      # list of paths to all csv files
      p_csv_files = glob.glob(os.path.join(p_ref_csv_files,'*csv'))
 
-     # create big dataframe containung all reference exps
+     # create big dataframe containing all reference exps
      df_ref = create_big_df(list_csv_files=p_csv_files)
 
+     # cleaning (in case it ws not done properly in the transition from netcdf files into csv format
+     df_drop_inplace(df_ref, col_list = ['AOD', 'W_LARGE', 'W_TURB', 'u', 'v', 'omega', 'incl_cdnc', 'incl_icnc'])
+     df_drop_inplace(df_new_exp, col_list = ['AOD', 'W_LARGE', 'W_TURB', 'u', 'v', 'omega', 'incl_cdnc', 'incl_icnc'])
 
      # Perform Welch's t-test for each variable
      # ----------------------------------------------------------------

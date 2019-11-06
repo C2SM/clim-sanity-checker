@@ -1,13 +1,13 @@
 #
 # import modules
 import os
-import numpy as np
 import pandas as pd
 import xarray as xr
+from config_path import paths_mac as paths
 
 def nc_to_df(exp     = None, \
-        p_time_serie = '/project/s903/nedavid/plattform_comparison/', \
-        p_output     = '/project/s903/colombsi/plattform_comparison/timeseries_csv/', \
+        p_time_serie = paths.p_ref_time_serie, \
+        p_output     = paths.p_ref_csv_files, \
         lo_export_csvfile = False):
 
     '''
