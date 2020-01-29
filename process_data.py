@@ -56,7 +56,7 @@ C. Siegenthaler, C2SM(ETHZ) , 2019-10
     # export in a file
     if lo_export_csvfile:
         os.makedirs(p_output, exist_ok=True)
-        export_csv = df_data.to_csv(os.path.join(p_output,'glob_means_{}.csv'.format(exp)), index = None, header=True, sep = ';')
+        df_data.to_csv(os.path.join(p_output,'glob_means_{}.csv'.format(exp)), index = None, header=True, sep = ';')
 
     return(df_data)
 

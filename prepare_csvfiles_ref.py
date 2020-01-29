@@ -6,12 +6,13 @@ from process_data import nc_to_df
 import begin
 import os
 import pandas as pd
+from config_path import paths_daint as paths
 
 @begin.start
 
 
-def run(p_time_serie      = '/project/s903/nedavid/plattform_comparison/', \
-        p_output_csv_file = '/project/s903/colombsi/plattform_comparison/timeseries_csv/', \
+def run(p_time_serie      = paths.p_ref_time_serie, \
+        p_output_csv_file = paths.p_ref_csv_files, \
         lo_export_csvfile = True)
 
     # get experiments to consider

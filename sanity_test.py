@@ -104,20 +104,53 @@ def welch_test_all_var(df_a, df_b , filename_student_test = ''):
 
     return (df_result)
 
+class style():
+    '''define colors for output on terminal'''
+
+    BLACK = lambda x: '\033[30m' + str(x)
+    RED = lambda x: '\033[31m' + str(x)
+    GREEN = lambda x: '\033[32m' + str(x)
+    ORANGE = lambda x: '\033[93m' + str(x)
+    DARKRED = lambda x: '\u001b[41m' + str(x)
+    RESET = lambda x: '\033[0m' + str(x)
+
+def print_warning_color(df_warning, lev_warn, col_warn):
+    ''' Print database df_warning with the color col_warn'''
+    df_print_warn = df_warning[df_warning.colors == lev_warn]
+    if df_print_warn.size > 0:
+        print(style.RESET('{} p-value'.format(lev_warn.upper())))
+        print(col_warn(df_print_warn))
+        print(style.RESET('\n'))
+    return
+
 def print_warnings_pvalues(df_result, p_treshold, new_exp):
     ''' Print warnings for the variables which have a small p value '''
+    # csld : This function could be improved to make it more readable, but for the moment it makes teh job
 
-    label_new_col = 'p-value < {} %'.format(p_treshold * 100.)
+    # sort out the level of Warning
+    bins = [0, 1, 5, 10, 100]
+    pval_levels = ['very low', 'low','middle','high']
+    df_result['colors'] = pd.cut(df_result['p-value']*100., bins, labels=pval_levels)
 
-    # Chek if p value small
-    df_result[label_new_col] = df_result['p-value'] < p_treshold
+    # df_warning is the dataframe with only labels until high
+    df_warning = df_result[df_result['colors'] != pval_levels[-1]]
 
-    # datframe containing only variable with low p (for print the warnings
-    df_low_p = df_result[df_result[label_new_col]]
+    if df_warning.size > 0:
+        print('----------------------------------------------------------------------------------------------------------')
+        print('WARNING1 :: the following variables gives low p-value in the comparison between the references and the new experiment {} :\n'.format(new_exp))
 
-    if (df_low_p.size > 0):
-        print('WARNING :: the following variables gives low p-value in the comparison between the references and the new experiment {} :'.format(new_exp))
-        print (df_low_p)
+        # for each level of warning, print the dataframe
+        for pval_lev in pval_levels:
+            if pval_lev == 'very low':
+                print_warning_color(df_warning, pval_lev, style.DARKRED)
+            elif pval_lev == 'low':
+                print_warning_color(df_warning, pval_lev, style.RED)
+            elif pval_lev == 'middle':
+                print_warning_color(df_warning, pval_lev, style.ORANGE)
+    else:
+        print(style.GREEN('The experiment is fine. No p-value under {}').format(bins[-2]))
+        print(style.RESET('\n'))
+    print(style.RESET('----------------------------------------------------------------------------------------------------------'))
 
     return (df_result)
 
