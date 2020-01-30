@@ -47,19 +47,23 @@ def plt_var(df_tot,new_exp,df_result):
 
         # plotting
         # ---------------------------------------------------------------------------
-        # define colors
-        colors = len(xaxis) * ['b']
         nmisval = df_tot_mean[var].isna().sum()
-        colors[len(xaxis)-nmisval-1:len(xaxis)] = 'r'
+        i_newexp = len(xaxis)-nmisval-1
+        # define colors
+        colors = len(xaxis) * ['k']
+        colors[i_newexp:len(xaxis)] = 'k'
+        # define thickness
+        thickness = len(xaxis) * [1.5]
+        thickness[i_newexp] = 3
 
         # plot mean and std for each variable
-        act_plt.errorbar(xaxis, df_tot_mean[var], yerr=df_tot_std[var],fmt='+',ecolor = colors)
+        act_plt.errorbar(xaxis, df_tot_mean[var], yerr=df_tot_std[var],fmt='+k',ecolor = colors, elinewidth = thickness)
 
         # plot average reference experiments (green band)
         m_ref = df_tot[df_tot.exp != new_exp][var].mean()
         s_ref = df_tot[df_tot.exp != new_exp][var].std()
-        act_plt.axhline(m_ref, c = 'green')
-        act_plt.fill_between([-1, max(xaxis)+1], m_ref-s_ref, m_ref+s_ref, facecolor='green',alpha=0.4)
+        act_plt.axhline(m_ref, c = 'k')
+        act_plt.fill_between([-1, max(xaxis)+1], m_ref-s_ref, m_ref+s_ref, facecolor='grey',alpha=0.4)
 
         # manage labels/titel/etc
         # -------------------------------------------------------------------------------

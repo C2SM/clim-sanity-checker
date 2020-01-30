@@ -246,4 +246,4 @@ def run(p_ref_csv_files = paths.p_ref_csv_files,\
 
      # plot
      # -------------------------------------------------------------------
-     plt.plt_var(df_ref.append(df_new_exp,sort=False), new_exp, df_result,)
+     plt.plt_var(df_ref.append(df_new_exp,sort=False), new_exp, df_result)
