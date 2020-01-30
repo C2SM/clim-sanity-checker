@@ -12,6 +12,35 @@ from scipy import stats
 import plot_mean_std as plt
 from config_path import paths_mac as paths
 
+class style():
+    '''define colors for output on terminal'''
+
+    BLACK = lambda x: '\033[30m' + str(x)
+    RED = lambda x: '\033[31m' + str(x)
+    GREEN = lambda x: '\033[32m' + str(x)
+    ORANGE = lambda x: '\033[93m' + str(x)
+    RED_HIGHL = lambda x: '\u001b[41m' + str(x)
+    RESET = lambda x: '\033[0m' + str(x)
+
+class pval_thr_prop:
+    '''Properties linked to the p-value threshold'''
+
+    def __init__(self, lev, p_threshold, color_var):
+
+        # defining color text
+        dict_col = {'Red': style.RED, 'DarkRed': style.RED_HIGHL, 'Orange':style.ORANGE,'Green' : style.GREEN}
+
+        if color_var in dict_col.keys():
+            self.col_txt = dict_col[color_var]
+        else:
+            print('Warning no text color associated with {}'.format(color_var))
+            self.col_txt = style.RESET
+
+        # other properties
+        self.level = lev
+        self.p_thresh = p_threshold
+        self.col_txt = dict_col[color_var]
+        self.col_graph = color_var
 
 class table_ref:
     def __init__(self, file_summary):
@@ -104,56 +133,49 @@ def welch_test_all_var(df_a, df_b , filename_student_test = ''):
 
     return (df_result)
 
-class style():
-    '''define colors for output on terminal'''
+def sort_level_pval(df_result, pval_thresholds):
+    '''add column in df_results filled with level of p-value'''
 
-    BLACK = lambda x: '\033[30m' + str(x)
-    RED = lambda x: '\033[31m' + str(x)
-    GREEN = lambda x: '\033[32m' + str(x)
-    ORANGE = lambda x: '\033[93m' + str(x)
-    DARKRED = lambda x: '\u001b[41m' + str(x)
-    RESET = lambda x: '\033[0m' + str(x)
+    # define out the level of Warning
+    bins = [t.p_thresh for t in pval_thresholds]
+    bins = [0] + bins
+    pval_levels = [t.level for t in pval_thresholds]
 
-def print_warning_color(df_warning, lev_warn, col_warn):
+    # sort each variable into bins in function of its p-values
+    df_result['level'] = pd.cut(df_result['p-value [%]'], bins, labels=pval_levels)
+
+    return df_result
+
+def print_warning_color(df_result, pval_thresholds):
     ''' Print database df_warning with the color col_warn'''
-    df_print_warn = df_warning[df_warning.colors == lev_warn]
-    if df_print_warn.size > 0:
-        print(style.RESET('{} p-value'.format(lev_warn.upper())))
-        print(col_warn(df_print_warn))
-        print(style.RESET('\n'))
-    return
 
-def print_warnings_pvalues(df_result, p_treshold, new_exp):
-    ''' Print warnings for the variables which have a small p value '''
-    # csld : This function could be improved to make it more readable, but for the moment it makes teh job
+    # dataframe containing only variables a warning has to be printed
+    df_warning = df_result[df_result['level'] != pval_thresholds[-1].level]
 
-    # sort out the level of Warning
-    bins = [0, 1, 5, 10, 100]
-    pval_levels = ['very low', 'low','middle','high']
-    df_result['colors'] = pd.cut(df_result['p-value']*100., bins, labels=pval_levels)
-
-    # df_warning is the dataframe with only labels until high
-    df_warning = df_result[df_result['colors'] != pval_levels[-1]]
+    print('----------------------------------------------------------------------------------------------------------')
 
     if df_warning.size > 0:
-        print('----------------------------------------------------------------------------------------------------------')
-        print('WARNING1 :: the following variables gives low p-value in the comparison between the references and the new experiment {} :\n'.format(new_exp))
+
+        print('WARNING :: the following variables gives low p-value : \n')
 
         # for each level of warning, print the dataframe
-        for pval_lev in pval_levels:
-            if pval_lev == 'very low':
-                print_warning_color(df_warning, pval_lev, style.DARKRED)
-            elif pval_lev == 'low':
-                print_warning_color(df_warning, pval_lev, style.RED)
-            elif pval_lev == 'middle':
-                print_warning_color(df_warning, pval_lev, style.ORANGE)
+        for pval_lev in pval_thresholds[:-1]:
+
+            # dataframe containing only this level of warning
+            df_print_warn = df_warning[df_warning.level == pval_lev.level]
+
+            # print
+            if df_print_warn.size > 0:
+                print(style.RESET('{} p-value'.format(pval_lev.level.upper())))
+                print(pval_lev.col_txt(df_print_warn.drop('p-value',axis=1)))
+                print(style.RESET('\n'))
     else:
-        print(style.GREEN('The experiment is fine. No p-value under {}').format(bins[-2]))
+        print(style.GREEN('The experiment is fine. No p-value under {} % ').format(pval_thresholds[1].p_thresh))
         print(style.RESET('\n'))
-    print(style.RESET('----------------------------------------------------------------------------------------------------------'))
 
-    return (df_result)
+    print('----------------------------------------------------------------------------------------------------------')
 
+    return
 
 @begin.start
 
@@ -202,15 +224,26 @@ def run(p_ref_csv_files = paths.p_ref_csv_files,\
      # ----------------------------------------------------------------
      file_result_welche = os.path.join(paths.p_new_exp,'result_welchs_test.csv')
      df_result = welch_test_all_var(df_a=df_ref, df_b=df_new_exp,filename_student_test=file_result_welche)
+     df_result['p-value [%]'] = df_result['p-value']*100.
 
+     # sort variables from their p-value
+     pval_thresholds = [pval_thr_prop('very low', 1, 'DarkRed'), \
+                        pval_thr_prop('low', 5, 'Red'), \
+                        pval_thr_prop('middle', 10, 'Orange'), \
+                        pval_thr_prop('high', 100, 'Green')]
+     df_result = sort_level_pval(df_result, pval_thresholds)
 
      # print infos
      # -------------------------------------------------------------------
+     print ('Welch test on each variable for the the comparison between the references and the new experiment {}:'.format(new_exp))
+
      # print warnings for small p-values
-     print_warnings_pvalues(df_result,p_treshold=0.1,new_exp=new_exp)
+     print_warning_color(df_result, pval_thresholds)
+
+     # print info output file
      print('To see the whole table containing p-values, please the file:{}'.format(file_result_welche))
      print()
 
      # plot
      # -------------------------------------------------------------------
-     plt.plt_var(df_ref.append(df_new_exp,sort=False), new_exp, df_result)
+     plt.plt_var(df_ref.append(df_new_exp,sort=False), new_exp, df_result,)
