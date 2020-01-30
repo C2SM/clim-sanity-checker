@@ -59,11 +59,15 @@ def plt_var(df_tot,new_exp,df_result):
         # plot mean and std for each variable
         act_plt.errorbar(xaxis, df_tot_mean[var], yerr=df_tot_std[var],fmt='+k',ecolor = colors, elinewidth = thickness)
 
-        # plot average reference experiments (green band)
+        # plot average reference experiments (grey band)
         m_ref = df_tot[df_tot.exp != new_exp][var].mean()
         s_ref = df_tot[df_tot.exp != new_exp][var].std()
         act_plt.axhline(m_ref, c = 'k')
-        act_plt.fill_between([-1, max(xaxis)+1], m_ref-s_ref, m_ref+s_ref, facecolor='grey',alpha=0.4)
+        act_plt.fill_between([-1, max(xaxis)+1], m_ref-s_ref, m_ref+s_ref, facecolor='grey',alpha=0.6)
+
+        # plot color background
+        color_graph = df_result.loc[df_result.variable == var]['col-graph'].values[0]
+        act_plt.set_facecolor('{}'.format(color_graph))
 
         # manage labels/titel/etc
         # -------------------------------------------------------------------------------

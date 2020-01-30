@@ -7,6 +7,7 @@ from process_data import nc_to_df
 import begin
 import os
 import pandas as pd
+import numpy as np
 import glob
 from scipy import stats
 import plot_mean_std as plt
@@ -177,6 +178,14 @@ def print_warning_color(df_result, pval_thresholds):
 
     return
 
+def add_color_df_result(df_result,pval_thresholds):
+    '''Add the color for the graph to the df_result datframe'''
+
+    df_result['col-graph'] = np.nan
+    for pval_lev in pval_thresholds:
+        df_result.loc[df_result.level == pval_lev.level,'col-graph'] = pval_lev.col_graph
+
+    return df_result
 @begin.start
 
 def run(p_ref_csv_files = paths.p_ref_csv_files,\
@@ -246,4 +255,6 @@ def run(p_ref_csv_files = paths.p_ref_csv_files,\
 
      # plot
      # -------------------------------------------------------------------
+     # add color of the plot in the dataframe
+     df_result = add_color_df_result(df_result,pval_thresholds)
      plt.plt_var(df_ref.append(df_new_exp,sort=False), new_exp, df_result)
