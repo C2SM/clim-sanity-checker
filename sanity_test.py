@@ -192,7 +192,10 @@ def run(p_ref_csv_files = paths.p_ref_csv_files,\
         wrk_dir = paths.wrk_dir,
         p_new_exp = paths.p_new_exp):
 
+
      # go in workdir
+     if not os.path.isdir(wrk_dir):
+         os.mkdir(wrk_dir)
      if len(wrk_dir) > 0 :
          os.chdir((wrk_dir))
 
