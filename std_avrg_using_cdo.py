@@ -148,7 +148,7 @@ def run(exp,\
          
          # Merge all the monthlyfiles together 
          print('Copy and average {} files'.format(stream))
-         tmp_merged = 'tmp_{}.nc'.format(stream)
+         tmp_merged = 'tmp_{}_{}.nc'.format(exp,stream)
          cdo_cmd = 'cdo -copy {} {}'.format(' '.join(tmp_selvar_files), tmp_merged)
          shell_cmd (cdo_cmd)
 
@@ -165,6 +165,7 @@ def run(exp,\
 
          # cleaning
          [os.remove(f) for f in tmp_selvar_files]
+         os.remove(tmp_merged)
                
      # merge all stream files
      cdo_cmd = 'cdo merge {} {}'.format(' '.join(files_proceed),ofile_tot)
