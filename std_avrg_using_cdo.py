@@ -65,7 +65,25 @@ def shell_cmd(cmd,lowarn=False):
 def run(exp,\
         p_raw_files       = paths.p_raw_files,\
         p_time_serie      = paths.p_ref_time_serie,\
-        wrk_dir           = paths.wrk_dir):
+        wrk_dir           = paths.wrk_dir,\
+        spinup            = 3,\
+        f_vars_to_extract = './variables_to_process_echam.csv'):
+
+     '''
+       Perfom standard post-processing using cdo 
+       
+       arguments :
+           p_raw_files  : path to raw files
+           p_time_serie : path to write output file
+           wrk_dir      : path to working dir
+           spinup       : number of files no to consider (from begining of simulation)
+           f_vars_to_extract : csv file containg the varaibles to proceed
+
+       output: 
+           time serie of yearly global means for variables defined in f_vars_to_extract 
+
+      C. Siegenthaler, C2SM , 2020-06
+     '''
 
      # create output folders if not existing
      for fold in [p_time_serie,wrk_dir]:
@@ -73,7 +91,7 @@ def run(exp,\
              os.mkdir(fold)
 
      # get variables to process:
-     df_vars = pd.read_csv('./variables_to_process_echam.csv', sep=',')
+     df_vars = pd.read_csv(f_vars_to_extract, sep=',')
 
      # define expressions
      df_vars['expr'] = df_vars['var'] + '=' + df_vars['formula']
@@ -90,25 +108,28 @@ def run(exp,\
      files_proceed = []    # list of files where data are collected     
  
      # loop over output stream
-     for f in df_vars['file'].unique():
+     for stream in df_vars['file'].unique():
 
          # extract all lines with file f
-         df_file = df_vars[df_vars.file==f]     
+         df_file = df_vars[df_vars.file==stream]     
          
          # list all available files in p_raw_files/exp/Raw which have stream f
-         ifiles = glob.glob(os.path.join(p_raw_files,exp,'Raw','{}_*{}.nc'.format(exp,f)))
+         ifiles = glob.glob(os.path.join(p_raw_files,exp,'Raw','{}_*{}.nc'.format(exp,stream)))
 
          # sort files in chronoligcal order (this will be needed for doing yearmean properly)
          ifiles.sort()
 
+         # remove spin-up files
+         ifiles = ifiles[int(spinup):]
+
          # output file for stream f
-         ofile_f = '{}_{}.nc'.format(exp,f)
+         ofile_str = '{}_{}.nc'.format(exp,stream)
 
          # variables to extract form netcdf files (this is needed for optimization)
          variables = variables_to_extract(vars_in_expr=df_file.formula.values)
         
          # Extract variables needed from big files 
-         print('Extract variables from {} files:'.format(f))
+         print('Extract variables from {} files:'.format(stream))
          # initialization
          tmp_selvar_files = []       # list to store the ifiles
          for ifile in ifiles: 
@@ -126,25 +147,24 @@ def run(exp,\
                  files_error.append(ifile_bsn)
          
          # Merge all the monthlyfiles together 
-         print('Copy and average {} files'.format(f))
-         tmp_merged = 'tmp_{}.nc'.format(f)
+         print('Copy and average {} files'.format(stream))
+         tmp_merged = 'tmp_{}.nc'.format(stream)
          cdo_cmd = 'cdo -copy {} {}'.format(' '.join(tmp_selvar_files), tmp_merged)
          shell_cmd (cdo_cmd)
 
          # time average and compute needed variables
-         print('Compute final variables for file : {}'.format(f))
-         if os.path.isfile(ofile_f):
-             os.remove(ofile_f)
+         print('Compute final variables for file : {}'.format(stream))
+         if os.path.isfile(ofile_str):
+             os.remove(ofile_str)
          expr_str = ';'.join((df_file.expr.values))
-         cdo_cmd = 'cdo yearmean -fldmean -setctomiss,-9e+33 -expr,"{}" {} {}'.format(expr_str,tmp_merged,ofile_f) 
+         cdo_cmd = 'cdo yearmean -fldmean -setctomiss,-9e+33 -expr,"{}" {} {}'.format(expr_str,tmp_merged,ofile_str) 
          shell_cmd (cdo_cmd)
 
          # keep trace of output file per stream
-         files_proceed.append(ofile_f)
+         files_proceed.append(ofile_str)
 
          # cleaning
-
-
+         [os.remove(f) for f in tmp_selvar_files]
                
      # merge all stream files
      cdo_cmd = 'cdo merge {} {}'.format(' '.join(files_proceed),ofile_tot)
