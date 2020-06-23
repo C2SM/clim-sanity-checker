@@ -2,12 +2,12 @@
 # C.Siegenthaler, C2SM, 2010-06
 
 from config_path import paths_cscs as paths
-import begin
 import os
 import glob
 import pandas  as pd
 import subprocess
 import numpy as np
+import argparse
 
 def variables_to_extract(vars_in_expr):
     '''
@@ -59,10 +59,8 @@ def shell_cmd(cmd,lowarn=False):
 
     return(out_status,str(out))
 
-@begin.start
 
-
-def run(exp,\
+def main(exp,\
         p_raw_files       = paths.p_raw_files,\
         p_time_serie      = paths.p_ref_time_serie,\
         wrk_dir           = paths.wrk_dir,\
@@ -174,3 +172,38 @@ def run(exp,\
      # Finishing
      print('Finished : files with a problem: {}'.format(','.join(files_error)))
      print ('Script std_avrg_using_cdo.py finished. Output here : {}'.format(ofile_tot))
+
+     # return name of output file
+     return(ofile_tot)
+
+if __name__ == '__main__':
+
+    # parsing arguments
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--exp','-e', dest = 'exp',\
+                            help = 'exp to proceed')
+
+    parser.add_argument('--p_raw_files', dest = 'p_raw_files',\
+                            default = paths.p_raw_files,\
+                            help = 'path to raw files')
+
+    parser.add_argument('--p_time_serie', dest = 'p_time_serie',\
+                            default = paths.wrk_dir,\
+                            help = 'path to write output file')
+
+    parser.add_argument('--wrk_dir', dest = 'wrk_dir',\
+                            default = paths.wrk_dir,\
+                            help = 'workdir')
+    
+    parser.add_argument('--spinup', dest = 'spinup',\
+                            default = 3,\
+                            help = 'number of files no to consider (from begining of simulation)')    
+
+    parser.add_argument('--f_vars_to_extract', dest = 'f_vars_to_extract',\
+                            default = './variables_to_process_echam.csv',\
+                            help = 'csv file containg the varaibles to proceed')
+   
+    args = parser.parse_args()
+      
+    main(args.exp, args.p_raw_files, args.p_time_serie, args.wrk_dir, args.spinup, args.f_vars_to_extract) 
