@@ -8,6 +8,7 @@ import pandas  as pd
 import subprocess
 import numpy as np
 import argparse
+import shutil
 
 def variables_to_extract(vars_in_expr):
     '''
@@ -107,17 +108,38 @@ def main(exp,\
      files_error = []      # list files giving error
      files_proceed = []    # list of files where data are collected     
  
+     # if the folder containing the Raw files have been deleted 
+     p_raw_folder = os.path.join(p_raw_files,exp,'Raw')
+     if not os.path.isdir(p_raw_folder):
+         print('The folder containing the raw data has been deleted : {}'.format(p_raw_folder))
+         p_altern_timeser_fold = os.path.join(p_raw_files,exp,'Data')
+         time_series_altern_fold = glob.glob(os.path.join(p_altern_timeser_fold,'timeser_*.nc'))
+         if len(time_series_altern_fold) > 0:
+             print('The alternative folder has been found instead: {}'.format(p_altern_timeser_fold))
+             if len(time_series_altern_fold) == 1: index_ts = 0
+             if len(time_series_altern_fold) > 1:
+                for (i, item) in enumerate(time_series_altern_fold):
+                    print(i, item)
+                index_ts = int(input('Please type the index of the file to use (negative means none of them) : '))
+             # If index positive, copy the time serie and exit
+             if index_ts >= 0 :
+                print('File used : {}'.format(time_series_altern_fold[index_ts]))
+                shutil.copyfile(time_series_altern_fold[index_ts],ofile_tot)
+                return(ofile_tot)
+             
+
      # loop over output stream
      for stream in df_vars['file'].unique():
 
          # extract all lines with file f
-         df_file = df_vars[df_vars.file==stream]     
-         
+         df_file = df_vars[df_vars.file==stream]
+
          # list all available files in p_raw_files/exp/Raw which have stream f
-         final_p_raw_files = os.path.join(p_raw_files,exp,'Raw','*_*{}.nc'.format(stream))
+         final_p_raw_files = os.path.join(p_raw_folder,'*_*{}.nc'.format(stream))
          ifiles = glob.glob(final_p_raw_files)
          if len(ifiles)==0 and lverbose : 
              print('WARNING : no raw files found for stream {} at address : \n {}'.format(stream,final_p_raw_files))         
+             
 
          # sort files in chronoligcal order (this will be needed for doing yearmean properly)
          ifiles.sort()
