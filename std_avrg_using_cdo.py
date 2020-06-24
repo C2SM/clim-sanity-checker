@@ -65,7 +65,8 @@ def main(exp,\
         p_time_serie      = paths.p_ref_time_serie,\
         wrk_dir           = paths.wrk_dir,\
         spinup            = 3,\
-        f_vars_to_extract = './variables_to_process_echam.csv'):
+        f_vars_to_extract = os.path.join(paths.p_gen,'./variables_to_process_echam.csv'),\
+        lverbose          = False):
 
      '''
        Perfom standard post-processing using cdo 
@@ -76,7 +77,8 @@ def main(exp,\
            wrk_dir      : path to working dir
            spinup       : number of files no to consider (from begining of simulation)
            f_vars_to_extract : csv file containg the varaibles to proceed
-
+           lverbose     : high verbosity
+ 
        output: 
            time serie of yearly global means for variables defined in f_vars_to_extract 
 
@@ -112,7 +114,10 @@ def main(exp,\
          df_file = df_vars[df_vars.file==stream]     
          
          # list all available files in p_raw_files/exp/Raw which have stream f
-         ifiles = glob.glob(os.path.join(p_raw_files,exp,'Raw','{}_*{}.nc'.format(exp,stream)))
+         final_p_raw_files = os.path.join(p_raw_files,exp,'Raw','*_*{}.nc'.format(stream))
+         ifiles = glob.glob(final_p_raw_files)
+         if len(ifiles)==0 and lverbose : 
+             print('WARNING : no raw files found for stream {} at address : \n {}'.format(stream,final_p_raw_files))         
 
          # sort files in chronoligcal order (this will be needed for doing yearmean properly)
          ifiles.sort()
@@ -127,13 +132,15 @@ def main(exp,\
          variables = variables_to_extract(vars_in_expr=df_file.formula.values)
         
          # Extract variables needed from big files 
-         print('Extract variables from {} files:'.format(stream))
+         print('Extract variables from file: {}'.format(stream))
+         
          # initialization
          tmp_selvar_files = []       # list to store the ifiles
+         
          for ifile in ifiles: 
              # basename of ifile
              ifile_bsn = os.path.basename(ifile)
-             print(ifile_bsn)
+             if lverbose : print('File {}'.format(ifile_bsn))
              tmp_selvar_file = 'tmp_extract_{}'.format(ifile_bsn) 
              
              cdo_cmd = 'cdo selvar,{} {} {}'.format(','.join(variables),ifile,tmp_selvar_file) 
@@ -170,7 +177,7 @@ def main(exp,\
      shell_cmd(cdo_cmd)
 
      # Finishing
-     print('Finished : files with a problem: {}'.format(','.join(files_error)))
+     print('std_avrg_using_cdo.py : files with a problem: {}'.format(','.join(files_error)))
      print ('Script std_avrg_using_cdo.py finished. Output here : {}'.format(ofile_tot))
 
      # return name of output file
@@ -203,7 +210,9 @@ if __name__ == '__main__':
     parser.add_argument('--f_vars_to_extract', dest = 'f_vars_to_extract',\
                             default = './variables_to_process_echam.csv',\
                             help = 'csv file containg the varaibles to proceed')
-   
+
+    parser.add_argument('--lverbose', dest='lverbose', action='store_true') 
+  
     args = parser.parse_args()
       
-    main(args.exp, args.p_raw_files, args.p_time_serie, args.wrk_dir, args.spinup, args.f_vars_to_extract) 
+    main(args.exp, args.p_raw_files, args.p_time_serie, args.wrk_dir, args.spinup, args.f_vars_to_extract, args.lverbose) 

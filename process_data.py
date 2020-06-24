@@ -5,6 +5,7 @@ import pandas as pd
 import xarray as xr
 from config_path import paths_cscs as paths
 import std_avrg_using_cdo
+import argparse
 
 def ts_nc_to_df(exp, \
         filename, \
@@ -72,7 +73,8 @@ C. Siegenthaler, C2SM(ETHZ) , 2019-10
 def main(exp,\
        p_raw_files  = paths.p_raw_files,\
        p_output     = paths.p_ref_csv_files,\
-       lo_export_csvfile = False):
+       lo_export_csvfile = False,\
+       lverbose = False):
     '''
 Process exp 
     '''
@@ -83,14 +85,14 @@ Process exp
                              p_time_serie      = paths.wrk_dir,\
                              wrk_dir           = paths.wrk_dir,\
                              spinup            = 3,\
-                             f_vars_to_extract = './variables_to_process_echam.csv')
+                             f_vars_to_extract = os.path.join(paths.p_gen,'./variables_to_process_echam.csv'),\
+                             lverbose          = lverbose)
 
 # transforming netcdf timeseries into csv file
     ts_nc_to_df(exp, \
         filename     = timeser_filename,\
         p_output     = p_output,
         lo_export_csvfile = lo_export_csvfile)
-
     return()
 
 
@@ -114,6 +116,8 @@ if __name__ == '__main__':
                             default =  False,\
                             help = 'Should a csv file be created')
 
+    parser.add_argument('--lverbose', dest='lverbose', action='store_true')
+
     args = parser.parse_args()
 
-    main( parser.add_argument(args.exp, args.p_raw_files, args.p_output, args.lo_export_csvfile)
+    main(args.exp, args.p_raw_files, args.p_output, args.lo_export_csvfile, args.lverbose)
