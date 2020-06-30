@@ -1,7 +1,7 @@
 var,formula,file
-SW,srad0,echam
+SCRE,srad0,echam
 SCF,srad0-sraf0,echam
-LW ,trad0,echam
+LCRE,trad0,echam
 LCF,trad0-traf0,echam
 CFnet,srad0-sraf0+trad0-traf0,echam
 Fnet,srad0+trad0,echam
