@@ -23,8 +23,8 @@ Prcp_snow,aprs*8.64e4,echam
 Prcp_rain,(aprl+aprc-aprs)*8.64e4,echam
 Temp_srf,tsurf,echam
 Temp_2m,temp2,echam
-CDNC,CDNC_BURDEN*1.e-10,activ
-ICNC,ICNC_BURDEN*1.e-10,activ
+burden_CDNC,CDNC_BURDEN*1.e-10,activ
+burden_ICNC,ICNC_BURDEN*1.e-10,activ
 burden_SO4,burden_SO4,burden
 burden_BC,burden_BC,burden
 burden_OC,burden_OC,burden
