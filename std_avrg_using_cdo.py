@@ -124,7 +124,7 @@ def main(exp,\
              # If index positive, copy the time serie and exit
              if index_ts >= 0 :
                 print('File used : {}'.format(time_series_altern_fold[index_ts]))
-                shutil.copyfile(time_series_altern_fold[index_ts],ofile_tot)
+                cdo_cmd = 'cdo -chname,CDCN,CDNC_burden -chname,ICNC,burden_ICNC -chname,SCF,SCRE -chname,LCF,LCRE {} {}'.format(time_series_altern_fold[index_ts],ofile_tot)
                 return(ofile_tot)
              
 
@@ -136,7 +136,7 @@ def main(exp,\
 
          # list all available files in p_raw_files/exp/Raw which have stream f
          final_p_raw_files = os.path.join(p_raw_folder,'*_*{}.nc'.format(stream))
-         ifiles = glob.glob(final_p_raw_files)
+         ifiles = [fn for fn in glob.glob(final_p_raw_files) if not os.path.basename(fn).startswith('restart')]
          if len(ifiles)==0 and lverbose : 
              print('WARNING : no raw files found for stream {} at address : \n {}'.format(stream,final_p_raw_files))         
              
