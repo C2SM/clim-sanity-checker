@@ -1,14 +1,13 @@
 # Script to perform the standard time and spatial averaging
 # C.Siegenthaler, C2SM, 2010-06
 
-from config_path import paths_cscs as paths
+import paths                          # the file paths.py is written by paths_init.py
 import os
 import glob
 import pandas  as pd
 import subprocess
 import numpy as np
 import argparse
-import shutil
 
 def variables_to_extract(vars_in_expr):
     '''
@@ -47,7 +46,7 @@ def shell_cmd(cmd,lowarn=False):
     out_status = 0
     # check if cmd was executed properly
     if p.returncode != 0:
-        print("ERROR in the command:")
+        print("std_avrg_using_cdo.py (shell_cmd): ERROR in the command:")
         print(cmd)
         print ("Error returned:")
         print(err)
@@ -63,22 +62,24 @@ def shell_cmd(cmd,lowarn=False):
 
 def main(exp,\
         p_raw_files       = paths.p_raw_files,\
-        p_time_serie      = paths.p_ref_time_serie,\
-        wrk_dir           = paths.wrk_dir,\
+        p_time_serie      = paths.p_time_serie,\
+        wrk_dir           = paths.p_wrkdir,\
+        raw_f_subfold     = '',\
         spinup            = 3,\
-        f_vars_to_extract = os.path.join(paths.p_gen,'./variables_to_process_echam.csv'),\
+        f_vars_to_extract = 'vars_echam-hammoz.csv',\
         lverbose          = False):
 
      '''
        Perfom standard post-processing using cdo 
        
        arguments :
-           p_raw_files  : path to raw files
-           p_time_serie : path to write output file
-           wrk_dir      : path to working dir
-           spinup       : number of files no to consider (from begining of simulation)
-           f_vars_to_extract : csv file containg the varaibles to proceed
-           lverbose     : high verbosity
+           p_raw_files       : path to raw files
+           p_time_serie      : path to write output file (time series)
+           wrk_dir           : path to working dir
+           raw_f_subfold     : Subfolder where the raw data are (eg for echam, raw_f_subfold=Raw and the data are in [p_raw_files]/[exp]/Raw
+           spinup            : number of files no to consider (from begining of simulation)
+           f_vars_to_extract : csv file containg the variables to proceed
+           lverbose          : high verbosity
  
        output: 
            time serie of yearly global means for variables defined in f_vars_to_extract 
@@ -86,13 +87,19 @@ def main(exp,\
       C. Siegenthaler, C2SM , 2020-06
      '''
 
+     # check that exp is defined
+     if exp is None :
+         print('ERROR: std_avrg_using_cdo.py :Experiment is not defined.\n exp = {}\n EXITING'.format(exp))
+         exit()
+
      # create output folders if not existing
      for fold in [p_time_serie,wrk_dir]:
          if not os.path.isdir(fold):
              os.mkdir(fold)
 
      # get variables to process:
-     df_vars = pd.read_csv(f_vars_to_extract, sep=',')
+     full_p_f_vars = os.path.join(paths.p_f_vars_proc,f_vars_to_extract)
+     df_vars = pd.read_csv(full_p_f_vars, sep=',')
 
      # define expressions
      df_vars['expr'] = df_vars['var'] + '=' + df_vars['formula']
@@ -106,10 +113,11 @@ def main(exp,\
 
      # initialisation
      files_error = []      # list files giving error
-     files_proceed = []    # list of files where data are collected     
- 
-     # if the folder containing the Raw files have been deleted 
-     p_raw_folder = os.path.join(p_raw_files,exp,'Raw')
+     files_proceed = []    # list of files where data are collected 
+    
+     # Special case, echam specific : 
+     # if the folder containing the Raw files have been deleted, but folder 'Data' contains already global annual means 
+     p_raw_folder = os.path.join(p_raw_files,exp,raw_f_subfold)
      if not os.path.isdir(p_raw_folder):
          print('The folder containing the raw data has been deleted : {}'.format(p_raw_folder))
          p_altern_timeser_fold = os.path.join(p_raw_files,exp,'Data')
@@ -134,13 +142,12 @@ def main(exp,\
          # extract all lines with file f
          df_file = df_vars[df_vars.file==stream]
 
-         # list all available files in p_raw_files/exp/Raw which have stream f
-         final_p_raw_files = os.path.join(p_raw_folder,'*_*{}.nc'.format(stream))
-         ifiles = [fn for fn in glob.glob(final_p_raw_files) if not os.path.basename(fn).startswith('restart')]
-         if len(ifiles)==0 and lverbose : 
+         # list all available files in p_raw_files/exp/raw_f_subfold which have stream f
+         final_p_raw_files = os.path.join(p_raw_folder,'*_*{}*.nc'.format(stream))
+         ifiles = [fn for fn in glob.glob(final_p_raw_files) if 'restart' not in os.path.basename(fn)]
+         if len(ifiles)==0 : 
              print('WARNING : no raw files found for stream {} at address : \n {}'.format(stream,final_p_raw_files))         
              
-
          # sort files in chronoligcal order (this will be needed for doing yearmean properly)
          ifiles.sort()
 
@@ -173,7 +180,7 @@ def main(exp,\
              else:
                  files_error.append(ifile_bsn)
          
-         # Merge all the monthlyfiles together 
+         # Merge all the monthly files together 
          print('Copy and average {} files'.format(stream))
          tmp_merged = 'tmp_{}_{}.nc'.format(exp,stream)
          cdo_cmd = 'cdo -copy {} {}'.format(' '.join(tmp_selvar_files), tmp_merged)
@@ -184,7 +191,7 @@ def main(exp,\
          if os.path.isfile(ofile_str):
              os.remove(ofile_str)
          expr_str = ';'.join((df_file.expr.values))
-         cdo_cmd = 'cdo yearmean -fldmean -setctomiss,-9e+33 -expr,"{}" {} {}'.format(expr_str,tmp_merged,ofile_str) 
+         cdo_cmd = 'cdo -L yearmean -fldmean -setctomiss,-9e+33 -expr,"{}" {} {}'.format(expr_str,tmp_merged,ofile_str) 
          shell_cmd (cdo_cmd)
 
          # keep trace of output file per stream
@@ -211,6 +218,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--exp','-e', dest = 'exp',\
+                            required = True,\
                             help = 'exp to proceed')
 
     parser.add_argument('--p_raw_files', dest = 'p_raw_files',\
@@ -224,17 +232,28 @@ if __name__ == '__main__':
     parser.add_argument('--wrk_dir', dest = 'wrk_dir',\
                             default = paths.wrk_dir,\
                             help = 'workdir')
-    
+   
+    parser.add_argument('--raw_f_subfold',dest='raw_f_subfold',\
+                            default='',\
+                            help='Subfolder where the raw data are (eg for echam, "Raw"')
+ 
     parser.add_argument('--spinup', dest = 'spinup',\
                             default = 3,\
                             help = 'number of files no to consider (from begining of simulation)')    
 
     parser.add_argument('--f_vars_to_extract', dest = 'f_vars_to_extract',\
-                            default = './variables_to_process_echam.csv',\
-                            help = 'csv file containg the varaibles to proceed')
+                            default ='vars_echam-hammoz.csv',\
+                            help = 'csv file containg the variables to proceed')
 
     parser.add_argument('--lverbose', dest='lverbose', action='store_true') 
   
     args = parser.parse_args()
       
-    main(args.exp, args.p_raw_files, args.p_time_serie, args.wrk_dir, args.spinup, args.f_vars_to_extract, args.lverbose) 
+    main(args.exp,\
+         p_raw_files=args.p_raw_files,\
+         p_time_serie=args.p_time_serie,\
+         wrk_dir=args.wrk_dir,\
+         raw_f_subfold=args.raw_f_subfold,\
+         spinup=args.spinup,\
+         f_vars_to_extract=args.f_vars_to_extract,\
+         lbverbose=args.lverbose) 

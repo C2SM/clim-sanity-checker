@@ -1,9 +1,7 @@
 #
-import begin
 import os
-import pandas as pd
 import xarray as xr
-from config_path import paths_cscs as paths
+import paths                    # the file paths.py is written by paths_init.py
 import std_avrg_using_cdo
 import argparse
 
@@ -37,7 +35,7 @@ C. Siegenthaler, C2SM(ETHZ) , 2019-10
         print('No reading permissions for file {}'.format(filename))
         return None
     # print info
-    print('Processing file: {}'.format(filename))
+    print('ts_nc_to_df : Processing file : {}'.format(filename))
 
 
     # open dataset
@@ -72,8 +70,10 @@ C. Siegenthaler, C2SM(ETHZ) , 2019-10
 
 def main(exp,\
        p_raw_files  = paths.p_raw_files,\
-       p_output     = paths.p_ref_csv_files,\
-       lo_export_csvfile = False,\
+       p_output     = paths.p_out_new_exp,\
+       raw_f_subfold     = '',\
+       f_vars_to_extract = 'vars_echam-hammoz.csv',\
+       lo_export_csvfile = True,\
        lverbose = False):
     '''
 Process exp 
@@ -81,11 +81,9 @@ Process exp
 
 # transform Raw output into netcdf timeserie using cdo commands
     timeser_filename = std_avrg_using_cdo.main(exp,\
-                             p_raw_files       = p_raw_files,\
-                             p_time_serie      = paths.wrk_dir,\
-                             wrk_dir           = paths.wrk_dir,\
-                             spinup            = 3,\
-                             f_vars_to_extract = os.path.join(paths.p_gen,'./variables_to_process_echam.csv'),\
+                             p_raw_files       = p_raw_files, \
+                             raw_f_subfold     = raw_f_subfold,\
+                             f_vars_to_extract = f_vars_to_extract,\
                              lverbose          = lverbose)
 
 # transforming netcdf timeseries into csv file
@@ -102,22 +100,31 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--exp','-e', dest = 'exp',\
+                            required = True,\
                             help = 'exp to proceed')
-
     parser.add_argument('--p_raw_files', dest = 'p_raw_files',\
                             default = paths.p_raw_files,\
                             help = 'path to raw files')
-
-    parser.add_argument('--p_output', dest = 'p_output',\
-                            default = paths.p_ref_csv_files,\
-                            help = 'path to write csv file')
-
+    parser.add_argument('--p_output', dest='p_output', \
+                            default=paths.p_ref_csv_files, \
+                            help='path to write csv file')
+    parser.add_argument('--raw_f_subfold', dest= 'raw_f_subfold',\
+                            default='',\
+                            help='Subfolder where the raw data are ')
+    parser.add_argument('--f_vars_to_extract',dest='f_vars_to_extract',\
+                           default='vars_echam-hammoz.csv',\
+                           help = 'File containing variables to anaylse')
     parser.add_argument('--lo_export_csvfile', dest = 'lo_export_csvfile',\
-                            default =  False,\
+                            default =  True,\
                             help = 'Should a csv file be created')
 
     parser.add_argument('--lverbose', dest='lverbose', action='store_true')
 
     args = parser.parse_args()
 
-    main(args.exp, args.p_raw_files, args.p_output, args.lo_export_csvfile, args.lverbose)
+    main(exp=args.exp,\
+         p_raw_files=args.p_raw_files,\
+         p_output=args.p_output,\
+         f_vars_to_extract=args.f_vars_to_extract,\
+         lo_export_csvfile=args.lo_export_csvfile,\
+         lverbose=args.lverbose)
