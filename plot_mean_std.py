@@ -2,17 +2,31 @@
 import os
 import numpy as np
 import matplotlib
-matplotlib.use('Agg') #for saving plot
+matplotlib.use('Agg')                                 #for saving plot
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages  # multiple pages in pdf
-from config_path import paths_mac as paths
+import paths                                          # the file paths.py is written by paths_init.py
 
-def plt_var(df_tot,new_exp,df_result):
+def plt_var(df_tot, new_exp, df_result, p_out_new_exp = paths.p_out_new_exp):
+    '''
 
-    # simple statistics
-    df_tot_mean = df_tot.groupby(['exp'], as_index=False).mean()
+    :param df_tot:  Dataframe containing containing all global annula mean (reference & new_exp)
+    :param new_exp:   Name of the new exp which is analysed
+    :param df_result: Dataframe containing the results of the Welch's test
+    :param p_out_new_exp : path to save the figures
+    :return: Figure of the result
+    '''
+
+    # simple statistics, sort by exp (to be sure the order is the same in both dataframe
+    df_tot_mean = df_tot.groupby(['exp']).mean().sort_values(['exp']).reset_index()
     # for std, the panda std has a bug cf https://github.com/pandas-dev/pandas/issues/16799
-    df_tot_std = df_tot.groupby(['exp']).std().reset_index()
+    df_tot_std = df_tot.groupby(['exp']).std().sort_values(['exp']).reset_index()
+
+    # ensure new exp to be the last line
+    iexp = df_tot_mean.index[df_tot_mean['exp'] == new_exp]
+    new_order = df_tot_mean.index.drop(iexp).append(iexp)
+    df_tot_mean = df_tot_mean.reindex(new_order)
+    df_tot_std = df_tot_std.reindex(new_order)
 
     # number col/rows per page
     nlin = 3
@@ -20,7 +34,7 @@ def plt_var(df_tot,new_exp,df_result):
     nplot = nlin * ncol
 
     # needed for multipage pdf file
-    p_pdf_file_var = os.path.join(paths.p_new_exp,'plots_variables.pdf')
+    p_pdf_file_var = os.path.join(p_out_new_exp,'plots_variables.pdf')
     pp = PdfPages(p_pdf_file_var)
 
     # loop over all variables
@@ -63,7 +77,7 @@ def plt_var(df_tot,new_exp,df_result):
         m_ref = df_tot[df_tot.exp != new_exp][var].mean()
         s_ref = df_tot[df_tot.exp != new_exp][var].std()
         act_plt.axhline(m_ref, c = 'k')
-        act_plt.fill_between([-1, max(xaxis)+1], m_ref-s_ref, m_ref+s_ref, facecolor='grey',alpha=0.6)
+        act_plt.fill_between([-1, max(xaxis)-0.5], m_ref-s_ref, m_ref+s_ref, facecolor='grey',alpha=0.6)
 
         # plot color background
         color_graph = df_result.loc[df_result.variable == var]['col-graph'].values[0]

@@ -2,8 +2,8 @@
 # C.Siegenthaler, 2019
 
 
-from shell_interactions import sys_cmd
-from process_data import nc_to_df
+
+import process_data
 import begin
 import os
 import pandas as pd
@@ -11,7 +11,7 @@ import numpy as np
 import glob
 from scipy import stats
 import plot_mean_std as plt
-from config_path import paths_mac as paths
+import paths                 # the file paths.py is written by paths_init.py
 
 class style():
     '''define colors for output on terminal'''
@@ -188,33 +188,34 @@ def add_color_df_result(df_result,pval_thresholds):
     return df_result
 @begin.start
 
-def run(p_ref_csv_files = paths.p_ref_csv_files,\
-        wrk_dir = paths.wrk_dir,
-        p_new_exp = paths.p_new_exp):
+def run(new_exp = 'euler_REF_10y_i17_test', \
+        p_raw_files = paths.p_raw_files, \
+        raw_f_subfold = '',\
+        p_ref_csv_files = paths.p_ref_csv_files, \
+        wrk_dir = paths.p_wrkdir, \
+        p_out_new_exp = paths.p_out_new_exp,\
+        f_vars_to_extract = 'vars_echam-hammoz.csv'):
 
 
      # go in workdir
-     if not os.path.isdir(wrk_dir):
-         os.mkdir(wrk_dir)
-     if len(wrk_dir) > 0 :
-         os.chdir((wrk_dir))
-
+     os.chdir((wrk_dir))
 
      # new experiment to test
      # -------------------------------------------------------------
-     # name and path of experiment to test
-     new_exp = 'euler_REF_10y_i18'
 
      # get data new exp in dataframe
-     f_new_exp_csv = os.path.join(p_new_exp, 'glob_means_{}.csv'.format(new_exp))
+     f_new_exp_csv = os.path.join(p_out_new_exp, 'glob_means_{}.csv'.format(new_exp))
      if os.path.isfile(f_new_exp_csv):
          df_new_exp = pd.read_csv(f_new_exp_csv, sep=';')
      else:
-         # create dataframe out of netcdf timeserie
-         df_new_exp = nc_to_df(new_exp,\
-                               p_time_serie=p_new_exp,\
-                               p_output=p_new_exp,\
-                               lo_export_csvfile=True)
+         # create dataframe out of raw data
+         df_new_exp = process_data.main(new_exp, \
+                                p_raw_files=p_raw_files, \
+                                p_output=p_out_new_exp, \
+                                raw_f_subfold=raw_f_subfold,\
+                                f_vars_to_extract=f_vars_to_extract,\
+                                lo_export_csvfile=True,\
+                                lverbose=False)
      df_new_exp['exp'] = new_exp
 
      # data of reference pool
@@ -223,18 +224,24 @@ def run(p_ref_csv_files = paths.p_ref_csv_files,\
      # download files into p_csv_files
 
      # list of paths to all csv files
-     p_csv_files = glob.glob(os.path.join(p_ref_csv_files,'*csv'))
+     p_csv_files = glob.glob(os.path.join(p_ref_csv_files,'glob_means_*csv'))
+     if len(p_csv_files) == 0:
+         print('ERROR : santity_test.py : No reference files found in {}\n EXITING'.format(p_ref_csv_files))
+         exit()
 
      # create big dataframe containing all reference exps
      df_ref = create_big_df(list_csv_files=p_csv_files)
 
-     # cleaning (in case it ws not done properly in the transition from netcdf files into csv format
-     df_drop_inplace(df_ref, col_list = ['AOD', 'W_LARGE', 'W_TURB', 'u', 'v', 'omega', 'incl_cdnc', 'incl_icnc'])
-     df_drop_inplace(df_new_exp, col_list = ['AOD', 'W_LARGE', 'W_TURB', 'u', 'v', 'omega', 'incl_cdnc', 'incl_icnc'])
+     # Exclude all the non-desired variables (1) var from file, 2) exp)
+     full_p_f_vars = os.path.join(paths.p_f_vars_proc,f_vars_to_extract)
+     vars_to_analyse = list(pd.read_csv(full_p_f_vars, sep=',')['var'].values)
+     vars_to_analyse.append('exp')
+     df_ref = df_ref[vars_to_analyse]
+     df_new_exp = df_new_exp[vars_to_analyse]
 
      # Perform Welch's t-test for each variable
      # ----------------------------------------------------------------
-     file_result_welche = os.path.join(paths.p_new_exp,'result_welchs_test.csv')
+     file_result_welche = os.path.join(p_out_new_exp,'result_welchs_test_{}.csv'.format(new_exp))
      df_result = welch_test_all_var(df_a=df_ref, df_b=df_new_exp,filename_student_test=file_result_welche)
      df_result['p-value [%]'] = df_result['p-value']*100.
 

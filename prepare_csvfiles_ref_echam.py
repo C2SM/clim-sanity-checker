@@ -5,8 +5,7 @@
 import process_data
 import begin
 import os
-import pandas as pd
-from config_path import paths_cscs as paths
+import paths      # the file paths.py is written by paths_init.py
 
 @begin.start
 
@@ -43,6 +42,8 @@ def run(p_raw_files       = paths.p_raw_files, \
        df = process_data.main(exp, \
                      p_raw_files = p_raw_files, \
                      p_output = p_output_csv_file, \
+                     raw_f_subfold='Raw', \
+                     f_vars_to_extract='vars_echam-hammoz.csv',\
                      lo_export_csvfile = lo_export_csvfile,\
                      lverbose = lverbose)
        print('---------------------------------------------------------------------')
