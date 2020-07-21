@@ -107,7 +107,7 @@ if __name__ == '__main__':
     parser.add_argument('--p_time_serie',dest='p_time_serie', \
                         default=None, \
                         help='Path to annual global time series (default : ./wrkdir)')
-    parser.add_argument('-- p_f_vars_proc',dest='p_f_vars_proc',\
+    parser.add_argument('--p_f_vars_proc',dest='p_f_vars_proc',\
                         default=None, \
                         help='Path to file containnig variables to process (default : ./variables_to_process)')
     parser.add_argument('--file_paths', dest='file_paths', \
