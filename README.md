@@ -21,15 +21,18 @@ To use this tool for analysing the experiment called *my_exp*, please follow the
 * On Piz Daint (CSCS)
 You need to construct your personal python virtual environment based on cray-python PyExtensions modules, containing xarray and begins. 
 
- > module load cray-python PyExtensions
+ > module load cray-python/3.6.5.7 python_virtualenv/15.0.3
  
  > python -m venv --system-site-packages [name_you_choose_for_your_virtualenv]
  
  > source [name_you_choose_for_your_virtualenv]/bin/activate
  
- > pip install xarray
- 
- > pip install begins
+ > pip install --upgrade pip numpy 
+
+ > pip install pandas xarray netcdf4 begins matplotlib
+
+ The next time you log in on Piz Daint, you can get your environment back by typing:
+ > source [name_you_choose_for_your_virtualenv]/bin/activate
  
  More infos concerning python virtual environments at CSCS here : https://user.cscs.ch/tools/interactive/python/
  

@@ -87,11 +87,12 @@ Process exp
                              lverbose          = lverbose)
 
 # transforming netcdf timeseries into csv file
-    ts_nc_to_df(exp, \
+    df_data = ts_nc_to_df(exp, \
         filename     = timeser_filename,\
         p_output     = p_output,
         lo_export_csvfile = lo_export_csvfile)
-    return()
+
+    return(df_data)
 
 
 if __name__ == '__main__':
