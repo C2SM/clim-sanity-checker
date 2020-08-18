@@ -1,4 +1,4 @@
-# Script to test sanity of a n HAMMOZ run
+# Script to test sanity of a an HAMMOZ run
 # C.Siegenthaler, 2019
 
 
@@ -11,6 +11,7 @@ import numpy as np
 import glob
 from scipy import stats
 import plot_mean_std as plt
+import add_exp_to_ref
 import paths                 # the file paths.py is written by paths_init.py
 
 class style():
@@ -268,3 +269,17 @@ def run(new_exp = 'euler_REF_10y_i17_test', \
      # add color of the plot in the dataframe
      df_result = add_color_df_result(df_result,pval_thresholds)
      plt.plt_var(df_ref.append(df_new_exp,sort=False), new_exp, df_result)
+
+     # Add experiment to the reference pool
+     #--------------------------------------------------------------------
+     print('-------------------------------------------------------------------------')
+     asw = input('If you are happy with this experiment, do you want to add it to the reference pool ? (yes/[No])\n')
+     if (asw.strip().upper() == 'YES') or (asw.strip().upper() == 'Y'):
+         add_exp_to_ref.main(new_exp)
+     else:
+         print('The experiment {} is NOT added to the reference pool \n'.format(new_exp))
+         print('If you want to add the experiment {} to the reference pool later on, type the following line when you are ready:\n \
+                           add_exp_to_ref --new_exp {}'.format(new_exp, new_exp))
+         print('EXITING')
+
+     print ('### Sanity test finished ###')

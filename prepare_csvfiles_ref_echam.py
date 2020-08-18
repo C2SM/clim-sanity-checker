@@ -18,9 +18,6 @@ def run(p_raw_files       = paths.p_raw_files, \
     # get experiments to consider
     exps = os.listdir(p_raw_files)
 
-    # testing procedure -> euler_centos74_i17 is considered to be new exp
-    exps.remove('euler_REF_10y_i18')
-    
     # delete emi_inpout folder
     exps.remove('emi_input')
 

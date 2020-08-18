@@ -1,0 +1,3 @@
+Experiment name;Platform;OS;Compiler (with version);Optimisation level (-OX);-fast-transcendentals (y/n);-no-prec-sqrt (y/n);-no-prec-div (y/n);Date of experiment (month yyyy)
+amip_Daint_Cray_July20;CSCS Piz Daint;SUSE Linux Enterprise Server 15;cray/9.0.2;O2;n;n;n;July 2020
+amip_Euler_GCC_July20;Euler ETHZ;CentOS Linux 7 (Core);gcc/6.3.0;02;n;n;n;July 2020
