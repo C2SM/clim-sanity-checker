@@ -1,10 +1,8 @@
-|Experiment name|Platform|OS|Compiler|-O3|-fast-transcendentals|-no-prec-sqrt|-no-prec-div|Date of experiment|
-|daint_REF_10y|CSCS Piz Daint|SUSE Linux Enterprise Server 12 SP2|intel/17.0.4.196|y|y|y|y|December 2017|
-|daint_REF_10y_O2|CSCS Piz Daint|SUSE Linux Enterprise Server 12 SP2|intel/17.0.4.196|O2|n|n|n|December 2017|
-|mistral_REF_10y|Mistral1 DKRZ|Red Hat Enterprise Linux Server release 6.9 (Santiago)|intel/17.0.2|y|y|y|y|December 2017|
-|euler_REF_10y|Euler ETHZ|CentOS Linux release 7.3.1611 (Core)|intel/14.0.1|y|y|y|y|December 2017|
-|euler_REF_10y_i15|Euler ETHZ|CentOS Linux release 7.3.1611 (Core)|intel/15.0.0|y|y|y|y|December 2017|
-|euler_REF_10y_i17|Euler ETHZ|CentOS Linux release 7.3.1611 (Core)|intel/17.0.0.098|y|y|y|y|December 2017|
-|euler_REF_10y_i18|Euler ETHZ|CentOS Linux release 7.3.1611 (Core)|intel/18.0.0|y|y|y|y|December 2017|
-|aerosol_REF_10y|Aerosol ETHZ|Red Hat Enterprise Linux Server release 6.3 (Santiago)|intel/14.0.0|y|y|y|y|December 2017|
-|euler_centos74_i17|Euler ETHZ|CentOS Linux release 7.4.1708 (Core)|intel/17.0.0.098|y|y|y|y|January 2018|
+Experiment name;Platform;OS;Compiler (with version);Optimisation level (-OX);-fast-transcendentals (y/n);-no-prec-sqrt (y/n);-no-prec-div (y/n);Date of experiment (month yyyy)
+daint_REF_10y;CSCS Piz Daint;SUSE Linux Enterprise Server 12 SP2;intel/17.0.4.196;O3;y;y;y;December 2017
+mistral_REF_10y;Mistral1 DKRZ;Red Hat Enterprise Linux Server release 6.9 (Santiago);intel/17.0.2;O3;y;y;y;December 2017
+euler_REF_10y;Euler ETHZ;CentOS Linux release 7.3.1611 (Core);intel/14.0.1;O3;y;y;y;December 2017
+euler_REF_10y_i15;Euler ETHZ;CentOS Linux release 7.3.1611 (Core);intel/15.0.0;O3;y;y;y;December 2017
+euler_REF_10y_i17;Euler ETHZ;CentOS Linux release 7.3.1611 (Core);intel/17.0.0.098;O3;y;y;y;December 2017
+euler_REF_10y_i18;Euler ETHZ;CentOS Linux release 7.3.1611 (Core);intel/18.0.0;O3;y;y;y;December 2017
+aerosol_REF_10y;Aerosol ETHZ;Red Hat Enterprise Linux Server release 6.3 (Santiago);intel/14.0.0;O3;y;y;y;December 2017

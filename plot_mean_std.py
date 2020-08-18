@@ -34,7 +34,8 @@ def plt_var(df_tot, new_exp, df_result, p_out_new_exp = paths.p_out_new_exp):
     nplot = nlin * ncol
 
     # needed for multipage pdf file
-    p_pdf_file_var = os.path.join(p_out_new_exp,'plots_variables.pdf')
+    filename_mean_std_figures = 'mean_stdvar_vars_{}.pdf'.format((new_exp))
+    p_pdf_file_var = os.path.join(p_out_new_exp,filename_mean_std_figures)
     pp = PdfPages(p_pdf_file_var)
 
     # loop over all variables
@@ -103,5 +104,5 @@ def plt_var(df_tot, new_exp, df_result, p_out_new_exp = paths.p_out_new_exp):
     fig.savefig(pp, format='pdf')
     pp.close()
 
-    print('Detailed plots of mean and stanadrd deviation per variable can be found in the file {}'.format(p_pdf_file_var))
+    print('Detailed plots of mean and standard deviation per variable can be found in the file {}'.format(p_pdf_file_var))
 

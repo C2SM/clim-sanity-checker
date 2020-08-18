@@ -5,7 +5,7 @@ import paths                          # the file paths.py is written by paths_in
 import os
 import glob
 import pandas  as pd
-import subprocess
+import shell_utilities as su          # file shell_utilities.py part of the distribution
 import numpy as np
 import argparse
 
@@ -27,38 +27,7 @@ Return the list of variables to extract from the list of expressions which conta
         if len(v.strip('1234567890.'))>1: 
             variables.append(v)
     
-    return(variables) 
-
-def shell_cmd(cmd,lowarn=False):
-    """ send shell command through subprocess. and returns a string containing the cmd output
-        lowarn = True -> only a warning is written, no exit (Tu use with caution!!
-    """
-
-    # send cmd to be executed
-    p = subprocess.Popen(cmd, shell=True, \
-                         stdout = subprocess.PIPE, stderr = subprocess.PIPE)
-   # p.wait()
-
-    # gets the output of the cmd
-    out, err = p.communicate()
-
-    # initailisation output status
-    out_status = 0
-    # check if cmd was executed properly
-    if p.returncode != 0:
-        print("std_avrg_using_cdo.py (shell_cmd): ERROR in the command:")
-        print(cmd)
-        print ("Error returned:")
-        print(err)
-        if lowarn :
-            out_status = 1
-        else:
-            print("Exiting")
-            exit()
-
-
-    return(out_status,str(out))
-
+    return(variables)
 
 def main(exp,\
         p_raw_files       = paths.p_raw_files,\
@@ -119,11 +88,11 @@ def main(exp,\
      # if the folder containing the Raw files have been deleted, but folder 'Data' contains already global annual means 
      p_raw_folder = os.path.join(p_raw_files,exp,raw_f_subfold)
      if not os.path.isdir(p_raw_folder):
-         print('The folder containing the raw data has been deleted : {}'.format(p_raw_folder))
+         print('std_avrg_using_cdo.py : The folder containing the raw data has been deleted : {}'.format(p_raw_folder))
          p_altern_timeser_fold = os.path.join(p_raw_files,exp,'Data')
          time_series_altern_fold = glob.glob(os.path.join(p_altern_timeser_fold,'timeser_*.nc'))
          if len(time_series_altern_fold) > 0:
-             print('The alternative folder has been found instead: {}'.format(p_altern_timeser_fold))
+             print('std_avrg_using_cdo.py : The alternative folder has been found instead: {}'.format(p_altern_timeser_fold))
              if len(time_series_altern_fold) == 1: index_ts = 0
              if len(time_series_altern_fold) > 1:
                 for (i, item) in enumerate(time_series_altern_fold):
@@ -131,10 +100,13 @@ def main(exp,\
                 index_ts = int(input('Please type the index of the file to use (negative means none of them) : '))
              # If index positive, copy the time serie and exit
              if index_ts >= 0 :
-                print('File used : {}'.format(time_series_altern_fold[index_ts]))
+                print('std_avrg_using_cdo.py : File used : {}'.format(time_series_altern_fold[index_ts]))
                 cdo_cmd = 'cdo -chname,CDCN,CDNC_burden -chname,ICNC,burden_ICNC -chname,SCF,SCRE -chname,LCF,LCRE {} {}'.format(time_series_altern_fold[index_ts],ofile_tot)
+                su.shell_cmd (cdo_cmd,py_routine='std_avrg_using_cdo')
                 return(ofile_tot)
-             
+     else:
+         #print info
+         print ('std_avrg_using_cdo.py : Analyse files in : {}'.format(p_raw_folder))
 
      # loop over output stream
      for stream in df_vars['file'].unique():
@@ -143,8 +115,10 @@ def main(exp,\
          df_file = df_vars[df_vars.file==stream]
 
          # list all available files in p_raw_files/exp/raw_f_subfold which have stream f
+         # restart files and {}m.format(stream) e.g. echamm.nc files are not considered
          final_p_raw_files = os.path.join(p_raw_folder,'*_*{}*.nc'.format(stream))
-         ifiles = [fn for fn in glob.glob(final_p_raw_files) if 'restart' not in os.path.basename(fn)]
+         ifiles = [fn for fn in glob.glob(final_p_raw_files) \
+                   if sum([s in os.path.basename(fn) for s in ['stream','{}m'.format(stream)]])==0]
          if len(ifiles)==0 : 
              print('WARNING : no raw files found for stream {} at address : \n {}'.format(stream,final_p_raw_files))         
              
@@ -161,7 +135,7 @@ def main(exp,\
          variables = variables_to_extract(vars_in_expr=df_file.formula.values)
         
          # Extract variables needed from big files 
-         print('Extract variables from file: {}'.format(stream))
+         print('std_avrg_using_cdo.py : Extract variables from file: {}'.format(stream))
          
          # initialization
          tmp_selvar_files = []       # list to store the ifiles
@@ -173,7 +147,7 @@ def main(exp,\
              tmp_selvar_file = 'tmp_extract_{}'.format(ifile_bsn) 
              
              cdo_cmd = 'cdo selvar,{} {} {}'.format(','.join(variables),ifile,tmp_selvar_file) 
-             out_status,out_mess = shell_cmd(cdo_cmd,lowarn=True)
+             out_status,out_mess = su.shell_cmd(cdo_cmd,py_routine='std_avrg_using_cdo',lowarn=True)
              
              if out_status == 0:
                  tmp_selvar_files.append(tmp_selvar_file)
@@ -181,18 +155,18 @@ def main(exp,\
                  files_error.append(ifile_bsn)
          
          # Merge all the monthly files together 
-         print('Copy and average {} files'.format(stream))
+         print('std_avrg_using_cdo.py : Copy and average {} files'.format(stream))
          tmp_merged = 'tmp_{}_{}.nc'.format(exp,stream)
          cdo_cmd = 'cdo -copy {} {}'.format(' '.join(tmp_selvar_files), tmp_merged)
-         shell_cmd (cdo_cmd)
+         su.shell_cmd (cdo_cmd,py_routine='std_avrg_using_cdo')
 
          # time average and compute needed variables
-         print('Compute final variables for file : {}'.format(stream))
+         print('std_avrg_using_cdo.py : Compute final variables for file : {}'.format(stream))
          if os.path.isfile(ofile_str):
              os.remove(ofile_str)
          expr_str = ';'.join((df_file.expr.values))
          cdo_cmd = 'cdo -L yearmean -fldmean -setctomiss,-9e+33 -expr,"{}" {} {}'.format(expr_str,tmp_merged,ofile_str) 
-         shell_cmd (cdo_cmd)
+         su.shell_cmd (cdo_cmd,py_routine='std_avrg_using_cdo')
 
          # keep trace of output file per stream
          files_proceed.append(ofile_str)
@@ -203,7 +177,7 @@ def main(exp,\
                
      # merge all stream files
      cdo_cmd = 'cdo merge {} {}'.format(' '.join(files_proceed),ofile_tot)
-     shell_cmd(cdo_cmd)
+     su.shell_cmd(cdo_cmd,py_routine='std_avrg_using_cdo')
 
      # Finishing
      print('std_avrg_using_cdo.py : files with a problem: {}'.format(','.join(files_error)))
@@ -248,7 +222,7 @@ if __name__ == '__main__':
     parser.add_argument('--lverbose', dest='lverbose', action='store_true') 
   
     args = parser.parse_args()
-      
+    
     main(args.exp,\
          p_raw_files=args.p_raw_files,\
          p_time_serie=args.p_time_serie,\

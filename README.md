@@ -78,6 +78,8 @@ variables defined in the file variables_to_process (default is variables_to_proc
 - plot the mean and standard deviation of each reference and of the new 
 experiment in figure results_new_exp/plot_variables.
 
+- ask the user if he/she wants to add [my_exp] to the pool of reference files. 
+
 Most of the paths used in sanity_test.py are read by default from the file paths.py, 
 but the defaults paths can be overriden by passing them in arguments.
 For more infos about the argument list, please type python sanity_test.py -h
@@ -101,6 +103,8 @@ df_ref -> dataframe containing all reference annual global means
  3. perform Welch test on the dataframes (df_new_exp against df_ref)
 
  4. plot averages & std dev of the annual global means
+
+ 5. if wanted, add the global annual csv file to the reference files pool, and add the corresponding line in teh Exps_decription file.
 
 ## Description of functions
 
@@ -136,6 +140,21 @@ Sanity_test.py do the whole chain from raw output model to writting out the p-va
 If no csv file containig the annual global averages of the new exp [my_exp] is found, process_data.py is called to 
 create the latter csv file from all files contained in [p_raw_files]/[my_exp]/[raw_f_subfold] minus spinup (default = 3 files).
 
+#### add_exp_to_ref.py
+Ask the user if the global annual csv file should be added to the reference pool of annual global mean csv files.
+If yes:
+- the csv file is moved from p_out_new_exp into p_ref_csv_files,
+- a line is added in the Exp_description.csv file. The content of this line is given by the user.  
+
+#### plot_mean_std.py
+Create the pdf file results_new_exp/mean_stdvar_vars_[my_exp].pdf containing, for each variable, a figure of 
+mean and std_dev of the annual global means of each experiment.
+
+The horizontal line is the average of all annual global means from all the reference experiments 
+and the shaded rectangle the standard deviation of all annual global means from all the reference experiments.
+
+The figures are order by increasing p-value.
+
 #### prepare_csvfiles_ref_echam.py
 Script used to create at once all the csv reference files for echam-hammoz.
 This script is part of the distribution for documenational purpose. 
@@ -148,15 +167,6 @@ annual global means of the variables defined in file f_vars_to_extract.
 process_data.py first calls std_avrg_using_cdo (independent routine) and second ts_nc_to_df (located in process_data.py).
  1. std_avrg_using_cdo : raw model output -> netcdf time series of global means. 
  2. ts_nc_to_df : netcdf time series of global means -> csv file containing annual global means.
- 
-#### plot_mean_std.py
-Create the pdf file results_new_exp/plot_variables.pdf containing, for each variable, a figure of 
-mean and std_dev of the annual global means of each experiment.
-
-The horizontal line is the average of all annual global means from all the reference experiments 
-and the shaded rectangle the standard deviation of all annual global means from all the reference experiments.
-
-The figures are order by increasing p-value.
 
 #### std_avrg_using_cdo.py
 Computes yearly global means times series of the variables defined in file 

@@ -23,7 +23,7 @@ def write_path(p_raw_files, \
     p_raw_files     :  Path to the raw files of the experiments (mandatory)
     p_gen           :  General path (default : ./)
     p_scripts       :  Path to the scripts (default : ./)
-    p_ref_csv_files :  Path to the pool of csv files, one per reference experiment (default: ./ref)
+    p_ref_csv_files :  Path to the pool of csv files, one per reference experiment (default: ./ref/echam-hammoz)
     p_out_new_exp   :  Path to the folder for the result of new experiment to analyse (default : ./results_new_exp)
     p_wrkdir        :  Path to the working directory (default : ./wrkdir)
     p_time_serie    :  Path to annual global time series (default : ./wrkdir)

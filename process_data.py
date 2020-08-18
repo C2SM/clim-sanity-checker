@@ -29,10 +29,10 @@ C. Siegenthaler, C2SM(ETHZ) , 2019-10
 
     # print warnings
     if not os.path.isfile(filename): 
-        print('File {} does not exists'.format(filename))
+        print('ts_nc_to_df : File {} does not exists'.format(filename))
         return None
     if not os.access(filename,os.R_OK):
-        print('No reading permissions for file {}'.format(filename))
+        print('ts_nc_to_df : No reading permissions for file {}'.format(filename))
         return None
     # print info
     print('ts_nc_to_df : Processing file : {}'.format(filename))
@@ -62,7 +62,7 @@ C. Siegenthaler, C2SM(ETHZ) , 2019-10
         os.makedirs(p_output, exist_ok=True)
         csv_filename = os.path.join(p_output,'glob_means_{}.csv'.format(exp))
         df_data.to_csv(csv_filename, index = None, header=True, sep = ';')
-        print('CSV file can be found here: {}'.format(csv_filename))     
+        print('ts_nc_to_df : CSV file can be found here: {}'.format(csv_filename))     
     
 
     return(df_data)
@@ -125,6 +125,7 @@ if __name__ == '__main__':
 
     main(exp=args.exp,\
          p_raw_files=args.p_raw_files,\
+         raw_f_subfold=args.raw_f_subfold,\
          p_output=args.p_output,\
          f_vars_to_extract=args.f_vars_to_extract,\
          lo_export_csvfile=args.lo_export_csvfile,\
