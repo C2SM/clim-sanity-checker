@@ -55,7 +55,7 @@ You will have the possibility to define the variable *raw_f_subfold* in the sani
 
 For example, to analyse new experiments located in path_to_raw_files against echam-hammoz reference files:
 
-> python paths_init.py -pr path_to_raw_files
+> python paths_init.py -pr [path_to_raw_files]
 
  5. Analyse your experiment my_exp located in [path_to_raw_files]/[my_exp]/[raw_f_subfold]:
 Below the command line to analyse my_exp against the reference files located in 
@@ -68,9 +68,11 @@ This will
 - take the raw output of the simulation of my_exp in [p_raw_files]/[my_exp], 
 
 - create a netcdf file containing the timeseries of the annual global means of the 
-variables defined in the file variables_to_process (default is variables_to_process/vars_echam-hammoz.csv),
+variables defined in the file variables_to_process (default is variables_to_process/vars_echam-hammoz.csv):
+[p_time_serie]/timeser_[my_exp].nc
 
-- create a csv file containing these annual global means,
+- create a csv file containing the annual global means:
+[p_out_new_exp]/glob_means_[my_exp].csv
 
 - run the Welch's test against the reference experiments located in p_ref_csv_files 
 (default defined in in paths.py, it can be set also in the arguments)
@@ -92,7 +94,7 @@ It has been tested for icon files as well (contact Jonas Jucker for more infos))
 As already said above, the following steps are conducted in sanity_test.py :
  1. process_data.py : 
 
- raw files model output [p_raw_files]/[my_exp]/[raw_f_subfold]/* ----> results_new_exp/glob_means_[my_exp].csv 
+ raw files model output [p_raw_files]/[my_exp]/[raw_f_subfold]/* --> [p_time_serie]/timeser_[my_exp].nc --> [p_out_new_exp]/glob_means_[my_exp].csv 
  
  2. read/put all csv files (reference pool & my_exp) into dataframes.
 
