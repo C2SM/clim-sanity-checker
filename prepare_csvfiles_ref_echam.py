@@ -21,6 +21,9 @@ def run(p_raw_files       = paths.p_raw_files, \
     # delete emi_inpout folder
     exps.remove('emi_input')
 
+    # remove 3 exps that should not be in reference pool (communication David Neubauer, 2020-06-24)
+    [exps.remove(e) for e in ['euler_REF_10y_i14_branch','euler_REF_10y_i17_branch','sanity_plt_daint_201810']]
+ 
     # if output dir does not exist, create it
     if not os.path.isdir(p_output_csv_file):
         os.mkdir(p_output_csv_file)    
