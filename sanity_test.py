@@ -275,7 +275,9 @@ def run(new_exp = 'euler_REF_10y_i17_test', \
      print('-------------------------------------------------------------------------')
      asw = input('If you are happy with this experiment, do you want to add it to the reference pool ? (yes/[No])\n')
      if (asw.strip().upper() == 'YES') or (asw.strip().upper() == 'Y'):
-         add_exp_to_ref.main(new_exp)
+         add_exp_to_ref.main(new_exp, \
+                             p_out_new_exp = p_out_new_exp, \
+                             p_ref_csv_files = p_ref_csv_files)
      else:
          print('The experiment {} is NOT added to the reference pool \n'.format(new_exp))
          print('If you want to add the experiment {} to the reference pool later on, type the following line when you are ready:\n \
