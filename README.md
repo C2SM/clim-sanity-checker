@@ -91,6 +91,16 @@ For more infos about the argument list, please type python sanity_test.py -h
 This tool was written using ECHAM-HAMMOZ output files as model.
 It has been tested for icon files as well (contact Jonas Jucker for more infos)).
 
+## Variables to analyse
+The definition of the variables to analyse is done in the files located in the folder variables_to_process.
+I took the variables David Neubauer usually monitor with ECHAM-HAMMOZ.
+A definition of most of these variables can be found in 
+Neubauer et al.: The global aerosol–climate model ECHAM6.3–HAM2.3 – Part 2: Cloud evaluation, aerosol radiative forcing, and climate sensitivity, Geosci. Model Dev., 12, 3609–3639, https://doi.org/10.5194/gmd-12-3609-2019, 2019.
+
+The definition of the variables is quite flexible, 
+you can define your own variables to analyse either in exanding teh existing file, 
+or in creating your own file.
+ 
 ## Organisation of sanity_test.py
 As already said above, the following steps are conducted in sanity_test.py :
  1. process_data.py : 
@@ -193,16 +203,6 @@ Sylvaine Ferrachat (IAC, ETHZ) and tried to be generalized.
 The function has been written in a separate file because it is intended to either be used 
 independently of the sanity test tool to replace general_proc.sh, or be replaced by a newer general_proc.sh file by Sylvaine. 
 
-## Variables to analyse
-The definition of the variables to analyse is done in the files located in the folder variables_to_process.
-I took the variables David Neubauer usually monitor with ECHAM-HAMMOZ.
-A definition of most of these variables can be found in 
-Neubauer et al.: The global aerosol–climate model ECHAM6.3–HAM2.3 – Part 2: Cloud evaluation, aerosol radiative forcing, and climate sensitivity, Geosci. Model Dev., 12, 3609–3639, https://doi.org/10.5194/gmd-12-3609-2019, 2019.
-
-The definition of the variables is quite flexible, 
-you can define your own variables to analyse either in exanding teh existing file, 
-or in creating your own file.
- 
 ## Missing
 1. analyse of variables only over ocean
 2. correlation pattern check
