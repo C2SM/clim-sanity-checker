@@ -6,11 +6,12 @@ in order to identify systematic bias in the climatological results (due for exam
 This tool is based on a excel tool David Neubaurer (ETHZ) developed for ECHAM-HAMMOZ : 
 https://redmine.hammoz.ethz.ch/projects/hammoz/wiki/Reference_experiments_to_test_computing_platform 
 
-This 1st version has been written for analysing global annual means of a 10 years simulation of ECHAM-HAMMOZ. 
-However, a special attention was taken to stay generally enough so that it is easy to use the tool for other climate results.
+This 1st version has been written for analysing global annual means of a 10 years simulation of ECHAM-HAMMOZ.
+Jonas Jucker added support for analysing global annual means of an AMIP experiment run with ICON. 
+When constructing the tool, a special attention was taken to stay generally enough so that it is easy to use the tool for other climate results.
 
 For the moment, only the Welch's test ist performed on the annual global means of your experiment agains 
-the pool of refernce simulations. 
+the pool of reference simulations. 
 
 ## Quick start
 
@@ -44,7 +45,7 @@ You need to construct your personal python virtual environment based on cray-pyt
 
  3. Clone the sanity checker
 
-> git clone git@git.iac.ethz.ch:colombsi/clim-sanity-checker.git [folder_name_you_choose_for_clim_sanity_checker]
+> git clone git@github.com:C2SM-ICON/clim-sanity-checker.git [folder_name_you_choose_for_clim_sanity_checker]
 
 > cd [folder_name_you_choose_for_clim_sanity_checker]
 
@@ -87,7 +88,7 @@ but the defaults paths can be overriden by passing them in arguments.
 For more infos about the argument list, please type python sanity_test.py -h
 
 ## Models supported 
-This tool was written using echam-hammoz output files as model.
+This tool was written using ECHAM-HAMMOZ output files as model.
 It has been tested for icon files as well (contact Jonas Jucker for more infos)).
 
 ## Organisation of sanity_test.py
@@ -192,7 +193,17 @@ Sylvaine Ferrachat (IAC, ETHZ) and tried to be generalized.
 The function has been written in a separate file because it is intended to either be used 
 independently of the sanity test tool to replace general_proc.sh, or be replaced by a newer general_proc.sh file by Sylvaine. 
 
-## Missing
-correlation pattern check
+## Variables to analyse
+The definition of the variables to analyse is done in the files located in the folder variables_to_process.
+I took the variables David Neubauer usually monitor with ECHAM-HAMMOZ.
+A definition of most of these variables can be found in 
+Neubauer et al.: The global aerosol–climate model ECHAM6.3–HAM2.3 – Part 2: Cloud evaluation, aerosol radiative forcing, and climate sensitivity, Geosci. Model Dev., 12, 3609–3639, https://doi.org/10.5194/gmd-12-3609-2019, 2019.
 
-emission check
+The definition of the variables is quite flexible, 
+you can define your own variables to analyse either in exanding teh existing file, 
+or in creating your own file.
+ 
+## Missing
+1. analyse of variables only over ocean
+2. correlation pattern check
+3. emission check
