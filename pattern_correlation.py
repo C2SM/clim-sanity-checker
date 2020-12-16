@@ -55,13 +55,10 @@ def main(exp,\
 
       C. Siegenthaler, C2SM , 2020-06
      '''
-     if True:
-         print('debug exit')
-         return 'dummy'
 
      # check that exp is defined
      if exp is None :
-         print('ERROR: std_avrg_using_cdo.py :Experiment is not defined.\n exp = {}\n EXITING'.format(exp))
+         print('ERROR: pattern_correlation.py :Experiment is not defined.\n exp = {}\n EXITING'.format(exp))
          exit()
 
      # create output folders if not existing
@@ -81,7 +78,7 @@ def main(exp,\
          os.chdir((wrk_dir))
 
      # name of output file
-     ofile_tot = os.path.join(p_time_serie,'timeser_{}.nc'.format(exp))
+     ofile_tot = os.path.join(p_time_serie,'pattern_{}.nc'.format(exp))
 
      # initialisation
      files_error = []      # list files giving error
@@ -91,11 +88,11 @@ def main(exp,\
      # if the folder containing the Raw files have been deleted, but folder 'Data' contains already global annual means 
      p_raw_folder = os.path.join(p_raw_files,exp,raw_f_subfold)
      if not os.path.isdir(p_raw_folder):
-         print('std_avrg_using_cdo.py : The folder containing the raw data has been deleted : {}'.format(p_raw_folder))
+         print('pattern_correlation.py : The folder containing the raw data has been deleted : {}'.format(p_raw_folder))
          p_altern_timeser_fold = os.path.join(p_raw_files,exp,'Data')
          time_series_altern_fold = glob.glob(os.path.join(p_altern_timeser_fold,'timeser_*.nc'))
          if len(time_series_altern_fold) > 0:
-             print('std_avrg_using_cdo.py : The alternative folder has been found instead: {}'.format(p_altern_timeser_fold))
+             print('pattern_correlation.py : The alternative folder has been found instead: {}'.format(p_altern_timeser_fold))
              if len(time_series_altern_fold) == 1: index_ts = 0
              if len(time_series_altern_fold) > 1:
                 for (i, item) in enumerate(time_series_altern_fold):
@@ -103,13 +100,13 @@ def main(exp,\
                 index_ts = int(input('Please type the index of the file to use (negative means none of them) : '))
              # If index positive, copy the time serie and exit
              if index_ts >= 0 :
-                print('std_avrg_using_cdo.py : File used : {}'.format(time_series_altern_fold[index_ts]))
+                print('pattern_correlation.py : File used : {}'.format(time_series_altern_fold[index_ts]))
                 cdo_cmd = 'cdo -chname,CDCN,CDNC_burden -chname,ICNC,burden_ICNC -chname,SCF,SCRE -chname,LCF,LCRE {} {}'.format(time_series_altern_fold[index_ts],ofile_tot)
-                su.shell_cmd (cdo_cmd,py_routine='std_avrg_using_cdo')
+                su.shell_cmd (cdo_cmd,py_routine='pattern_correlation')
                 return(ofile_tot)
      else:
          #print info
-         print ('std_avrg_using_cdo.py : Analyse files in : {}'.format(p_raw_folder))
+         print ('pattern_correlation.py : Analyse files in : {}'.format(p_raw_folder))
 
      # loop over output stream
      for stream in df_vars['file'].unique():
@@ -138,7 +135,7 @@ def main(exp,\
          variables = variables_to_extract(vars_in_expr=df_file.formula.values)
         
          # Extract variables needed from big files 
-         print('std_avrg_using_cdo.py : Extract variables from file: {}'.format(stream))
+         print('pattern_correlation.py : Extract variables from file: {}'.format(stream))
          
          # initialization
          tmp_selvar_files = []       # list to store the ifiles
@@ -150,7 +147,7 @@ def main(exp,\
              tmp_selvar_file = 'tmp_extract_{}'.format(ifile_bsn) 
              
              cdo_cmd = 'cdo selvar,{} {} {}'.format(','.join(variables),ifile,tmp_selvar_file) 
-             out_status,out_mess = su.shell_cmd(cdo_cmd,py_routine='std_avrg_using_cdo',lowarn=True)
+             out_status,out_mess = su.shell_cmd(cdo_cmd,py_routine='pattern_correlation',lowarn=True)
              
              if out_status == 0:
                  tmp_selvar_files.append(tmp_selvar_file)
@@ -158,18 +155,18 @@ def main(exp,\
                  files_error.append(ifile_bsn)
          
          # Merge all the monthly files together 
-         print('std_avrg_using_cdo.py : Copy and average {} files'.format(stream))
+         print('pattern_correlation.py : Copy and average {} files'.format(stream))
          tmp_merged = 'tmp_{}_{}.nc'.format(exp,stream)
          cdo_cmd = 'cdo -copy {} {}'.format(' '.join(tmp_selvar_files), tmp_merged)
-         su.shell_cmd (cdo_cmd,py_routine='std_avrg_using_cdo')
+         su.shell_cmd (cdo_cmd,py_routine='pattern_correlation')
 
-         # time average and compute needed variables
-         print('std_avrg_using_cdo.py : Compute final variables for file : {}'.format(stream))
+         # pattern correlation test
          if os.path.isfile(ofile_str):
              os.remove(ofile_str)
          expr_str = ';'.join((df_file.expr.values))
-         cdo_cmd = 'cdo -L yearmean -fldmean -setctomiss,-9e+33 -expr,"{}" {} {}'.format(expr_str,tmp_merged,ofile_str) 
-         su.shell_cmd (cdo_cmd,py_routine='std_avrg_using_cdo')
+         print('pattern_correlation.py : Compute final variables for file : {}'.format(stream))
+         cdo_cmd = 'cdo -L timmean -yearmean -setctomiss,-9e+33 -expr,"{}" {} {}'.format(expr_str,tmp_merged,ofile_str) 
+         su.shell_cmd (cdo_cmd,py_routine='pattern_correlation')
 
          # keep trace of output file per stream
          files_proceed.append(ofile_str)
@@ -180,11 +177,11 @@ def main(exp,\
                
      # merge all stream files
      cdo_cmd = 'cdo merge {} {}'.format(' '.join(files_proceed),ofile_tot)
-     su.shell_cmd(cdo_cmd,py_routine='std_avrg_using_cdo')
+     su.shell_cmd(cdo_cmd,py_routine='pattern_correlation')
 
      # Finishing
-     print('std_avrg_using_cdo.py : files with a problem: {}'.format(','.join(files_error)))
-     print ('Script std_avrg_using_cdo.py finished. Output here : {}'.format(ofile_tot))
+     print('pattern_correlation.py : files with a problem: {}'.format(','.join(files_error)))
+     print ('Script pattern_correlation.py finished. Output here : {}'.format(ofile_tot))
 
      # return name of output file
      return(ofile_tot)
@@ -234,3 +231,4 @@ if __name__ == '__main__':
          spinup=args.spinup,\
          f_vars_to_extract=args.f_vars_to_extract,\
          lbverbose=args.lverbose) 
+

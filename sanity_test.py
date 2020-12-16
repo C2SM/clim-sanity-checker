@@ -195,7 +195,8 @@ def run(new_exp = 'euler_REF_10y_i17_test', \
         p_ref_csv_files = paths.p_ref_csv_files, \
         wrk_dir = paths.p_wrkdir, \
         p_out_new_exp = paths.p_out_new_exp,\
-        f_vars_to_extract = 'vars_echam-hammoz.csv'):
+        f_vars_to_extract = 'vars_echam-hammoz.csv', \
+        lverbose = False):
 
 
      # go in workdir
@@ -205,7 +206,9 @@ def run(new_exp = 'euler_REF_10y_i17_test', \
      # -------------------------------------------------------------
 
      # get data new exp in dataframe
-     f_new_exp_csv = os.path.join(p_out_new_exp, 'glob_means_{}.csv'.format(new_exp))
+     print('develop: manually change name of csv')
+     #f_new_exp_csv = os.path.join(p_out_new_exp, 'glob_means_{}.csv'.format(new_exp))
+     f_new_exp_csv = os.path.join(p_out_new_exp, 'glob_corr_{}.csv'.format(new_exp))
      if os.path.isfile(f_new_exp_csv):
          df_new_exp = pd.read_csv(f_new_exp_csv, sep=';')
      else:
@@ -216,8 +219,12 @@ def run(new_exp = 'euler_REF_10y_i17_test', \
                                 raw_f_subfold=raw_f_subfold,\
                                 f_vars_to_extract=f_vars_to_extract,\
                                 lo_export_csvfile=True,\
-                                lverbose=False)
+                                lverbose=lverbose)
      df_new_exp['exp'] = new_exp
+     print(df_new_exp)
+
+     ######################################################################
+     ############## PACK INTO PART FOR WELCHS-TEST #######################
 
      # data of reference pool
      # ---------------------------------------------------------------
@@ -269,6 +276,8 @@ def run(new_exp = 'euler_REF_10y_i17_test', \
      # add color of the plot in the dataframe
      df_result = add_color_df_result(df_result,pval_thresholds)
      plt.plt_var(df_ref.append(df_new_exp,sort=False), new_exp, df_result)
+
+     ############## END PACK INTO PART FOR WELCHS-TEST #######################
 
      # Add experiment to the reference pool
      #--------------------------------------------------------------------
