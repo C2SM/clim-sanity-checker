@@ -14,6 +14,30 @@ import plot_mean_std as plt
 import add_exp_to_ref
 import paths                 # the file paths.py is written by paths_init.py
 
+def determine_actions_for_data_processing(exp, p_out_exp,wrkdir,lforce):
+
+    actions = [True,True,True]
+
+    f_standard_proc_nc = os.path.join(wrkdir, 'standard_postproc_{}.nc'.format(exp))
+    f_timeser_csv = os.path.join(p_out_exp, 'glob_means_{}.csv'.format(exp))
+    f_pattern_csv = os.path.join(p_out_exp, 'fldcor_{}.csv'.format(exp))
+
+    if os.path.isfile(f_standard_proc_nc):
+     actions[0] = False
+
+    if os.path.isfile(f_timeser_csv):
+     actions[1] = False
+
+    if os.path.isfile(f_pattern_csv):
+     actions[2] = False
+
+    if lforce:
+        print('FORCE ALL')
+        for i in range(len(actions)):
+            actions[i] = True
+
+    return(actions)
+
 class style():
     '''define colors for output on terminal'''
 
@@ -190,107 +214,138 @@ def add_color_df_result(df_result,pval_thresholds):
 @begin.start
 
 def run(new_exp = 'euler_REF_10y_i17_test', \
-        p_raw_files = paths.p_raw_files, \
-        raw_f_subfold = '',\
-        p_ref_csv_files = paths.p_ref_csv_files, \
-        wrk_dir = paths.p_wrkdir, \
-        p_out_new_exp = paths.p_out_new_exp,\
-        f_vars_to_extract = 'vars_echam-hammoz.csv', \
-        lverbose = False):
+       p_raw_files = paths.p_raw_files, \
+       raw_f_subfold = '',\
+       p_ref_csv_files = paths.p_ref_csv_files, \
+       wrk_dir = paths.p_wrkdir, \
+       p_out_new_exp = paths.p_out_new_exp,\
+       f_vars_to_extract = 'vars_echam-hammoz.csv', \
+       lforce = False, \
+       lverbose = False):
 
 
-     # go in workdir
-     os.chdir((wrk_dir))
+    # go in workdir
+    os.chdir((wrk_dir))
 
-     # new experiment to test
-     # -------------------------------------------------------------
+    # new experiment to test
+    # -------------------------------------------------------------
 
-     # get data new exp in dataframe
-     print('develop: manually change name of csv')
-     #f_new_exp_csv = os.path.join(p_out_new_exp, 'glob_means_{}.csv'.format(new_exp))
-     f_new_exp_csv = os.path.join(p_out_new_exp, 'glob_corr_{}.csv'.format(new_exp))
-     if os.path.isfile(f_new_exp_csv):
-         df_new_exp = pd.read_csv(f_new_exp_csv, sep=';')
-     else:
-         # create dataframe out of raw data
-         df_new_exp = process_data.main(new_exp, \
-                                p_raw_files=p_raw_files, \
-                                p_output=p_out_new_exp, \
-                                raw_f_subfold=raw_f_subfold,\
-                                f_vars_to_extract=f_vars_to_extract,\
-                                lo_export_csvfile=True,\
-                                lverbose=lverbose)
-     df_new_exp['exp'] = new_exp
-     print(df_new_exp)
+    # get data new exp in dataframe
+    actions = determine_actions_for_data_processing(new_exp,p_out_new_exp,wrk_dir,lforce)
 
-     ######################################################################
-     ############## PACK INTO PART FOR WELCHS-TEST #######################
+    # create dataframe out of raw data
+    df_timeser_exp,df_pattern_exp  = process_data.main(new_exp, \
+                           p_raw_files=p_raw_files, \
+                           p_wrkdir=wrk_dir, \
+                           p_output=p_out_new_exp, \
+                           raw_f_subfold=raw_f_subfold,\
+                           f_vars_to_extract=f_vars_to_extract,\
+                           lo_export_csvfile=True,\
+                           lo_standard_proc=actions[0], \
+                           lo_timeser_proc=actions[1], \
+                           lo_pattern_proc=actions[2], \
+                           lo_verbose=lverbose)
 
-     # data of reference pool
-     # ---------------------------------------------------------------
-     # get experiments of reference folder (in the fiuture, download from Git)
-     # download files into p_csv_files
+    df_timeser_exp['exp'] = new_exp
+    df_pattern_exp['exp'] = new_exp
 
-     # list of paths to all csv files
-     p_csv_files = glob.glob(os.path.join(p_ref_csv_files,'glob_means_*csv'))
-     if len(p_csv_files) == 0:
-         print('ERROR : santity_test.py : No reference files found in {}\n EXITING'.format(p_ref_csv_files))
-         exit()
 
-     # create big dataframe containing all reference exps
-     df_ref = create_big_df(list_csv_files=p_csv_files)
+    # pattern correlation test
 
-     # Exclude all the non-desired variables (1) var from file, 2) exp)
-     full_p_f_vars = os.path.join(paths.p_f_vars_proc,f_vars_to_extract)
-     vars_to_analyse = list(pd.read_csv(full_p_f_vars, sep=',')['var'].values)
-     vars_to_analyse.append('exp')
-     df_ref = df_ref[vars_to_analyse]
-     df_new_exp = df_new_exp[vars_to_analyse]
+    print(df_pattern_exp)
+    df_test=pd.DataFrame()
+    df_test['variable'] = df_pattern_exp.columns.values
+    df_test['fldcor'] = df_pattern_exp.loc[0].values
+    df_test=df_test.drop(index=24)
+    import IPython; IPython.embed()
+    df_test.sort_values(by=['fldcor'], inplace=True) 
+    df_test['p-value [%]']=df_test['fldcor']
+    import IPython; IPython.embed()
 
-     # Perform Welch's t-test for each variable
-     # ----------------------------------------------------------------
-     file_result_welche = os.path.join(p_out_new_exp,'result_welchs_test_{}.csv'.format(new_exp))
-     df_result = welch_test_all_var(df_a=df_ref, df_b=df_new_exp,filename_student_test=file_result_welche)
-     df_result['p-value [%]'] = df_result['p-value']*100.
+    # sort variables from their p-value
+    rcor_thresholds = [pval_thr_prop('very low', 0.9, 'DarkRed'), \
+                       pval_thr_prop('low', 0.95, 'Red'), \
+                       pval_thr_prop('middle', 0.99, 'Orange'), \
+                       pval_thr_prop('high', 1, 'Green')]
+    df_result = sort_level_pval(df_pattern_exp, rcor_thresholds)
 
-     # sort variables from their p-value
-     pval_thresholds = [pval_thr_prop('very low', 1, 'DarkRed'), \
-                        pval_thr_prop('low', 5, 'Red'), \
-                        pval_thr_prop('middle', 10, 'Orange'), \
-                        pval_thr_prop('high', 100, 'Green')]
-     df_result = sort_level_pval(df_result, pval_thresholds)
+    #exit()
 
-     # print infos
-     # -------------------------------------------------------------------
-     print ('Welch test on each variable for the the comparison between the references and the new experiment {}:'.format(new_exp))
 
-     # print warnings for small p-values
-     print_warning_color(df_result, pval_thresholds)
 
-     # print info output file
-     print('To see the whole table containing p-values, please the file:{}'.format(file_result_welche))
-     print()
+    ######################################################################
+    ############## PACK INTO PART FOR WELCHS-TEST #######################
 
-     # plot
-     # -------------------------------------------------------------------
-     # add color of the plot in the dataframe
-     df_result = add_color_df_result(df_result,pval_thresholds)
-     plt.plt_var(df_ref.append(df_new_exp,sort=False), new_exp, df_result)
+    # data of reference pool
+    # ---------------------------------------------------------------
+    # get experiments of reference folder (in the fiuture, download from Git)
+    # download files into p_csv_files
 
-     ############## END PACK INTO PART FOR WELCHS-TEST #######################
+    # list of paths to all csv files
+    p_csv_files = glob.glob(os.path.join(p_ref_csv_files,'glob_means_*csv'))
+    if len(p_csv_files) == 0:
+        print('ERROR : santity_test.py : No reference files found in {}\n EXITING'.format(p_ref_csv_files))
+        exit()
 
-     # Add experiment to the reference pool
-     #--------------------------------------------------------------------
-     print('-------------------------------------------------------------------------')
-     asw = input('If you are happy with this experiment, do you want to add it to the reference pool ? (yes/[No])\n')
-     if (asw.strip().upper() == 'YES') or (asw.strip().upper() == 'Y'):
-         add_exp_to_ref.main(new_exp, \
-                             p_out_new_exp = p_out_new_exp, \
-                             p_ref_csv_files = p_ref_csv_files)
-     else:
-         print('The experiment {} is NOT added to the reference pool \n'.format(new_exp))
-         print('If you want to add the experiment {} to the reference pool later on, type the following line when you are ready:\n \
-                           add_exp_to_ref --new_exp {}'.format(new_exp, new_exp))
-         print('EXITING')
+    # create big dataframe containing all reference exps
+    df_ref = create_big_df(list_csv_files=p_csv_files)
 
-     print ('### Sanity test finished ###')
+    # Exclude all the non-desired variables (1) var from file, 2) exp)
+    full_p_f_vars = os.path.join(paths.p_f_vars_proc,f_vars_to_extract)
+    vars_to_analyse = list(pd.read_csv(full_p_f_vars, sep=',')['var'].values)
+    vars_to_analyse.append('exp')
+    df_ref = df_ref[vars_to_analyse]
+    df_new_exp = df_timeser_exp[vars_to_analyse]
+
+    # Perform Welch's t-test for each variable
+    # ----------------------------------------------------------------
+    file_result_welche = os.path.join(p_out_new_exp,'result_welchs_test_{}.csv'.format(new_exp))
+    df_result = welch_test_all_var(df_a=df_ref, df_b=df_new_exp,filename_student_test=file_result_welche)
+    df_result['p-value [%]'] = df_result['p-value']*100.
+    import IPython; IPython.embed()
+
+    # sort variables from their p-value
+    pval_thresholds = [pval_thr_prop('very low', 1, 'DarkRed'), \
+                       pval_thr_prop('low', 5, 'Red'), \
+                       pval_thr_prop('middle', 10, 'Orange'), \
+                       pval_thr_prop('high', 100, 'Green')]
+    df_result = sort_level_pval(df_result, pval_thresholds)
+
+    # print infos
+    # -------------------------------------------------------------------
+    print ('Welch test on each variable for the the comparison between the references and the new experiment {}:'.format(new_exp))
+
+    # print warnings for small p-values
+    print_warning_color(df_result, pval_thresholds)
+
+    # print info output file
+    print('To see the whole table containing p-values, please the file:{}'.format(file_result_welche))
+    print()
+
+    # plot
+    # -------------------------------------------------------------------
+    # add color of the plot in the dataframe
+    df_result = add_color_df_result(df_result,pval_thresholds)
+    plt.plt_var(df_ref.append(df_new_exp,sort=False), new_exp, df_result)
+
+    ############## END PACK INTO PART FOR WELCHS-TEST #######################
+
+    ######## PATTERN CORRELATION TEST 
+
+
+
+    # Add experiment to the reference pool
+    #--------------------------------------------------------------------
+    print('-------------------------------------------------------------------------')
+    asw = input('If you are happy with this experiment, do you want to add it to the reference pool ? (yes/[No])\n')
+    if (asw.strip().upper() == 'YES') or (asw.strip().upper() == 'Y'):
+        add_exp_to_ref.main(new_exp, \
+                            p_out_new_exp = p_out_new_exp, \
+                            p_ref_csv_files = p_ref_csv_files)
+    else:
+        print('The experiment {} is NOT added to the reference pool \n'.format(new_exp))
+        print('If you want to add the experiment {} to the reference pool later on, type the following line when you are ready:\n \
+                          add_exp_to_ref --new_exp {}'.format(new_exp, new_exp))
+        print('EXITING')
+
+    print ('### Sanity test finished ###')

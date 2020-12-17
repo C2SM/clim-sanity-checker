@@ -2,12 +2,14 @@
 import os
 import xarray as xr
 import paths                    # the file paths.py is written by paths_init.py
+import pandas as pd
 import std_avrg_using_cdo
 import pattern_correlation
 import argparse
 import shell_utilities as su          # file shell_utilities.py part of the distribution
+import standard_postproc
 
-def ts_nc_to_df(exp, \
+def timeser_proc_nc_to_df(exp, \
         filename, \
         p_output           = paths.p_ref_csv_files, \
         lo_export_csvfile = False):
@@ -25,23 +27,18 @@ lo_export_csvfile = if True, export the data into a csv file
 C. Siegenthaler, C2SM(ETHZ) , 2019-10
  
     '''
+
+    timeser_filename = 'timeser_{}.nc'.format(exp)
+    cdo_cmd = 'cdo -L yearmean -fldmean -vertsum {} {}'.format(filename,timeser_filename) 
+    su.shell_cmd (cdo_cmd,py_routine='std_avrg_using_cdo')
     
     # list of variables in the timeserie netcdf file to drop (not to put into the dataframe)
     vars_to_drop = []
 
-    # print warnings
-    if not os.path.isfile(filename): 
-        print('ts_nc_to_df : File {} does not exists'.format(filename))
-        return None
-    if not os.access(filename,os.R_OK):
-        print('ts_nc_to_df : No reading permissions for file {}'.format(filename))
-        return None
-    # print info
-    print('ts_nc_to_df : Processing file : {}'.format(filename))
-
+    print('timeser_nc_to_df : Processing file : {}'.format(timeser_filename))
 
     # open dataset
-    data = xr.open_dataset(filename)
+    data = xr.open_dataset(timeser_filename)
 
     # Delete variables
     # useless variable time_bnds
@@ -57,7 +54,7 @@ C. Siegenthaler, C2SM(ETHZ) , 2019-10
     # transforms into dataframe
     df_data = data.to_dataframe()
 
-    print('Finished ts_nc_to_df for file {}'.format(filename))
+    print('Finished ts_nc_to_df for file {}'.format(timeser_filename))
 
     # export in a file
     if lo_export_csvfile:
@@ -66,10 +63,9 @@ C. Siegenthaler, C2SM(ETHZ) , 2019-10
         df_data.to_csv(csv_filename, index = None, header=True, sep = ';')
         print('ts_nc_to_df : CSV file can be found here: {}'.format(csv_filename))     
     
-
     return(df_data)
 
-def field_correlation(exp, \
+def pattern_proc_nc_to_df(exp, \
         filename, \
         reference, \
         p_output           = paths.p_ref_csv_files, \
@@ -89,31 +85,22 @@ C. Siegenthaler, C2SM(ETHZ) , 2019-10
  
     '''
     
+    pattern_filename = 'pattern_{}.nc'.format(exp)
+    field_correlation_filename = 'fldcor_{}.nc'.format(exp)
+
+    cdo_cmd = 'cdo -L timmean -yearmean -vertsum {} {}'.format(filename,pattern_filename) 
+    su.shell_cmd (cdo_cmd,py_routine='pattern_correlation')
     # list of variables in the timeserie netcdf file to drop (not to put into the dataframe)
     vars_to_drop = []
 
-    # print warnings
-    if not os.path.isfile(filename): 
-        print('field_correlation : File {} does not exists'.format(filename))
-        return None
-
-    if not os.access(filename,os.R_OK):
-        print('field_correlation : No reading permissions for file {}'.format(filename))
-        return None
-
-    if not os.access(reference,os.R_OK):
-        print('field_correlation : No reading permissions for file {}'.format(reference))
-        return None
     # print info
-    print('field_correlation : Processing file : {}'.format(filename))
+    print('field_correlation : Processing file : {}'.format(pattern_filename))
 
-    ofile_str = 'field_corr.nc'
-    cdo_cmd = 'cdo fldcor {} {} {}'.format(filename,reference,ofile_str) 
+    cdo_cmd = 'cdo -L -sqr -fldcor {} {} {}'.format(pattern_filename,reference,field_correlation_filename) 
     su.shell_cmd (cdo_cmd,py_routine='pattern_correlation')
     
-    
     # open dataset
-    data = xr.open_dataset(ofile_str)
+    data = xr.open_dataset(field_correlation_filename)
 
     # Delete variables
     # useless variable time_bnds
@@ -126,12 +113,12 @@ C. Siegenthaler, C2SM(ETHZ) , 2019-10
     # transforms into dataframe
     df_data = data.to_dataframe()
 
-    print('Finished field_correlation for file {}'.format(filename))
+    print('Finished field_correlation for file {}'.format(field_correlation_filename))
 
     # export in a file
     if lo_export_csvfile:
         os.makedirs(p_output, exist_ok=True)
-        csv_filename = os.path.join(p_output,'glob_corr_{}.csv'.format(exp))
+        csv_filename = os.path.join(p_output,'fldcor_{}.csv'.format(exp))
         df_data.to_csv(csv_filename, index = None, header=True, sep = ';')
         print('field_correlation : CSV file can be found here: {}'.format(csv_filename))     
     
@@ -141,46 +128,51 @@ C. Siegenthaler, C2SM(ETHZ) , 2019-10
 
 def main(exp,\
        p_raw_files  = paths.p_raw_files,\
+       p_wrkdir = paths.p_wrkdir, \
        p_output     = paths.p_out_new_exp,\
        raw_f_subfold     = '',\
        f_vars_to_extract = 'vars_echam-hammoz.csv',\
        lo_export_csvfile = True,\
-       lverbose = False):
+       lo_standard_proc    = True, \
+       lo_timeser_proc     = True, \
+       lo_pattern_proc     = True, \
+       lo_verbose = False):
     '''
 Process exp 
     '''
 
-# transform Raw output into netcdf timeserie using cdo commands
-    timeser_filename = std_avrg_using_cdo.main(exp,\
-                             p_raw_files       = p_raw_files, \
-                             raw_f_subfold     = raw_f_subfold,\
-                             f_vars_to_extract = f_vars_to_extract,\
-                             lverbose          = lverbose)
+# apply standard postprocessing DONE
+    if lo_standard_proc:
+        processed_netcdf_filename = standard_postproc.main(exp, \
+                                        p_raw_files       = p_raw_files, \
+                                        raw_f_subfold     = raw_f_subfold,\
+                                        f_vars_to_extract = f_vars_to_extract,\
+                                        lverbose          = lo_verbose)
+    else:
+        processed_netcdf_filename = os.path.join(p_wrkdir, 'standard_postproc_{}.nc'.format(exp))
 
-# transforming netcdf timeseries into csv file
-    df_data = ts_nc_to_df(exp, \
-        filename     = timeser_filename,\
-        p_output     = p_output,
-        lo_export_csvfile = lo_export_csvfile)
+    if lo_timeser_proc:
+        # transforming netcdf timeseries into csv file
+        df_timeser = timeser_proc_nc_to_df(exp, \
+            filename     = processed_netcdf_filename,\
+            p_output     = p_output,
+            lo_export_csvfile = lo_export_csvfile)
+    else:
+        f_timeser_csv = os.path.join(p_output, 'glob_means_{}.csv'.format(exp))
+        df_timeser = pd.read_csv(f_timeser_csv, sep=';')
 
-    reference = '/scratch/juckerj/sanity_check/ref_data/yearmean_GCC.nc'
+    if lo_pattern_proc:
+        reference = '/scratch/juckerj/sanity_check/ref_data/yearmean_GCC.nc'
+        df_pattern = pattern_proc_nc_to_df(exp, \
+            filename     = processed_netcdf_filename,\
+            p_output     = p_output, \
+            reference = reference, \
+            lo_export_csvfile = lo_export_csvfile)
+    else:
+        f_pattern_csv = os.path.join(p_output, 'fldcor_{}.csv'.format(exp))
+        df_pattern = pd.read_csv(f_pattern_csv, sep=';')
 
-# transform Raw output into netcdf global mean using cdo commands
-    global_mean_filename = pattern_correlation.main(exp,\
-                             p_raw_files       = p_raw_files, \
-                             raw_f_subfold     = raw_f_subfold,\
-                             f_vars_to_extract = f_vars_to_extract,\
-                             lverbose          = lverbose)
-
-# field correlarion using CDO with a given refercence
-    df_corr = field_correlation(exp, \
-        filename     = global_mean_filename,\
-        p_output     = p_output, \
-        reference = reference, \
-        lo_export_csvfile = lo_export_csvfile)
-     
-
-    return(df_data,df_corr)
+    return(df_timeser,df_pattern)
 
 
 if __name__ == '__main__':
