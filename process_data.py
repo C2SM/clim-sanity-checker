@@ -162,7 +162,7 @@ Process exp
         df_timeser = pd.read_csv(f_timeser_csv, sep=';')
 
     if lo_pattern_proc:
-        reference = '/scratch/juckerj/sanity_check/ref_data/yearmean_GCC.nc'
+        reference = '/scratch/juckerj/sanity_check/ref_data/pattern_amip_Daint_PGI_Nov20.nc'
         df_pattern = pattern_proc_nc_to_df(exp, \
             filename     = processed_netcdf_filename,\
             p_output     = p_output, \

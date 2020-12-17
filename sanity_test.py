@@ -159,44 +159,45 @@ def welch_test_all_var(df_a, df_b , filename_student_test = ''):
 
     return (df_result)
 
-def sort_level_pval(df_result, pval_thresholds):
+def sort_level_metric(df_result, metric_thresholds, metric):
     '''add column in df_results filled with level of p-value'''
 
     # define out the level of Warning
-    bins = [t.p_thresh for t in pval_thresholds]
+    bins = [t.p_thresh for t in metric_thresholds]
     bins = [0] + bins
-    pval_levels = [t.level for t in pval_thresholds]
+    metric_levels = [t.level for t in metric_thresholds]
 
     # sort each variable into bins in function of its p-values
-    df_result['level'] = pd.cut(df_result['p-value [%]'], bins, labels=pval_levels)
+    df_result['level'] = pd.cut(df_result[metric], bins, labels=metric_levels)
 
     return df_result
 
-def print_warning_color(df_result, pval_thresholds):
+def print_warning_color(df_result, metric_thresholds, metric):
     ''' Print database df_warning with the color col_warn'''
 
     # dataframe containing only variables a warning has to be printed
-    df_warning = df_result[df_result['level'] != pval_thresholds[-1].level]
+    df_warning = df_result[df_result['level'] != metric_thresholds[-1].level]
 
     print('----------------------------------------------------------------------------------------------------------')
 
     if df_warning.size > 0:
 
-        print('WARNING :: the following variables gives low p-value : \n')
+        print('WARNING :: the following variables give low {} : \n'.format(metric))
 
         # for each level of warning, print the dataframe
-        for pval_lev in pval_thresholds[:-1]:
+        for metric_lev in metric_thresholds[:-1]:
 
             # dataframe containing only this level of warning
-            df_print_warn = df_warning[df_warning.level == pval_lev.level]
+            df_print_warn = df_warning[df_warning.level == metric_lev.level]
 
             # print
             if df_print_warn.size > 0:
-                print(style.RESET('{} p-value'.format(pval_lev.level.upper())))
-                print(pval_lev.col_txt(df_print_warn.drop('p-value',axis=1)))
+                print(style.RESET('{} {} '.format(metric_lev.level.upper(),metric)))
+                #print(metric_lev.col_txt(df_print_warn.drop(metric,axis=1)))
+                print(metric_lev.col_txt(df_print_warn))
                 print(style.RESET('\n'))
     else:
-        print(style.GREEN('The experiment is fine. No p-value under {} % ').format(pval_thresholds[1].p_thresh))
+        print(style.GREEN('The experiment is fine. No {} under {} ').format(metric,metric_thresholds[1].p_thresh))
         print(style.RESET('\n'))
 
     print('----------------------------------------------------------------------------------------------------------')
@@ -247,29 +248,28 @@ def run(new_exp = 'euler_REF_10y_i17_test', \
                            lo_verbose=lverbose)
 
     df_timeser_exp['exp'] = new_exp
-    df_pattern_exp['exp'] = new_exp
+    #df_pattern_exp['exp'] = new_exp
 
 
     # pattern correlation test
+    pattern_metric = 'R_squared'
+    full_p_f_vars = os.path.join(paths.p_f_vars_proc,f_vars_to_extract)
+    vars_to_analyse = list(pd.read_csv(full_p_f_vars, sep=',')['var'].values)
 
+    df_pattern_exp = df_pattern_exp[vars_to_analyse]
     print(df_pattern_exp)
-    df_test=pd.DataFrame()
+    df_test = pd.DataFrame()
     df_test['variable'] = df_pattern_exp.columns.values
-    df_test['fldcor'] = df_pattern_exp.loc[0].values
-    df_test=df_test.drop(index=24)
-    import IPython; IPython.embed()
-    df_test.sort_values(by=['fldcor'], inplace=True) 
-    df_test['p-value [%]']=df_test['fldcor']
-    import IPython; IPython.embed()
+    df_test[pattern_metric] = df_pattern_exp.loc[0].values
 
     # sort variables from their p-value
-    rcor_thresholds = [pval_thr_prop('very low', 0.9, 'DarkRed'), \
+    rcor_thresholds = [pval_thr_prop('very low', 0.94, 'DarkRed'), \
                        pval_thr_prop('low', 0.95, 'Red'), \
-                       pval_thr_prop('middle', 0.99, 'Orange'), \
+                       pval_thr_prop('middle', 0.97, 'Orange'), \
                        pval_thr_prop('high', 1, 'Green')]
-    df_result = sort_level_pval(df_pattern_exp, rcor_thresholds)
+    df_result_pattern = sort_level_metric(df_test, rcor_thresholds,pattern_metric)
+    print_warning_color(df_result_pattern, rcor_thresholds, pattern_metric)
 
-    #exit()
 
 
 
@@ -302,21 +302,21 @@ def run(new_exp = 'euler_REF_10y_i17_test', \
     file_result_welche = os.path.join(p_out_new_exp,'result_welchs_test_{}.csv'.format(new_exp))
     df_result = welch_test_all_var(df_a=df_ref, df_b=df_new_exp,filename_student_test=file_result_welche)
     df_result['p-value [%]'] = df_result['p-value']*100.
-    import IPython; IPython.embed()
 
+    timeser_metric = 'p-value [%]'
     # sort variables from their p-value
     pval_thresholds = [pval_thr_prop('very low', 1, 'DarkRed'), \
                        pval_thr_prop('low', 5, 'Red'), \
-                       pval_thr_prop('middle', 10, 'Orange'), \
+                       pval_thr_prop('middle', 99, 'Orange'), \
                        pval_thr_prop('high', 100, 'Green')]
-    df_result = sort_level_pval(df_result, pval_thresholds)
+    df_result = sort_level_metric(df_result, pval_thresholds,timeser_metric)
 
     # print infos
     # -------------------------------------------------------------------
     print ('Welch test on each variable for the the comparison between the references and the new experiment {}:'.format(new_exp))
 
     # print warnings for small p-values
-    print_warning_color(df_result, pval_thresholds)
+    print_warning_color(df_result, pval_thresholds,timeser_metric)
 
     # print info output file
     print('To see the whole table containing p-values, please the file:{}'.format(file_result_welche))
