@@ -235,7 +235,7 @@ def run(new_exp = 'euler_REF_10y_i17_test', \
     actions = determine_actions_for_data_processing(new_exp,p_out_new_exp,wrk_dir,lforce)
 
     # create dataframe out of raw data
-    df_timeser_exp,df_pattern_exp  = process_data.main(new_exp, \
+    df_timeser_exp,df_pattern_exp,df_emis  = process_data.main(new_exp, \
                            p_raw_files=p_raw_files, \
                            p_wrkdir=wrk_dir, \
                            p_output=p_out_new_exp, \
@@ -250,11 +250,39 @@ def run(new_exp = 'euler_REF_10y_i17_test', \
     df_timeser_exp['exp'] = new_exp
     #df_pattern_exp['exp'] = new_exp
 
+    full_p_f_vars = os.path.join(paths.p_f_vars_proc,f_vars_to_extract)
+    vars_to_analyse = list(pd.read_csv(full_p_f_vars, sep=',')['var'].values)
+
+    # list of paths to all csv files
+    p_csv_files = glob.glob(os.path.join(p_ref_csv_files,'emis_*csv'))
+    if len(p_csv_files) == 0:
+        print('ERROR : santity_test.py : No reference files found in {}\n EXITING'.format(p_ref_csv_files))
+        exit()
+    print(p_csv_files)
+
+    df_ref_emis = pd.read_csv(p_csv_files[0], sep=';')
+    df_ref_emis = df_ref_emis[vars_to_analyse]
+
+    print(df_ref_emis)
+    print(df_emis)
+    import IPython; IPython.embed()
+
+
+    df_emis['diff'] = df_emis - df_ref_emis
+
+    emis_metric = 'deviation'
+
+    # sort variables from their p-value
+    devi_thresholds = [pval_thr_prop('very low', 1e-15, 'DarkRed'), \
+                       pval_thr_prop('low', 1e-16, 'Red'), \
+                       pval_thr_prop('middle', 1e-17, 'Orange'), \
+                       pval_thr_prop('high', 0, 'Green')]
+    df_result_pattern = sort_level_metric(df_test, devi_thresholds,pattern_metric)
+    print_warning_color(df_result_pattern, rcor_thresholds, pattern_metric)
+
 
     # pattern correlation test
     pattern_metric = 'R_squared'
-    full_p_f_vars = os.path.join(paths.p_f_vars_proc,f_vars_to_extract)
-    vars_to_analyse = list(pd.read_csv(full_p_f_vars, sep=',')['var'].values)
 
     df_pattern_exp = df_pattern_exp[vars_to_analyse]
     print(df_pattern_exp)

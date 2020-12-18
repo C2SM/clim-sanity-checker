@@ -86,6 +86,7 @@ def main(exp,\
      # Special case, echam specific : 
      # if the folder containing the Raw files have been deleted, but folder 'Data' contains already global annual means 
      p_raw_folder = os.path.join(p_raw_files,exp,raw_f_subfold)
+     print(p_raw_folder)
      if not os.path.isdir(p_raw_folder):
          print('std_avrg_using_cdo.py : The folder containing the raw data has been deleted : {}'.format(p_raw_folder))
          p_altern_timeser_fold = os.path.join(p_raw_files,exp,'Data')
@@ -108,6 +109,8 @@ def main(exp,\
          print ('std_avrg_using_cdo.py : Analyse files in : {}'.format(p_raw_folder))
 
      # loop over output stream
+     print('debug emiss')
+     p_raw_folder = os.path.join(p_raw_folder,'Raw')
      for stream in df_vars['file'].unique():
 
          # extract all lines with file f

@@ -125,6 +125,59 @@ C. Siegenthaler, C2SM(ETHZ) , 2019-10
 
     return(df_data)
 
+def emis_proc_nc_to_df(exp, \
+        filename, \
+        p_output           = paths.p_ref_csv_files, \
+        lo_export_csvfile = False):
+
+    '''
+Read netcdf file containing global mean values timeseries and transforms into dataframe.
+
+
+Arguments: 
+exp               = experiment name
+filename          = filename (incl path) to the global means time series file
+p_output          = Definition folder where to write output files (only used if lo_export_csvfile = True)
+lo_export_csvfile = if True, export the data into a csv file
+
+C. Siegenthaler, C2SM(ETHZ) , 2019-10
+ 
+    '''
+    
+    emis_filename = 'emis_{}.nc'.format(exp)
+
+    cdo_cmd = 'cdo -L timmean -fldmean -vertsum {} {}'.format(filename,emis_filename) 
+    su.shell_cmd (cdo_cmd,py_routine='emis')
+    # list of variables in the timeserie netcdf file to drop (not to put into the dataframe)
+    vars_to_drop = []
+
+    # open dataset
+    data = xr.open_dataset(emis_filename)
+
+    # Delete variables
+    # useless variable time_bnds
+    if ('time_bnds' in data.keys()):
+        data = data.drop('time_bnds')
+    # 3D vars
+    if len(vars_to_drop)>0:
+        data.drop(labels = vars_to_drop)
+
+    # transforms into dataframe
+    df_data = data.to_dataframe()
+
+    print('Finished emis for file {}'.format(emis_filename))
+    print(df_data)
+
+    # export in a file
+    if lo_export_csvfile:
+        os.makedirs(p_output, exist_ok=True)
+        csv_filename = os.path.join(p_output,'emis_{}.csv'.format(exp))
+        df_data.to_csv(csv_filename, index = None, header=True, sep = ';')
+        print('emis : CSV file can be found here: {}'.format(csv_filename))     
+    
+
+    return(df_data)
+
 
 def main(exp,\
        p_raw_files  = paths.p_raw_files,\
@@ -135,6 +188,7 @@ def main(exp,\
        lo_export_csvfile = True,\
        lo_standard_proc    = True, \
        lo_timeser_proc     = True, \
+       lo_emis_proc = True, \
        lo_pattern_proc     = True, \
        lo_verbose = False):
     '''
@@ -161,6 +215,15 @@ Process exp
         f_timeser_csv = os.path.join(p_output, 'glob_means_{}.csv'.format(exp))
         df_timeser = pd.read_csv(f_timeser_csv, sep=';')
 
+    if lo_emis_proc:
+        df_emis = emis_proc_nc_to_df(exp, \
+            filename     = processed_netcdf_filename,\
+            p_output     = p_output, \
+            lo_export_csvfile = lo_export_csvfile)
+    else:
+        f_emis_csv = os.path.join(p_output, 'emis_{}.csv'.format(exp))
+        df_emis = pd.read_csv(f_emis_csv, sep=';')
+
     if lo_pattern_proc:
         reference = '/scratch/juckerj/sanity_check/ref_data/pattern_amip_Daint_PGI_Nov20.nc'
         df_pattern = pattern_proc_nc_to_df(exp, \
@@ -172,7 +235,7 @@ Process exp
         f_pattern_csv = os.path.join(p_output, 'fldcor_{}.csv'.format(exp))
         df_pattern = pd.read_csv(f_pattern_csv, sep=';')
 
-    return(df_timeser,df_pattern)
+    return(df_timeser,df_pattern,df_emis)
 
 
 if __name__ == '__main__':
