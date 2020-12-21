@@ -13,28 +13,43 @@ from scipy import stats
 import plot_mean_std as plt
 import add_exp_to_ref
 import paths                 # the file paths.py is written by paths_init.py
+import utils
+from utils import log
 
-def determine_actions_for_data_processing(exp, p_out_exp,wrkdir,lforce):
+def determine_actions_for_data_processing(exp, tests, p_out_exp,wrkdir,lforce):
 
-    actions = [True,True,True]
-
-    f_standard_proc_nc = os.path.join(wrkdir, 'standard_postproc_{}.nc'.format(exp))
-    f_timeser_csv = os.path.join(p_out_exp, 'glob_means_{}.csv'.format(exp))
-    f_pattern_csv = os.path.join(p_out_exp, 'fldcor_{}.csv'.format(exp))
-
-    if os.path.isfile(f_standard_proc_nc):
-     actions[0] = False
-
-    if os.path.isfile(f_timeser_csv):
-     actions[1] = False
-
-    if os.path.isfile(f_pattern_csv):
-     actions[2] = False
+    actions = {'standard_postproc': {},
+               'test_postproc': {}
+               }
 
     if lforce:
-        print('FORCE ALL')
-        for i in range(len(actions)):
-            actions[i] = True
+        log.warning('Redo all processing steps')
+
+    # see if standard-postprocessing is needed
+    for test in tests:
+
+        standard_proc_nc = os.path.join(wrkdir,'standard_postproc_{}_{}.nc'.format(test,exp))
+        if (not os.path.isfile(standard_proc_nc) or lforce):
+            action_needed = True
+        else:
+            action_needed = False
+
+        actions['standard_postproc'][test] = action_needed
+
+        test_specific_csv = os.path.join(p_out_exp,'test_postproc_{}_{}.csv'.format(test,exp))
+        print(test_specific_csv)
+
+        if (not os.path.isfile(test_specific_csv) or \
+            lforce or \
+            actions['standard_postproc'][test]):
+
+            action_needed = True
+        else:
+            action_needed = False
+
+        actions['test_postproc'][test] = action_needed
+
+    log.debug('actions: {}'.format(actions))
 
     return(actions)
 
@@ -221,31 +236,37 @@ def run(new_exp = 'euler_REF_10y_i17_test', \
        wrk_dir = paths.p_wrkdir, \
        p_out_new_exp = paths.p_out_new_exp,\
        f_vars_to_extract = 'vars_echam-hammoz.csv', \
+       tests = ['welchstest','pattern_correlation','emissions'], \
+       spinup = 3, \
        lforce = False, \
        lverbose = False):
 
+    # init logger
+    utils.init_logger(lverbose)
+
+    log.banner('Start sanity checker')
 
     # go in workdir
     os.chdir((wrk_dir))
+    log.info('Working directory is {}'.format(wrk_dir))
 
     # new experiment to test
     # -------------------------------------------------------------
 
     # get data new exp in dataframe
-    actions = determine_actions_for_data_processing(new_exp,p_out_new_exp,wrk_dir,lforce)
+    actions = determine_actions_for_data_processing(new_exp,tests,p_out_new_exp,wrk_dir,lforce)
 
     # create dataframe out of raw data
     df_timeser_exp,df_pattern_exp,df_emis  = process_data.main(new_exp, \
+                           actions, \
+                           tests, \
+                           spinup,\
                            p_raw_files=p_raw_files, \
                            p_wrkdir=wrk_dir, \
                            p_output=p_out_new_exp, \
                            raw_f_subfold=raw_f_subfold,\
                            f_vars_to_extract=f_vars_to_extract,\
-                           lo_export_csvfile=True,\
-                           lo_standard_proc=actions[0], \
-                           lo_timeser_proc=actions[1], \
-                           lo_pattern_proc=actions[2], \
-                           lo_verbose=lverbose)
+                           lo_export_csvfile=True)
 
     df_timeser_exp['exp'] = new_exp
     #df_pattern_exp['exp'] = new_exp
@@ -265,7 +286,6 @@ def run(new_exp = 'euler_REF_10y_i17_test', \
 
     print(df_ref_emis)
     print(df_emis)
-    import IPython; IPython.embed()
 
 
     df_emis['diff'] = df_emis - df_ref_emis

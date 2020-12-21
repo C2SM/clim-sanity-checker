@@ -8,6 +8,8 @@ import pattern_correlation
 import argparse
 import shell_utilities as su          # file shell_utilities.py part of the distribution
 import standard_postproc
+from utils import log
+import utils
 
 def timeser_proc_nc_to_df(exp, \
         filename, \
@@ -28,14 +30,15 @@ C. Siegenthaler, C2SM(ETHZ) , 2019-10
  
     '''
 
-    timeser_filename = 'timeser_{}.nc'.format(exp)
+    test = 'welchstest'
+    timeser_filename = 'test_postproc_{}_{}.nc'.format(test,exp)
     cdo_cmd = 'cdo -L yearmean -fldmean -vertsum {} {}'.format(filename,timeser_filename) 
-    su.shell_cmd (cdo_cmd,py_routine='std_avrg_using_cdo')
+    su.shell_cmd (cdo_cmd,py_routine=__name__)
     
     # list of variables in the timeserie netcdf file to drop (not to put into the dataframe)
     vars_to_drop = []
 
-    print('timeser_nc_to_df : Processing file : {}'.format(timeser_filename))
+    log.info('Processing netCDF: {}'.format(timeser_filename))
 
     # open dataset
     data = xr.open_dataset(timeser_filename)
@@ -54,14 +57,13 @@ C. Siegenthaler, C2SM(ETHZ) , 2019-10
     # transforms into dataframe
     df_data = data.to_dataframe()
 
-    print('Finished ts_nc_to_df for file {}'.format(timeser_filename))
+    log.info('Finished {} for file {}'.format(__name__,timeser_filename))
 
     # export in a file
-    if lo_export_csvfile:
-        os.makedirs(p_output, exist_ok=True)
-        csv_filename = os.path.join(p_output,'glob_means_{}.csv'.format(exp))
-        df_data.to_csv(csv_filename, index = None, header=True, sep = ';')
-        print('ts_nc_to_df : CSV file can be found here: {}'.format(csv_filename))     
+    os.makedirs(p_output, exist_ok=True)
+    csv_filename = os.path.join(p_output,'test_postproc_{}_{}.csv'.format(test,exp))
+    df_data.to_csv(csv_filename, index = None, header=True, sep = ';')
+    log.info('CSV file can be found here: {}'.format(csv_filename))     
     
     return(df_data)
 
@@ -85,19 +87,21 @@ C. Siegenthaler, C2SM(ETHZ) , 2019-10
  
     '''
     
-    pattern_filename = 'pattern_{}.nc'.format(exp)
-    field_correlation_filename = 'fldcor_{}.nc'.format(exp)
+    test = 'pattern_correlation'
+    pattern_filename = 'test_postproc_intermediate_{}_{}.nc'.format(test,exp)
+
+    field_correlation_filename = 'test_proc_{}_{}.nc'.format(test,exp)
 
     cdo_cmd = 'cdo -L timmean -yearmean -vertsum {} {}'.format(filename,pattern_filename) 
-    su.shell_cmd (cdo_cmd,py_routine='pattern_correlation')
+    su.shell_cmd (cdo_cmd,py_routine=__name__)
     # list of variables in the timeserie netcdf file to drop (not to put into the dataframe)
     vars_to_drop = []
 
     # print info
-    print('field_correlation : Processing file : {}'.format(pattern_filename))
+    log.info('Compute field-correlation between {} and {} (reference)'.format(pattern_filename,reference))
 
     cdo_cmd = 'cdo -L -sqr -fldcor {} {} {}'.format(pattern_filename,reference,field_correlation_filename) 
-    su.shell_cmd (cdo_cmd,py_routine='pattern_correlation')
+    su.shell_cmd (cdo_cmd,py_routine=__name__)
     
     # open dataset
     data = xr.open_dataset(field_correlation_filename)
@@ -115,13 +119,10 @@ C. Siegenthaler, C2SM(ETHZ) , 2019-10
 
     print('Finished field_correlation for file {}'.format(field_correlation_filename))
 
-    # export in a file
-    if lo_export_csvfile:
-        os.makedirs(p_output, exist_ok=True)
-        csv_filename = os.path.join(p_output,'fldcor_{}.csv'.format(exp))
-        df_data.to_csv(csv_filename, index = None, header=True, sep = ';')
-        print('field_correlation : CSV file can be found here: {}'.format(csv_filename))     
-    
+    os.makedirs(p_output, exist_ok=True)
+    csv_filename = os.path.join(p_output,'test_postproc_{}_{}.csv'.format(test,exp))
+    df_data.to_csv(csv_filename, index = None, header=True, sep = ';')
+    log.info('CSV file can be found here: {}'.format(csv_filename))     
 
     return(df_data)
 
@@ -144,12 +145,15 @@ C. Siegenthaler, C2SM(ETHZ) , 2019-10
  
     '''
     
-    emis_filename = 'emis_{}.nc'.format(exp)
+    test = 'emissions'
+    emis_filename = 'test_postproc_{}_{}.nc'.format(test,exp)
 
     cdo_cmd = 'cdo -L timmean -fldmean -vertsum {} {}'.format(filename,emis_filename) 
-    su.shell_cmd (cdo_cmd,py_routine='emis')
+    su.shell_cmd (cdo_cmd,py_routine=__name__)
     # list of variables in the timeserie netcdf file to drop (not to put into the dataframe)
     vars_to_drop = []
+
+    log.info('Processing netCDF: {}'.format(emis_filename))
 
     # open dataset
     data = xr.open_dataset(emis_filename)
@@ -165,75 +169,101 @@ C. Siegenthaler, C2SM(ETHZ) , 2019-10
     # transforms into dataframe
     df_data = data.to_dataframe()
 
-    print('Finished emis for file {}'.format(emis_filename))
-    print(df_data)
+    log.info('Finished {} for file {}'.format(__name__,emis_filename))
 
     # export in a file
-    if lo_export_csvfile:
-        os.makedirs(p_output, exist_ok=True)
-        csv_filename = os.path.join(p_output,'emis_{}.csv'.format(exp))
-        df_data.to_csv(csv_filename, index = None, header=True, sep = ';')
-        print('emis : CSV file can be found here: {}'.format(csv_filename))     
+    os.makedirs(p_output, exist_ok=True)
+    csv_filename = os.path.join(p_output,'test_postproc_{}_{}.csv'.format(test,exp))
+    df_data.to_csv(csv_filename, index = None, header=True, sep = ';')
+    log.info('CSV file can be found here: {}'.format(csv_filename))     
     
 
     return(df_data)
 
 
 def main(exp,\
-       p_raw_files  = paths.p_raw_files,\
-       p_wrkdir = paths.p_wrkdir, \
-       p_output     = paths.p_out_new_exp,\
-       raw_f_subfold     = '',\
-       f_vars_to_extract = 'vars_echam-hammoz.csv',\
-       lo_export_csvfile = True,\
-       lo_standard_proc    = True, \
-       lo_timeser_proc     = True, \
-       lo_emis_proc = True, \
-       lo_pattern_proc     = True, \
-       lo_verbose = False):
+         actions, \
+         tests,\
+         spinup,\
+         p_raw_files  = paths.p_raw_files,\
+         p_wrkdir = paths.p_wrkdir, \
+         p_output     = paths.p_out_new_exp,\
+         raw_f_subfold     = '',\
+         f_vars_to_extract = 'vars_echam-hammoz.csv',
+         lo_export_csvfile = True ):
+
     '''
 Process exp 
     '''
-
+    log.banner('Start standard-postprocessing')
 # apply standard postprocessing DONE
-    if lo_standard_proc:
-        processed_netcdf_filename = standard_postproc.main(exp, \
+    processed_netcdf_filename = {}
+    for test in tests:
+        if (actions['standard_postproc'][test]): 
+            processed_netcdf_filename[test] = standard_postproc.main(exp, \
+                                        spinup, \
                                         p_raw_files       = p_raw_files, \
                                         raw_f_subfold     = raw_f_subfold,\
                                         f_vars_to_extract = f_vars_to_extract,\
-                                        lverbose          = lo_verbose)
-    else:
-        processed_netcdf_filename = os.path.join(p_wrkdir, 'standard_postproc_{}.nc'.format(exp))
+                                        test = test)
+        else:
+            log.info('Data already processed for test {}'.format(test))
+            processed_netcdf_filename[test] = utils.clean_path(p_wrkdir, 'standard_postproc_{}_{}.nc'.format(test,exp))
 
-    if lo_timeser_proc:
-        # transforming netcdf timeseries into csv file
-        df_timeser = timeser_proc_nc_to_df(exp, \
-            filename     = processed_netcdf_filename,\
-            p_output     = p_output,
-            lo_export_csvfile = lo_export_csvfile)
-    else:
-        f_timeser_csv = os.path.join(p_output, 'glob_means_{}.csv'.format(exp))
-        df_timeser = pd.read_csv(f_timeser_csv, sep=';')
+    log.banner('End standard-postprocessing')
 
-    if lo_emis_proc:
-        df_emis = emis_proc_nc_to_df(exp, \
-            filename     = processed_netcdf_filename,\
-            p_output     = p_output, \
-            lo_export_csvfile = lo_export_csvfile)
-    else:
-        f_emis_csv = os.path.join(p_output, 'emis_{}.csv'.format(exp))
-        df_emis = pd.read_csv(f_emis_csv, sep=';')
+    log.banner('Start conversion from NetCDF to dataframe')
 
-    if lo_pattern_proc:
-        reference = '/scratch/juckerj/sanity_check/ref_data/pattern_amip_Daint_PGI_Nov20.nc'
-        df_pattern = pattern_proc_nc_to_df(exp, \
-            filename     = processed_netcdf_filename,\
-            p_output     = p_output, \
-            reference = reference, \
-            lo_export_csvfile = lo_export_csvfile)
+    if 'welchstest' in tests:
+        test = 'welchstest'
+        if (actions['test_postproc'][test]):
+            # transforming netcdf timeseries into csv file
+            df_timeser = timeser_proc_nc_to_df(exp, \
+                filename     = processed_netcdf_filename[test],\
+                p_output     = p_output,
+                lo_export_csvfile = lo_export_csvfile)
+        else:
+            log.info('Processing for test {} already done'.format(test))
+            f_timeser_csv = os.path.join(p_output, 'test_postproc_{}_{}.csv'.format(test,exp))
+            df_timeser = pd.read_csv(f_timeser_csv, sep=';')
     else:
-        f_pattern_csv = os.path.join(p_output, 'fldcor_{}.csv'.format(exp))
-        df_pattern = pd.read_csv(f_pattern_csv, sep=';')
+        log.warning("Skip Welch's-Test")
+        df_timeser = None
+
+    if 'emissions' in tests:
+        test = 'emissions'
+        if (actions['test_postproc'][test]):
+            df_emis = emis_proc_nc_to_df(exp, \
+                filename     = processed_netcdf_filename[test],\
+                p_output     = p_output, \
+                lo_export_csvfile = lo_export_csvfile)
+        else:
+            log.info('Processing for test {} already done'.format(test))
+            f_emis_csv = os.path.join(p_output, 'test_postproc_{}_{}.csv'.format(test,exp))
+            df_emis = pd.read_csv(f_emis_csv, sep=';')
+    else:
+        log.warning('Skip emission test')
+        df_emis = None
+
+    if 'pattern_correlation' in tests:
+        test = 'pattern_correlation'
+        if (actions['test_postproc'][test]):
+            test = 'pattern_correlation'
+            reference ='/scratch/juckerj/sanity_check/ref_data/test_postproc_pattern_correlation_euler_REF_10y.nc'
+            df_pattern = pattern_proc_nc_to_df(exp, \
+                filename     = processed_netcdf_filename[test],\
+                p_output     = p_output, \
+                reference = reference, \
+                lo_export_csvfile = lo_export_csvfile)
+        else:
+            log.info('Processing for test {} already done'.format(test))
+            f_pattern_csv = os.path.join(p_output, 'test_postproc_{}_{}.csv'.format(test,exp))
+            df_pattern = pd.read_csv(f_pattern_csv, sep=';')
+    else:
+        log.warning('Skip pattern correlation test')
+        df_pattern = None
+
+    log.banner('End conversion from NetCDF to dataframe')
 
     return(df_timeser,df_pattern,df_emis)
 

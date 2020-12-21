@@ -5,6 +5,8 @@ import pandas  as pd
 import shell_utilities as su          # file shell_utilities.py part of the distribution
 import numpy as np
 import argparse
+from utils import log
+import utils
 
 def variables_to_extract(vars_in_expr):
     '''
@@ -27,16 +29,16 @@ Return the list of variables to extract from the list of expressions which conta
     return(variables)
 
 def main(exp,\
+        spinup            = 3,\
         p_raw_files       = paths.p_raw_files,\
         p_time_serie      = paths.p_time_serie,\
         wrk_dir           = paths.p_wrkdir,\
         raw_f_subfold     = '',\
-        spinup            = 3,\
         f_vars_to_extract = 'vars_echam-hammoz.csv',\
         lstandard_proc    = True, \
         ltimeser_proc     = True, \
         lpattern_proc     = True, \
-        lverbose          = False):
+        test = 'welchstest'):
 
      '''
        Perfom standard post-processing using cdo 
@@ -55,10 +57,12 @@ def main(exp,\
 
       C. Siegenthaler, C2SM , 2020-06
      '''
+
+     log.info('Postprocess data using CDO for test {}'.format(test))
+
      # check that exp is defined
      if exp is None :
-         print('ERROR: std_avrg_using_cdo.py :Experiment is not defined.\n exp = {}\n EXITING'.format(exp))
-         exit()
+         log.error('Experiment is not defined.\n exp = {}'.format(exp))
 
      # create output folders if not existing
      for fold in [p_time_serie,wrk_dir]:
@@ -66,7 +70,8 @@ def main(exp,\
              os.mkdir(fold)
 
      # get variables to process:
-     full_p_f_vars = os.path.join(paths.p_f_vars_proc,f_vars_to_extract)
+     p_test_vars_proc = os.path.join(paths.p_f_vars_proc, test)
+     full_p_f_vars = utils.clean_path(p_test_vars_proc,f_vars_to_extract)
      df_vars = pd.read_csv(full_p_f_vars, sep=',')
 
      # define expressions
@@ -77,7 +82,7 @@ def main(exp,\
          os.chdir((wrk_dir))
 
      # name of output file
-     ofile_tot = os.path.join(p_time_serie,'standard_postproc_{}.nc'.format(exp))
+     ofile_tot = os.path.join(p_time_serie,'standard_postproc_{}_{}.nc'.format(test,exp))
 
      # initialisation
      files_error = []      # list files giving error
@@ -106,7 +111,7 @@ def main(exp,\
                 return(ofile_tot)
      else:
          #print info
-         print ('std_avrg_using_cdo.py : Analyse files in : {}'.format(p_raw_folder))
+         log.info('Analyse files in : {}'.format(p_raw_folder))
 
      # loop over output stream
      print('debug emiss')
@@ -128,6 +133,7 @@ def main(exp,\
          ifiles.sort()
 
          # remove spin-up files
+         log.info('Remove first {} months of data due to model spinup'.format(spinup)) 
          ifiles = ifiles[int(spinup):]
 
          # output file for stream f
@@ -137,7 +143,7 @@ def main(exp,\
          variables = variables_to_extract(vars_in_expr=df_file.formula.values)
         
          # Extract variables needed from big files 
-         print('std_avrg_using_cdo.py : Extract variables from file: {}'.format(stream))
+         log.info('Extract variables from file: {}'.format(stream))
          
          # initialization
          tmp_selvar_files = []       # list to store the ifiles
@@ -145,11 +151,11 @@ def main(exp,\
          for ifile in ifiles: 
              # basename of ifile
              ifile_bsn = os.path.basename(ifile)
-             if lverbose : print('File {}'.format(ifile_bsn))
+             log.debug('File {}'.format(ifile_bsn))
              tmp_selvar_file = 'tmp_extract_{}'.format(ifile_bsn) 
              
              cdo_cmd = 'cdo selvar,{} {} {}'.format(','.join(variables),ifile,tmp_selvar_file) 
-             out_status,out_mess = su.shell_cmd(cdo_cmd,py_routine='std_avrg_using_cdo',lowarn=True)
+             out_status,out_mess = su.shell_cmd(cdo_cmd,py_routine=__name__,lowarn=True)
              
              if out_status == 0:
                  tmp_selvar_files.append(tmp_selvar_file)
@@ -157,7 +163,7 @@ def main(exp,\
                  files_error.append(ifile_bsn)
          
          # Merge all the monthly files together 
-         print('std_avrg_using_cdo.py : Copy {} files'.format(stream))
+         log.info('Copy {} files'.format(stream))
          tmp_merged = 'tmp_{}_{}.nc'.format(exp,stream)
          if os.path.isfile(tmp_merged):
              os.remove(tmp_merged)
@@ -165,7 +171,7 @@ def main(exp,\
          su.shell_cmd (cdo_cmd,py_routine='std_avrg_using_cdo')
 
          # compute needed variables
-         print('std_avrg_using_cdo.py : Compute variables for file : {}'.format(stream))
+         log.info('Compute variables for file : {}'.format(stream))
          if os.path.isfile(ofile_str):
              os.remove(ofile_str)
          expr_str = ';'.join((df_file.expr.values))
@@ -185,56 +191,11 @@ def main(exp,\
      cdo_cmd = 'cdo merge {} {}'.format(' '.join(files_proceed),ofile_tot)
      su.shell_cmd(cdo_cmd,py_routine='std_avrg_using_cdo')
 
+     [os.remove(f) for f in files_proceed]
+
      # Finishing
-     print('std_avrg_using_cdo.py : files with a problem: {}'.format(','.join(files_error)))
-     print ('Script std_avrg_using_cdo.py finished. Output here : {}'.format(ofile_tot))
+     log.warning('Files with a problem: {}'.format(','.join(files_error)))
+     log.info('Postprocess data using CDO for test {} finished. \n Output here : {}'.format(test,ofile_tot))
 
      # return name of output file
      return(ofile_tot)
-
-if __name__ == '__main__':
-
-    # parsing arguments
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument('--exp','-e', dest = 'exp',\
-                            required = True,\
-                            help = 'exp to proceed')
-
-    parser.add_argument('--p_raw_files', dest = 'p_raw_files',\
-                            default = paths.p_raw_files,\
-                            help = 'path to raw files')
-
-    parser.add_argument('--p_time_serie', dest = 'p_time_serie',\
-                            default = paths.wrk_dir,\
-                            help = 'path to write output file')
-
-    parser.add_argument('--wrk_dir', dest = 'wrk_dir',\
-                            default = paths.wrk_dir,\
-                            help = 'workdir')
-   
-    parser.add_argument('--raw_f_subfold',dest='raw_f_subfold',\
-                            default='',\
-                            help='Subfolder where the raw data are (eg for echam, "Raw"')
- 
-    parser.add_argument('--spinup', dest = 'spinup',\
-                            default = 3,\
-                            help = 'number of files no to consider (from begining of simulation)')    
-
-    parser.add_argument('--f_vars_to_extract', dest = 'f_vars_to_extract',\
-                            default ='vars_echam-hammoz.csv',\
-                            help = 'csv file containg the variables to proceed')
-
-    parser.add_argument('--lverbose', dest='lverbose', action='store_true') 
-  
-    args = parser.parse_args()
-    
-    main(args.exp,\
-         p_raw_files=args.p_raw_files,\
-         p_time_serie=args.p_time_serie,\
-         wrk_dir=args.wrk_dir,\
-         raw_f_subfold=args.raw_f_subfold,\
-         spinup=args.spinup,\
-         f_vars_to_extract=args.f_vars_to_extract,\
-         lbverbose=args.lverbose) 
-

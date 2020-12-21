@@ -1,4 +1,5 @@
 import subprocess
+from utils import log
 
 def shell_cmd(cmd,py_routine,lowarn=False):
     """ send shell command through subprocess. and returns a string containing the cmd output
@@ -17,16 +18,12 @@ def shell_cmd(cmd,py_routine,lowarn=False):
     out_status = 0
     # check if cmd was executed properly
     if p.returncode != 0:
-        print("{} (shell_cmd): ERROR in the command:".format(py_routine))
-        print(cmd)
-        print ("Error returned:")
-        print(err)
+        log.debug("{} (shell_cmd): ERROR in the command: \n {}".format(py_routine,cmd))
         if lowarn :
+            log.warning("Error returned: \n {}".format(err))
             out_status = 1
         else:
-            print("Exiting")
-            exit()
-
+            log.error("Error returned: {}".format(err))
 
     return(out_status,str(out))
 
