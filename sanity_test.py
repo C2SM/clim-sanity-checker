@@ -1,8 +1,6 @@
 # Script to test sanity of a an HAMMOZ run
 # C.Siegenthaler, 2019
 
-
-
 import process_data
 import argparse
 import os
@@ -15,6 +13,7 @@ import add_exp_to_ref
 import paths                 # the file paths.py is written by paths_init.py
 import utils
 from utils import log
+import perform_test
 
 class style():
     '''define colors for output on terminal'''
@@ -156,11 +155,11 @@ def print_warning_color(df_result, metric_thresholds, metric):
     # dataframe containing only variables a warning has to be printed
     df_warning = df_result[df_result['level'] != metric_thresholds[-1].level]
 
-    print('----------------------------------------------------------------------------------------------------------')
+    log.info('----------------------------------------------------------------------------------------------------------')
 
     if df_warning.size > 0:
 
-        print('WARNING :: the following variables give low {} : \n'.format(metric))
+        log.warning('The following variables give low {} : \n'.format(metric))
 
         # for each level of warning, print the dataframe
         for metric_lev in metric_thresholds[:-1]:
@@ -170,15 +169,15 @@ def print_warning_color(df_result, metric_thresholds, metric):
 
             # print
             if df_print_warn.size > 0:
-                print(style.RESET('{} {} '.format(metric_lev.level.upper(),metric)))
+                log.info(style.RESET('{} {} '.format(metric_lev.level.upper(),metric)))
                 #print(metric_lev.col_txt(df_print_warn.drop(metric,axis=1)))
-                print(metric_lev.col_txt(df_print_warn))
-                print(style.RESET('\n'))
+                log.info(metric_lev.col_txt(df_print_warn))
+                log.info(style.RESET('\n'))
     else:
-        print(style.GREEN('The experiment is fine. No {} under {} ').format(metric,metric_thresholds[1].p_thresh))
-        print(style.RESET('\n'))
+        log.info(style.GREEN('The experiment is fine. No {} under {} ').format(metric,metric_thresholds[1].p_thresh))
+        log.info(style.RESET('\n'))
 
-    print('----------------------------------------------------------------------------------------------------------')
+    log.info('----------------------------------------------------------------------------------------------------------')
 
     return
 
@@ -195,6 +194,7 @@ def run(new_exp, \
        p_raw_files, \
        raw_f_subfold,\
        p_stages, \
+       p_ref_csv_files, \
        wrk_dir, \
        f_vars_to_extract, \
        tests, \
@@ -210,6 +210,7 @@ def run(new_exp, \
     # go in workdir
     wrk_dir = utils.abs_path(wrk_dir)
     p_stages = utils.abs_path(p_stages)
+    p_ref_csv_files = utils.abs_path(p_ref_csv_files)
     os.makedirs(p_stages,exist_ok=True)
     os.makedirs(wrk_dir,exist_ok=True)
     os.chdir((wrk_dir))
@@ -222,129 +223,87 @@ def run(new_exp, \
     actions = utils.determine_actions_for_data_processing(new_exp,tests,p_stages,lclean)
 
     # create dataframe out of raw data
-    df_timeser_exp,df_pattern_exp,df_emis  = process_data.main(new_exp, \
-                           actions, \
-                           tests, \
-                           spinup,\
-                           p_raw_files=p_raw_files, \
-                           p_stages=p_stages, \
-                           raw_f_subfold=raw_f_subfold, \
-                           f_vars_to_extract=f_vars_to_extract)
+    results_data_processing = process_data.main(\
+                              new_exp, \
+                              actions, \
+                              tests, \
+                              spinup,\
+                              p_raw_files=p_raw_files, \
+                              p_stages=p_stages, \
+                              raw_f_subfold=raw_f_subfold, \
+                              f_vars_to_extract=f_vars_to_extract)
 
-    log.error('Exit')
-    df_timeser_exp['exp'] = new_exp
+    result_test,metric_threshold,test_metric = perform_test.main(\
+                           new_exp, \
+                           results_data_processing = results_data_processing, \
+                           p_stages=p_stages, \
+                           tests= tests, \
+                           p_ref_csv_files = p_ref_csv_files,\
+                           f_vars_to_extract=f_vars_to_extract)
+                                    
+
     #df_pattern_exp['exp'] = new_exp
 
-    full_p_f_vars = os.path.join(paths.p_f_vars_proc,f_vars_to_extract)
-    vars_to_analyse = list(pd.read_csv(full_p_f_vars, sep=',')['var'].values)
+    #full_p_f_vars = os.path.join(paths.p_f_vars_proc,f_vars_to_extract)
+    #vars_to_analyse = list(pd.read_csv(full_p_f_vars, sep=',')['var'].values)
 
-    # list of paths to all csv files
-    p_csv_files = glob.glob(os.path.join(p_ref_csv_files,'emis_*csv'))
-    if len(p_csv_files) == 0:
-        print('ERROR : santity_test.py : No reference files found in {}\n EXITING'.format(p_ref_csv_files))
-        exit()
-    print(p_csv_files)
+    ## list of paths to all csv files
+    #p_csv_files = glob.glob(os.path.join(p_ref_csv_files,'emis_*csv'))
+    #if len(p_csv_files) == 0:
+    #    print('ERROR : santity_test.py : No reference files found in {}\n EXITING'.format(p_ref_csv_files))
+    #    exit()
+    #print(p_csv_files)
 
-    df_ref_emis = pd.read_csv(p_csv_files[0], sep=';')
-    df_ref_emis = df_ref_emis[vars_to_analyse]
+    #df_ref_emis = pd.read_csv(p_csv_files[0], sep=';')
+    #df_ref_emis = df_ref_emis[vars_to_analyse]
 
-    print(df_ref_emis)
-    print(df_emis)
-
-
-    df_emis['diff'] = df_emis - df_ref_emis
-
-    emis_metric = 'deviation'
-
-    # sort variables from their p-value
-    devi_thresholds = [pval_thr_prop('very low', 1e-15, 'DarkRed'), \
-                       pval_thr_prop('low', 1e-16, 'Red'), \
-                       pval_thr_prop('middle', 1e-17, 'Orange'), \
-                       pval_thr_prop('high', 0, 'Green')]
-    df_result_pattern = sort_level_metric(df_test, devi_thresholds,pattern_metric)
-    print_warning_color(df_result_pattern, rcor_thresholds, pattern_metric)
+    #print(df_ref_emis)
+    #print(df_emis)
 
 
-    # pattern correlation test
-    pattern_metric = 'R_squared'
+    #df_emis['diff'] = df_emis - df_ref_emis
 
-    df_pattern_exp = df_pattern_exp[vars_to_analyse]
-    print(df_pattern_exp)
-    df_test = pd.DataFrame()
-    df_test['variable'] = df_pattern_exp.columns.values
-    df_test[pattern_metric] = df_pattern_exp.loc[0].values
+    #emis_metric = 'deviation'
 
-    # sort variables from their p-value
-    rcor_thresholds = [pval_thr_prop('very low', 0.94, 'DarkRed'), \
-                       pval_thr_prop('low', 0.95, 'Red'), \
-                       pval_thr_prop('middle', 0.97, 'Orange'), \
-                       pval_thr_prop('high', 1, 'Green')]
-    df_result_pattern = sort_level_metric(df_test, rcor_thresholds,pattern_metric)
-    print_warning_color(df_result_pattern, rcor_thresholds, pattern_metric)
+    ## sort variables from their p-value
+    #devi_thresholds = [pval_thr_prop('very low', 1e-15, 'DarkRed'), \
+    #                   pval_thr_prop('low', 1e-16, 'Red'), \
+    #                   pval_thr_prop('middle', 1e-17, 'Orange'), \
+    #                   pval_thr_prop('high', 0, 'Green')]
+    #df_result_pattern = sort_level_metric(df_test, devi_thresholds,pattern_metric)
+    #print_warning_color(df_result_pattern, rcor_thresholds, pattern_metric)
 
 
+    ## pattern correlation test
+    #pattern_metric = 'R_squared'
 
+    #df_pattern_exp = df_pattern_exp[vars_to_analyse]
+    #print(df_pattern_exp)
+    #df_test = pd.DataFrame()
+    #df_test['variable'] = df_pattern_exp.columns.values
+    #df_test[pattern_metric] = df_pattern_exp.loc[0].values
 
-    ######################################################################
-    ############## PACK INTO PART FOR WELCHS-TEST #######################
+    ## sort variables from their p-value
+    #rcor_thresholds = [pval_thr_prop('very low', 0.94, 'DarkRed'), \
+    #                   pval_thr_prop('low', 0.95, 'Red'), \
+    #                   pval_thr_prop('middle', 0.97, 'Orange'), \
+    #                   pval_thr_prop('high', 1, 'Green')]
+    #df_result_pattern = sort_level_metric(df_test, rcor_thresholds,pattern_metric)
+    #print_warning_color(df_result_pattern, rcor_thresholds, pattern_metric)
 
-    # data of reference pool
-    # ---------------------------------------------------------------
-    # get experiments of reference folder (in the fiuture, download from Git)
-    # download files into p_csv_files
-
-    # list of paths to all csv files
-    p_csv_files = glob.glob(os.path.join(p_ref_csv_files,'glob_means_*csv'))
-    if len(p_csv_files) == 0:
-        print('ERROR : santity_test.py : No reference files found in {}\n EXITING'.format(p_ref_csv_files))
-        exit()
-
-    # create big dataframe containing all reference exps
-    df_ref = create_big_df(list_csv_files=p_csv_files)
-
-    # Exclude all the non-desired variables (1) var from file, 2) exp)
-    full_p_f_vars = os.path.join(paths.p_f_vars_proc,f_vars_to_extract)
-    vars_to_analyse = list(pd.read_csv(full_p_f_vars, sep=',')['var'].values)
-    vars_to_analyse.append('exp')
-    df_ref = df_ref[vars_to_analyse]
-    df_new_exp = df_timeser_exp[vars_to_analyse]
-
-    # Perform Welch's t-test for each variable
-    # ----------------------------------------------------------------
-    file_result_welche = os.path.join(p_out_new_exp,'result_welchs_test_{}.csv'.format(new_exp))
-    df_result = welch_test_all_var(df_a=df_ref, df_b=df_new_exp,filename_student_test=file_result_welche)
-    df_result['p-value [%]'] = df_result['p-value']*100.
-
-    timeser_metric = 'p-value [%]'
-    # sort variables from their p-value
-    pval_thresholds = [pval_thr_prop('very low', 1, 'DarkRed'), \
-                       pval_thr_prop('low', 5, 'Red'), \
-                       pval_thr_prop('middle', 99, 'Orange'), \
-                       pval_thr_prop('high', 100, 'Green')]
-    df_result = sort_level_metric(df_result, pval_thresholds,timeser_metric)
-
-    # print infos
-    # -------------------------------------------------------------------
-    print ('Welch test on each variable for the the comparison between the references and the new experiment {}:'.format(new_exp))
-
+    test='welchstest'
     # print warnings for small p-values
-    print_warning_color(df_result, pval_thresholds,timeser_metric)
+    print_warning_color(result_test[test], metric_threshold[test],test_metric[test])
 
     # print info output file
-    print('To see the whole table containing p-values, please the file:{}'.format(file_result_welche))
-    print()
+    #print('To see the whole table containing p-values, please the file:{}'.format(file_result_welche))
+    #print()
 
     # plot
     # -------------------------------------------------------------------
     # add color of the plot in the dataframe
     df_result = add_color_df_result(df_result,pval_thresholds)
     plt.plt_var(df_ref.append(df_new_exp,sort=False), new_exp, df_result)
-
-    ############## END PACK INTO PART FOR WELCHS-TEST #######################
-
-    ######## PATTERN CORRELATION TEST 
-
-
 
     # Add experiment to the reference pool
     #--------------------------------------------------------------------
@@ -388,6 +347,10 @@ if __name__ == '__main__':
                             default=paths.p_wrkdir,\
                             help='relative or absolute path to working directory (default: {}'.format(paths.p_wrkdir))
 
+    parser.add_argument('--p_ref_csv_files', dest= 'p_ref_csv_files',\
+                            default=paths.p_ref_csv_files,\
+                            help='relative or absolute path to reference files (default: {}'.format(paths.p_ref_csv_files))
+
     parser.add_argument('--f_vars_to_extract',dest='f_vars_to_extract',\
                            default='vars_echam-hammoz.csv',\
                            help = 'File containing variables to anaylse')
@@ -418,6 +381,7 @@ if __name__ == '__main__':
            raw_f_subfold = args.raw_f_subfold, \
            wrk_dir = args.wrk_dir, \
            p_stages = args.p_stages,\
+           p_ref_csv_files = args.p_ref_csv_files, \
            f_vars_to_extract = args.f_vars_to_extract, \
            tests = args.tests, \
            spinup = args.spinup, \

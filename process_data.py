@@ -186,6 +186,7 @@ Process exp
     '''
     log.banner('Start standard-postprocessing')
 
+    results_data_processing = {}
     processed_netcdf_filename = {}
     for test in tests:
         if (actions['standard_postproc'][test]): 
@@ -208,30 +209,28 @@ Process exp
         test = 'welchstest'
         if (actions['test_postproc'][test]):
             # transforming netcdf timeseries into csv file
-            df_timeser = timeser_proc_nc_to_df(exp, \
+            results_data_processing[test] = timeser_proc_nc_to_df(exp, \
                 filename     = processed_netcdf_filename[test],\
                 p_stages     = p_stages)
         else:
             log.info('Processing for test {} already done'.format(test))
-            f_timeser_csv = os.path.join(p_stages, 'test_postproc_{}_{}.csv'.format(test,exp))
-            df_timeser = pd.read_csv(f_timeser_csv, sep=';')
+            f_csv = os.path.join(p_stages, 'test_postproc_{}_{}.csv'.format(test,exp))
+            results_data_processing[test] = pd.read_csv(f_csv, sep=';')
     else:
         log.warning("Skip Welch's-Test")
-        df_timeser = None
 
     if 'emissions' in tests:
         test = 'emissions'
         if (actions['test_postproc'][test]):
-            df_emis = emis_proc_nc_to_df(exp, \
+            results_data_processing[test] = emis_proc_nc_to_df(exp, \
                 filename     = processed_netcdf_filename[test],\
                 p_stages     = p_stages)
         else:
             log.info('Processing for test {} already done'.format(test))
-            f_emis_csv = os.path.join(p_stages, 'test_postproc_{}_{}.csv'.format(test,exp))
-            df_emis = pd.read_csv(f_emis_csv, sep=';')
+            f_csv = os.path.join(p_stages, 'test_postproc_{}_{}.csv'.format(test,exp))
+            results_data_processing[test] = pd.read_csv(f_csv, sep=';')
     else:
         log.warning('Skip emission test')
-        df_emis = None
 
     if 'pattern_correlation' in tests:
         test = 'pattern_correlation'
@@ -244,15 +243,14 @@ Process exp
                 reference = reference)
         else:
             log.info('Processing for test {} already done'.format(test))
-            f_pattern_csv = os.path.join(p_stages, 'test_postproc_{}_{}.csv'.format(test,exp))
-            df_pattern = pd.read_csv(f_pattern_csv, sep=';')
+            f_csv = os.path.join(p_stages, 'test_postproc_{}_{}.csv'.format(test,exp))
+            results_data_processing[test] = pd.read_csv(f_csv, sep=';')
     else:
         log.warning('Skip pattern correlation test')
-        df_pattern = None
 
     log.banner('End conversion from NetCDF to dataframe')
 
-    return(df_timeser,df_pattern,df_emis)
+    return(results_data_processing)
 
 
 if __name__ == '__main__':

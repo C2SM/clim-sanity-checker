@@ -34,7 +34,7 @@ class CustomFormatter(logging.Formatter):
     reset = "\x1b[0m"
     format_debug = "     %(levelname)s: %(message)s (%(filename)s)"
     format_info = "%(message)s"
-    format_banner = "=========  %(message)s ========="
+    format_banner = "=========  %(message)s"
     format_warning = "%(levelname)s: %(message)s (%(filename)s)"
     format_error = "%(levelname)s: %(message)s (%(filename)s:%(lineno)d)"
 
