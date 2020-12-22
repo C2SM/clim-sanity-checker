@@ -86,25 +86,56 @@ def init_logger(lverbose):
     # shutdown in case of logging.ERROR
     log.addHandler(ShutdownHandler(level=logging.ERROR)) 
 
+def determine_actions_for_data_processing(exp, tests, p_stages,lforce):
+
+    actions = {'standard_postproc': {},
+               'test_postproc': {}
+               }
+
+    if lforce:
+        log.warning('Redo all processing steps')
+
+    # see if standard-postprocessing is needed
+    for test in tests:
+
+        standard_proc_nc = os.path.join(p_stages,'standard_postproc_{}_{}.nc'.format(test,exp))
+        if (not os.path.isfile(standard_proc_nc) or lforce):
+            action_needed = True
+        else:
+            action_needed = False
+
+        actions['standard_postproc'][test] = action_needed
+
+        test_specific_csv = os.path.join(p_stages,'test_postproc_{}_{}.csv'.format(test,exp))
+        print(test_specific_csv)
+
+        if (not os.path.isfile(test_specific_csv) or \
+            lforce or \
+            actions['standard_postproc'][test]):
+
+            action_needed = True
+        else:
+            action_needed = False
+
+        actions['test_postproc'][test] = action_needed
+
+    log.debug('actions: {}'.format(actions))
+
+    return(actions)
+
+def abs_path(path):
+    if os.path.isabs(path):
+        return path
+    else:
+        path = os.path.abspath(path)
+        return path
 
 if __name__ == '__main__':
 
-    # create logger with 'spam_application'
-    logger = logging.getLogger('Test')
+    path_to_clean = '../test'
+    path_abs = '/scratch/juckerj/'
+    test_1 = abs_path(path_to_clean)
+    test_2 = abs_path(path_abs)
+    print(test_1)
+    print(test_2)
 
-    level = logging.DEBUG
-
-    logger.setLevel(logging.DEBUG)
-
-    # create console handler with a higher log level
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-
-    ch.setFormatter(CustomFormatter())
-
-    logger.addHandler(ch)
-    logger.addHandler(ShutdownHandler(level=logging.ERROR)) 
-    logger.debug("debug message")
-    logger.info("info message")
-    logger.warning("warning message")
-    logger.error("error message")

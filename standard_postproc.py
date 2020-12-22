@@ -29,24 +29,18 @@ Return the list of variables to extract from the list of expressions which conta
     return(variables)
 
 def main(exp,\
-        spinup            = 3,\
-        p_raw_files       = paths.p_raw_files,\
-        p_time_serie      = paths.p_time_serie,\
-        wrk_dir           = paths.p_wrkdir,\
-        raw_f_subfold     = '',\
-        f_vars_to_extract = 'vars_echam-hammoz.csv',\
-        lstandard_proc    = True, \
-        ltimeser_proc     = True, \
-        lpattern_proc     = True, \
-        test = 'welchstest'):
+        test, \
+        spinup,\
+        p_raw_files, \
+        raw_f_subfold,\
+        p_stages, \
+        f_vars_to_extract):
 
      '''
        Perfom standard post-processing using cdo 
        
        arguments :
            p_raw_files       : path to raw files
-           p_time_serie      : path to write output file (time series)
-           wrk_dir           : path to working dir
            raw_f_subfold     : Subfolder where the raw data are (eg for echam, raw_f_subfold=Raw and the data are in [p_raw_files]/[exp]/Raw
            spinup            : number of files no to consider (from begining of simulation)
            f_vars_to_extract : csv file containg the variables to proceed
@@ -64,11 +58,6 @@ def main(exp,\
      if exp is None :
          log.error('Experiment is not defined.\n exp = {}'.format(exp))
 
-     # create output folders if not existing
-     for fold in [p_time_serie,wrk_dir]:
-         if not os.path.isdir(fold):
-             os.mkdir(fold)
-
      # get variables to process:
      p_test_vars_proc = os.path.join(paths.p_f_vars_proc, test)
      full_p_f_vars = utils.clean_path(p_test_vars_proc,f_vars_to_extract)
@@ -77,12 +66,8 @@ def main(exp,\
      # define expressions
      df_vars['expr'] = df_vars['var'] + '=' + df_vars['formula']
 
-     # go in workdir
-     if len(wrk_dir) > 0 :
-         os.chdir((wrk_dir))
-
      # name of output file
-     ofile_tot = os.path.join(p_time_serie,'standard_postproc_{}_{}.nc'.format(test,exp))
+     ofile_tot = os.path.join(p_stages,'standard_postproc_{}_{}.nc'.format(test,exp))
 
      # initialisation
      files_error = []      # list files giving error
@@ -91,7 +76,6 @@ def main(exp,\
      # Special case, echam specific : 
      # if the folder containing the Raw files have been deleted, but folder 'Data' contains already global annual means 
      p_raw_folder = os.path.join(p_raw_files,exp,raw_f_subfold)
-     print(p_raw_folder)
      if not os.path.isdir(p_raw_folder):
          print('std_avrg_using_cdo.py : The folder containing the raw data has been deleted : {}'.format(p_raw_folder))
          p_altern_timeser_fold = os.path.join(p_raw_files,exp,'Data')
@@ -114,8 +98,6 @@ def main(exp,\
          log.info('Analyse files in : {}'.format(p_raw_folder))
 
      # loop over output stream
-     print('debug emiss')
-     p_raw_folder = os.path.join(p_raw_folder,'Raw')
      for stream in df_vars['file'].unique():
 
          # extract all lines with file f
@@ -168,7 +150,7 @@ def main(exp,\
          if os.path.isfile(tmp_merged):
              os.remove(tmp_merged)
          cdo_cmd = 'cdo -copy {} {}'.format(' '.join(tmp_selvar_files), tmp_merged)
-         su.shell_cmd (cdo_cmd,py_routine='std_avrg_using_cdo')
+         su.shell_cmd (cdo_cmd,py_routine=__name__)
 
          # compute needed variables
          log.info('Compute variables for file : {}'.format(stream))
@@ -176,7 +158,7 @@ def main(exp,\
              os.remove(ofile_str)
          expr_str = ';'.join((df_file.expr.values))
          cdo_cmd = 'cdo -L -setctomiss,-9e+33 -expr,"{}" {} {}'.format(expr_str,tmp_merged,ofile_str) 
-         su.shell_cmd (cdo_cmd,py_routine='std_avrg_using_cdo')
+         su.shell_cmd (cdo_cmd,py_routine=__name__)
 
          # keep trace of output file per stream
          files_proceed.append(ofile_str)

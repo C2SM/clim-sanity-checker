@@ -13,7 +13,7 @@ import utils
 
 def timeser_proc_nc_to_df(exp, \
         filename, \
-        p_output           = paths.p_ref_csv_files):
+        p_stages):
 
     '''
 Read netcdf file containing global mean values timeseries and transforms into dataframe.
@@ -55,8 +55,8 @@ C. Siegenthaler, C2SM(ETHZ) , 2019-10
     df_data = data.to_dataframe()
 
     # export in a file
-    os.makedirs(p_output, exist_ok=True)
-    csv_filename = os.path.join(p_output,'test_postproc_{}_{}.csv'.format(test,exp))
+    os.makedirs(p_stages, exist_ok=True)
+    csv_filename = os.path.join(p_stages,'test_postproc_{}_{}.csv'.format(test,exp))
     df_data.to_csv(csv_filename, index = None, header=True, sep = ';')
     log.info('CSV file can be found here: {}'.format(csv_filename))     
 
@@ -67,7 +67,7 @@ C. Siegenthaler, C2SM(ETHZ) , 2019-10
 def pattern_proc_nc_to_df(exp, \
         filename, \
         reference, \
-        p_output           = paths.p_ref_csv_files):
+        p_stages           = paths.p_ref_csv_files):
 
     '''
 Read netcdf file containing global mean values timeseries and transforms into dataframe.
@@ -112,8 +112,8 @@ C. Siegenthaler, C2SM(ETHZ) , 2019-10
     df_data = data.to_dataframe()
 
 
-    os.makedirs(p_output, exist_ok=True)
-    csv_filename = os.path.join(p_output,'test_postproc_{}_{}.csv'.format(test,exp))
+    os.makedirs(p_stages, exist_ok=True)
+    csv_filename = os.path.join(p_stages,'test_postproc_{}_{}.csv'.format(test,exp))
     df_data.to_csv(csv_filename, index = None, header=True, sep = ';')
     log.info('CSV file can be found here: {}'.format(csv_filename))     
 
@@ -123,7 +123,7 @@ C. Siegenthaler, C2SM(ETHZ) , 2019-10
 
 def emis_proc_nc_to_df(exp, \
         filename, \
-        p_output           = paths.p_ref_csv_files):
+        p_stages):
 
     '''
 Read netcdf file containing global mean values timeseries and transforms into dataframe.
@@ -162,8 +162,8 @@ C. Siegenthaler, C2SM(ETHZ) , 2019-10
     df_data = data.to_dataframe()
 
     # export in a file
-    os.makedirs(p_output, exist_ok=True)
-    csv_filename = os.path.join(p_output,'test_postproc_{}_{}.csv'.format(test,exp))
+    os.makedirs(p_stages, exist_ok=True)
+    csv_filename = os.path.join(p_stages,'test_postproc_{}_{}.csv'.format(test,exp))
     df_data.to_csv(csv_filename, index = None, header=True, sep = ';')
     log.info('CSV file can be found here: {}'.format(csv_filename))     
     
@@ -177,8 +177,7 @@ def main(exp,\
          tests,\
          spinup,\
          p_raw_files,\
-         p_wrkdir, \
-         p_output,\
+         p_stages,\
          raw_f_subfold,\
          f_vars_to_extract):
 
@@ -191,14 +190,15 @@ Process exp
     for test in tests:
         if (actions['standard_postproc'][test]): 
             processed_netcdf_filename[test] = standard_postproc.main(exp, \
-                                        spinup, \
+                                        test = test, \
+                                        spinup = spinup, \
                                         p_raw_files       = p_raw_files, \
                                         raw_f_subfold     = raw_f_subfold,\
-                                        f_vars_to_extract = f_vars_to_extract,\
-                                        test = test)
+                                        p_stages = p_stages, \
+                                        f_vars_to_extract = f_vars_to_extract)
         else:
             log.info('Data already processed for test {}'.format(test))
-            processed_netcdf_filename[test] = utils.clean_path(p_wrkdir, 'standard_postproc_{}_{}.nc'.format(test,exp))
+            processed_netcdf_filename[test] = utils.clean_path(p_stages, 'standard_postproc_{}_{}.nc'.format(test,exp))
 
     log.banner('End standard-postprocessing')
 
@@ -210,10 +210,10 @@ Process exp
             # transforming netcdf timeseries into csv file
             df_timeser = timeser_proc_nc_to_df(exp, \
                 filename     = processed_netcdf_filename[test],\
-                p_output     = p_output)
+                p_stages     = p_stages)
         else:
             log.info('Processing for test {} already done'.format(test))
-            f_timeser_csv = os.path.join(p_output, 'test_postproc_{}_{}.csv'.format(test,exp))
+            f_timeser_csv = os.path.join(p_stages, 'test_postproc_{}_{}.csv'.format(test,exp))
             df_timeser = pd.read_csv(f_timeser_csv, sep=';')
     else:
         log.warning("Skip Welch's-Test")
@@ -224,10 +224,10 @@ Process exp
         if (actions['test_postproc'][test]):
             df_emis = emis_proc_nc_to_df(exp, \
                 filename     = processed_netcdf_filename[test],\
-                p_output     = p_output)
+                p_stages     = p_stages)
         else:
             log.info('Processing for test {} already done'.format(test))
-            f_emis_csv = os.path.join(p_output, 'test_postproc_{}_{}.csv'.format(test,exp))
+            f_emis_csv = os.path.join(p_stages, 'test_postproc_{}_{}.csv'.format(test,exp))
             df_emis = pd.read_csv(f_emis_csv, sep=';')
     else:
         log.warning('Skip emission test')
@@ -240,11 +240,11 @@ Process exp
             reference ='/scratch/juckerj/sanity_check/ref_data/test_postproc_pattern_correlation_euler_REF_10y.nc'
             df_pattern = pattern_proc_nc_to_df(exp, \
                 filename     = processed_netcdf_filename[test],\
-                p_output     = p_output, \
+                p_stages     = p_stages, \
                 reference = reference)
         else:
             log.info('Processing for test {} already done'.format(test))
-            f_pattern_csv = os.path.join(p_output, 'test_postproc_{}_{}.csv'.format(test,exp))
+            f_pattern_csv = os.path.join(p_stages, 'test_postproc_{}_{}.csv'.format(test,exp))
             df_pattern = pd.read_csv(f_pattern_csv, sep=';')
     else:
         log.warning('Skip pattern correlation test')
@@ -269,13 +269,9 @@ if __name__ == '__main__':
                             default = paths.p_raw_files,\
                             help = 'absolute path to raw files (default: {})'.format(paths.p_raw_files))
 
-    parser.add_argument('--p_output', dest='p_output', \
-                            default=paths.p_ref_csv_files, \
-                            help='absolute path to write csv files (default: {})'.format(paths.p_ref_csv_files))
-
-    parser.add_argument('--p_out_new_exp', dest='p_out_new_exp', \
-                            default=paths.p_out_new_exp, \
-                            help='relative or absolute path to write csv files of the testresults (default: {})'.format(paths.p_out_new_exp))
+    parser.add_argument('--p_stages', dest='p_stages', \
+                            default=paths.p_stages, \
+                            help='relative path to write csv files of the different processing steps (default: {})'.format(paths.p_stages))
 
     parser.add_argument('--raw_f_subfold', dest= 'raw_f_subfold',\
                             default='',\
@@ -313,21 +309,25 @@ if __name__ == '__main__':
 
     log.banner('Start execute {} as main()'.format(__file__))
 
+    args.wrk_dir = utils.abs_path(args.wrk_dir)
+    args.p_stages = utils.abs_path(args.p_stages)
+
+    actions = utils.determine_actions_for_data_processing(args.exp,args.tests,args.p_stages,args.lclean)
+
     # go in workdir
+    os.makedirs(args.p_stages,exist_ok=True)
     os.makedirs(args.wrk_dir,exist_ok=True)
     os.chdir((args.wrk_dir))
-    log.info('Working directory is {}'.format(args.wrk_dir))
+    log.info('Current directory is {}'.format(args.wrk_dir))
 
-    actions = utils.determine_actions_for_data_processing(args.exp,args.tests,args.p_out_new_exp,args.wrk_dir,args.lclean)
 
     main(exp=args.exp,\
          actions = actions, \
          tests = args.tests, \
          spinup = args.spinup,\
-         p_wrkdir = args.wrk_dir, \
          p_raw_files=args.p_raw_files,\
          raw_f_subfold=args.raw_f_subfold,\
-         p_output=args.p_out_new_exp,\
+         p_stages=args.p_stages,\
          f_vars_to_extract=args.f_vars_to_extract)
 
     log.banner('End execute {} as main()'.format(__file__))

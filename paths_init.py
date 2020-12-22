@@ -5,7 +5,7 @@ def write_path(p_raw_files, \
                p_gen = None,\
                p_scripts = None,\
                p_ref_csv_files = None,\
-               p_out_new_exp = None,\
+               p_stages = None,\
                p_wrkdir = None,\
                p_time_serie = None,\
                p_f_vars_proc = None,\
@@ -43,8 +43,8 @@ def write_path(p_raw_files, \
     if p_ref_csv_files is None:
         p_ref_csv_files = os.path.join(p_gen,'ref/echam-hammoz')
 
-    if p_out_new_exp is None:
-        p_out_new_exp = os.path.join(p_gen, 'results_new_exp')
+    if p_stages is None:
+        p_stages = os.path.join(p_gen, 'results_new_exp')
 
     if p_wrkdir is None:
         p_wrkdir = os.path.join(p_gen,'wrkdir')
@@ -64,7 +64,7 @@ def write_path(p_raw_files, \
     fp.write('p_gen = "{}"\n'.format(p_gen))
     fp.write('p_scripts = "{}"\n'.format(p_scripts))
     fp.write('p_ref_csv_files = "{}"\n'.format(p_ref_csv_files))
-    fp.write('p_out_new_exp = "{}"\n'.format(p_out_new_exp))
+    fp.write('p_stages = "{}"\n'.format(p_stages))
     fp.write('p_wrkdir = "{}"\n'.format(p_wrkdir))
     fp.write('p_time_serie = "{}"\n'.format(p_time_serie))
     fp.write('p_f_vars_proc = "{}"\n'.format(p_f_vars_proc))
@@ -76,8 +76,8 @@ def write_path(p_raw_files, \
     # create folders
     if not os.path.isdir(p_wrkdir):
         os.mkdir(p_wrkdir)
-    if not os.path.isdir(p_out_new_exp):
-        os.mkdir(p_out_new_exp)
+    if not os.path.isdir(p_stages):
+        os.mkdir(p_stages)
 
     return()
 
@@ -98,9 +98,9 @@ if __name__ == '__main__':
     parser.add_argument('--p_ref_csv_files',dest='p_ref_csv_files', \
                         default=None, \
                         help='Path to the pool of csv files, one per reference experiment (default: ./ref/echam-hammoz)')
-    parser.add_argument('--p_out_new_exp',dest='p_out_new_exp', \
+    parser.add_argument('--p_stages',dest='p_stages', \
                         default=None, \
-                        help='Path to the folder for the result of new experiment to analyse (default : ./results_new_exp)')
+                        help='Path to the folder to store results of the different processing stages (default : ./results_new_exp)')
     parser.add_argument('--p_wrkdir', dest='p_wrkdir', \
                         default=None, \
                         help='Path to the working directory (default : ./wrkdir)')
@@ -120,7 +120,7 @@ if __name__ == '__main__':
                p_gen           = args.p_gen, \
                p_scripts       = args.p_scripts, \
                p_ref_csv_files = args.p_ref_csv_files, \
-               p_out_new_exp   = args.p_out_new_exp, \
+               p_stages        = args.p_stages, \
                p_wrkdir        = args.p_wrkdir,\
                p_time_serie    = args.p_time_serie,\
                p_f_vars_proc   = args.p_f_vars_proc,\

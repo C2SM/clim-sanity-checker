@@ -378,8 +378,8 @@ if __name__ == '__main__':
                             default=paths.p_ref_csv_files, \
                             help='absolute path to write csv files (default: {})'.format(paths.p_ref_csv_files))
 
-    parser.add_argument('--p_out_new_exp', dest='p_out_new_exp', \
-                            default=paths.p_out_new_exp, \
+    parser.add_argument('--p_stages', dest='p_stages', \
+                            default=paths.p_stages, \
                             help='relative or absolute path to write csv files of the testresults (default: {})'.format(paths.p_out_new_exp))
 
     parser.add_argument('--raw_f_subfold', dest= 'raw_f_subfold',\
