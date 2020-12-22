@@ -4,7 +4,7 @@
 
 
 import process_data
-import begin
+import argparse
 import os
 import pandas as pd
 import numpy as np
@@ -15,43 +15,6 @@ import add_exp_to_ref
 import paths                 # the file paths.py is written by paths_init.py
 import utils
 from utils import log
-
-def determine_actions_for_data_processing(exp, tests, p_out_exp,wrkdir,lforce):
-
-    actions = {'standard_postproc': {},
-               'test_postproc': {}
-               }
-
-    if lforce:
-        log.warning('Redo all processing steps')
-
-    # see if standard-postprocessing is needed
-    for test in tests:
-
-        standard_proc_nc = os.path.join(wrkdir,'standard_postproc_{}_{}.nc'.format(test,exp))
-        if (not os.path.isfile(standard_proc_nc) or lforce):
-            action_needed = True
-        else:
-            action_needed = False
-
-        actions['standard_postproc'][test] = action_needed
-
-        test_specific_csv = os.path.join(p_out_exp,'test_postproc_{}_{}.csv'.format(test,exp))
-        print(test_specific_csv)
-
-        if (not os.path.isfile(test_specific_csv) or \
-            lforce or \
-            actions['standard_postproc'][test]):
-
-            action_needed = True
-        else:
-            action_needed = False
-
-        actions['test_postproc'][test] = action_needed
-
-    log.debug('actions: {}'.format(actions))
-
-    return(actions)
 
 class style():
     '''define colors for output on terminal'''
@@ -227,19 +190,18 @@ def add_color_df_result(df_result,pval_thresholds):
         df_result.loc[df_result.level == pval_lev.level,'col-graph'] = pval_lev.col_graph
 
     return df_result
-@begin.start
 
-def run(new_exp = 'euler_REF_10y_i17_test', \
-       p_raw_files = paths.p_raw_files, \
-       raw_f_subfold = '',\
-       p_ref_csv_files = paths.p_ref_csv_files, \
-       wrk_dir = paths.p_wrkdir, \
-       p_out_new_exp = paths.p_out_new_exp,\
-       f_vars_to_extract = 'vars_echam-hammoz.csv', \
-       tests = ['welchstest','pattern_correlation','emissions'], \
-       spinup = 3, \
-       lforce = False, \
-       lverbose = False):
+def run(new_exp, \
+       p_raw_files, \
+       raw_f_subfold,\
+       p_ref_csv_files, \
+       wrk_dir, \
+       p_out_new_exp,\
+       f_vars_to_extract, \
+       tests, \
+       spinup, \
+       lclean, \
+       lverbose):
 
     # init logger
     utils.init_logger(lverbose)
@@ -247,6 +209,7 @@ def run(new_exp = 'euler_REF_10y_i17_test', \
     log.banner('Start sanity checker')
 
     # go in workdir
+    os.makedirs(wrk_dir,exist_ok=True)
     os.chdir((wrk_dir))
     log.info('Working directory is {}'.format(wrk_dir))
 
@@ -254,7 +217,7 @@ def run(new_exp = 'euler_REF_10y_i17_test', \
     # -------------------------------------------------------------
 
     # get data new exp in dataframe
-    actions = determine_actions_for_data_processing(new_exp,tests,p_out_new_exp,wrk_dir,lforce)
+    actions = utils.determine_actions_for_data_processing(new_exp,tests,p_out_new_exp,wrk_dir,lclean)
 
     # create dataframe out of raw data
     df_timeser_exp,df_pattern_exp,df_emis  = process_data.main(new_exp, \
@@ -265,8 +228,7 @@ def run(new_exp = 'euler_REF_10y_i17_test', \
                            p_wrkdir=wrk_dir, \
                            p_output=p_out_new_exp, \
                            raw_f_subfold=raw_f_subfold,\
-                           f_vars_to_extract=f_vars_to_extract,\
-                           lo_export_csvfile=True)
+                           f_vars_to_extract=f_vars_to_extract)
 
     df_timeser_exp['exp'] = new_exp
     #df_pattern_exp['exp'] = new_exp
@@ -397,3 +359,70 @@ def run(new_exp = 'euler_REF_10y_i17_test', \
         print('EXITING')
 
     print ('### Sanity test finished ###')
+
+if __name__ == '__main__':
+
+    # parsing arguments
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--exp','-e', dest = 'exp',\
+                            required = True,\
+                            default = 'euler_REF_10y', \
+                            help = 'exp to proceed')
+
+    parser.add_argument('--p_raw_files', dest = 'p_raw_files',\
+                            default = paths.p_raw_files,\
+                            help = 'absolute path to raw files (default: {})'.format(paths.p_raw_files))
+
+    parser.add_argument('--p_output', dest='p_output', \
+                            default=paths.p_ref_csv_files, \
+                            help='absolute path to write csv files (default: {})'.format(paths.p_ref_csv_files))
+
+    parser.add_argument('--p_out_new_exp', dest='p_out_new_exp', \
+                            default=paths.p_out_new_exp, \
+                            help='relative or absolute path to write csv files of the testresults (default: {})'.format(paths.p_out_new_exp))
+
+    parser.add_argument('--raw_f_subfold', dest= 'raw_f_subfold',\
+                            default='',\
+                            help='Subfolder where the raw data are ')
+
+    parser.add_argument('--wrkdir','-w', dest= 'wrk_dir',\
+                            default=paths.p_wrkdir,\
+                            help='relative or absolute path to working directory (default: {}'.format(paths.p_wrkdir))
+
+    parser.add_argument('--f_vars_to_extract',dest='f_vars_to_extract',\
+                           default='vars_echam-hammoz.csv',\
+                           help = 'File containing variables to anaylse')
+
+    parser.add_argument('--verbose','-v', dest='lverbose', \
+                           action='store_true', \
+                           help = 'Debug output')
+
+    parser.add_argument('--clean','-c', dest='lclean', \
+                           action='store_true', \
+                           help = 'Redo all processing steps')
+
+    parser.add_argument('--spinup', dest='spinup', \
+                           type=int, \
+                           default=3,\
+                           help='Do not consider first month of the data due to model spinup (default: 3)')
+
+    parser.add_argument('--tests','-t', dest='tests', \
+                           default=['welchstest','pattern_correlation','emissions'], \
+                           nargs='+',\
+                           help = 'Tests to apply on your data (default: welchstest pattern_correlation emissions')
+
+
+    args = parser.parse_args()
+
+    run(new_exp = args.exp, \
+           p_raw_files = args.p_raw_files, \
+           raw_f_subfold = args.raw_f_subfold,\
+           p_ref_csv_files = args.p_output, \
+           wrk_dir = args.wrk_dir, \
+           p_out_new_exp = args.p_out_new_exp,\
+           f_vars_to_extract = args.f_vars_to_extract, \
+           tests = args.tests, \
+           spinup = args.spinup, \
+           lclean = args.lclean, \
+           lverbose = args.lverbose)

@@ -13,8 +13,7 @@ import utils
 
 def timeser_proc_nc_to_df(exp, \
         filename, \
-        p_output           = paths.p_ref_csv_files, \
-        lo_export_csvfile = False):
+        p_output           = paths.p_ref_csv_files):
 
     '''
 Read netcdf file containing global mean values timeseries and transforms into dataframe.
@@ -23,8 +22,6 @@ Read netcdf file containing global mean values timeseries and transforms into da
 Arguments: 
 exp               = experiment name
 filename          = filename (incl path) to the global means time series file
-p_output          = Definition folder where to write output files (only used if lo_export_csvfile = True)
-lo_export_csvfile = if True, export the data into a csv file
 
 C. Siegenthaler, C2SM(ETHZ) , 2019-10
  
@@ -57,21 +54,20 @@ C. Siegenthaler, C2SM(ETHZ) , 2019-10
     # transforms into dataframe
     df_data = data.to_dataframe()
 
-    log.info('Finished {} for file {}'.format(__name__,timeser_filename))
-
     # export in a file
     os.makedirs(p_output, exist_ok=True)
     csv_filename = os.path.join(p_output,'test_postproc_{}_{}.csv'.format(test,exp))
     df_data.to_csv(csv_filename, index = None, header=True, sep = ';')
     log.info('CSV file can be found here: {}'.format(csv_filename))     
+
+    log.info('Finished {} for file {}'.format(__name__,timeser_filename))
     
     return(df_data)
 
 def pattern_proc_nc_to_df(exp, \
         filename, \
         reference, \
-        p_output           = paths.p_ref_csv_files, \
-        lo_export_csvfile = False):
+        p_output           = paths.p_ref_csv_files):
 
     '''
 Read netcdf file containing global mean values timeseries and transforms into dataframe.
@@ -80,8 +76,6 @@ Read netcdf file containing global mean values timeseries and transforms into da
 Arguments: 
 exp               = experiment name
 filename          = filename (incl path) to the global means time series file
-p_output          = Definition folder where to write output files (only used if lo_export_csvfile = True)
-lo_export_csvfile = if True, export the data into a csv file
 
 C. Siegenthaler, C2SM(ETHZ) , 2019-10
  
@@ -117,19 +111,19 @@ C. Siegenthaler, C2SM(ETHZ) , 2019-10
     # transforms into dataframe
     df_data = data.to_dataframe()
 
-    print('Finished field_correlation for file {}'.format(field_correlation_filename))
 
     os.makedirs(p_output, exist_ok=True)
     csv_filename = os.path.join(p_output,'test_postproc_{}_{}.csv'.format(test,exp))
     df_data.to_csv(csv_filename, index = None, header=True, sep = ';')
     log.info('CSV file can be found here: {}'.format(csv_filename))     
 
+    log.info('Finished {} for file {}'.format(__name__,field_correlation_filename))
+
     return(df_data)
 
 def emis_proc_nc_to_df(exp, \
         filename, \
-        p_output           = paths.p_ref_csv_files, \
-        lo_export_csvfile = False):
+        p_output           = paths.p_ref_csv_files):
 
     '''
 Read netcdf file containing global mean values timeseries and transforms into dataframe.
@@ -138,8 +132,6 @@ Read netcdf file containing global mean values timeseries and transforms into da
 Arguments: 
 exp               = experiment name
 filename          = filename (incl path) to the global means time series file
-p_output          = Definition folder where to write output files (only used if lo_export_csvfile = True)
-lo_export_csvfile = if True, export the data into a csv file
 
 C. Siegenthaler, C2SM(ETHZ) , 2019-10
  
@@ -169,14 +161,13 @@ C. Siegenthaler, C2SM(ETHZ) , 2019-10
     # transforms into dataframe
     df_data = data.to_dataframe()
 
-    log.info('Finished {} for file {}'.format(__name__,emis_filename))
-
     # export in a file
     os.makedirs(p_output, exist_ok=True)
     csv_filename = os.path.join(p_output,'test_postproc_{}_{}.csv'.format(test,exp))
     df_data.to_csv(csv_filename, index = None, header=True, sep = ';')
     log.info('CSV file can be found here: {}'.format(csv_filename))     
     
+    log.info('Finished {} for file {}'.format(__name__,emis_filename))
 
     return(df_data)
 
@@ -185,18 +176,17 @@ def main(exp,\
          actions, \
          tests,\
          spinup,\
-         p_raw_files  = paths.p_raw_files,\
-         p_wrkdir = paths.p_wrkdir, \
-         p_output     = paths.p_out_new_exp,\
-         raw_f_subfold     = '',\
-         f_vars_to_extract = 'vars_echam-hammoz.csv',
-         lo_export_csvfile = True ):
+         p_raw_files,\
+         p_wrkdir, \
+         p_output,\
+         raw_f_subfold,\
+         f_vars_to_extract):
 
     '''
 Process exp 
     '''
     log.banner('Start standard-postprocessing')
-# apply standard postprocessing DONE
+
     processed_netcdf_filename = {}
     for test in tests:
         if (actions['standard_postproc'][test]): 
@@ -220,8 +210,7 @@ Process exp
             # transforming netcdf timeseries into csv file
             df_timeser = timeser_proc_nc_to_df(exp, \
                 filename     = processed_netcdf_filename[test],\
-                p_output     = p_output,
-                lo_export_csvfile = lo_export_csvfile)
+                p_output     = p_output)
         else:
             log.info('Processing for test {} already done'.format(test))
             f_timeser_csv = os.path.join(p_output, 'test_postproc_{}_{}.csv'.format(test,exp))
@@ -235,8 +224,7 @@ Process exp
         if (actions['test_postproc'][test]):
             df_emis = emis_proc_nc_to_df(exp, \
                 filename     = processed_netcdf_filename[test],\
-                p_output     = p_output, \
-                lo_export_csvfile = lo_export_csvfile)
+                p_output     = p_output)
         else:
             log.info('Processing for test {} already done'.format(test))
             f_emis_csv = os.path.join(p_output, 'test_postproc_{}_{}.csv'.format(test,exp))
@@ -253,8 +241,7 @@ Process exp
             df_pattern = pattern_proc_nc_to_df(exp, \
                 filename     = processed_netcdf_filename[test],\
                 p_output     = p_output, \
-                reference = reference, \
-                lo_export_csvfile = lo_export_csvfile)
+                reference = reference)
         else:
             log.info('Processing for test {} already done'.format(test))
             f_pattern_csv = os.path.join(p_output, 'test_postproc_{}_{}.csv'.format(test,exp))
@@ -275,31 +262,72 @@ if __name__ == '__main__':
 
     parser.add_argument('--exp','-e', dest = 'exp',\
                             required = True,\
+                            default = 'euler_REF_10y', \
                             help = 'exp to proceed')
+
     parser.add_argument('--p_raw_files', dest = 'p_raw_files',\
                             default = paths.p_raw_files,\
-                            help = 'path to raw files')
+                            help = 'absolute path to raw files (default: {})'.format(paths.p_raw_files))
+
     parser.add_argument('--p_output', dest='p_output', \
                             default=paths.p_ref_csv_files, \
-                            help='path to write csv file')
+                            help='absolute path to write csv files (default: {})'.format(paths.p_ref_csv_files))
+
+    parser.add_argument('--p_out_new_exp', dest='p_out_new_exp', \
+                            default=paths.p_out_new_exp, \
+                            help='relative or absolute path to write csv files of the testresults (default: {})'.format(paths.p_out_new_exp))
+
     parser.add_argument('--raw_f_subfold', dest= 'raw_f_subfold',\
                             default='',\
                             help='Subfolder where the raw data are ')
+
+    parser.add_argument('--wrkdir','-w', dest= 'wrk_dir',\
+                            default=paths.p_wrkdir,\
+                            help='relative or absolute path to working directory (default: {}'.format(paths.p_wrkdir))
+
     parser.add_argument('--f_vars_to_extract',dest='f_vars_to_extract',\
                            default='vars_echam-hammoz.csv',\
                            help = 'File containing variables to anaylse')
-    parser.add_argument('--lo_export_csvfile', dest = 'lo_export_csvfile',\
-                            default =  True,\
-                            help = 'Should a csv file be created')
 
-    parser.add_argument('--lverbose', dest='lverbose', action='store_true')
+    parser.add_argument('--verbose','-v', dest='lverbose', \
+                           action='store_true', \
+                           help = 'Debug output')
+
+    parser.add_argument('--clean','-c', dest='lclean', \
+                           action='store_true', \
+                           help = 'Redo all processing steps')
+
+    parser.add_argument('--spinup', dest='spinup', \
+                           type=int, \
+                           default=3,\
+                           help='Do not consider first month of the data due to model spinup (default: 3)')
+
+    parser.add_argument('--tests','-t', dest='tests', \
+                           default=['welchstest','pattern_correlation','emissions'], \
+                           nargs='+',\
+                           help = 'Tests to apply on your data (default: welchstest pattern_correlation emissions')
 
     args = parser.parse_args()
 
+    utils.init_logger(args.lverbose)
+
+    log.banner('Start execute {} as main()'.format(__file__))
+
+    # go in workdir
+    os.makedirs(args.wrk_dir,exist_ok=True)
+    os.chdir((args.wrk_dir))
+    log.info('Working directory is {}'.format(args.wrk_dir))
+
+    actions = utils.determine_actions_for_data_processing(args.exp,args.tests,args.p_out_new_exp,args.wrk_dir,args.lclean)
+
     main(exp=args.exp,\
+         actions = actions, \
+         tests = args.tests, \
+         spinup = args.spinup,\
+         p_wrkdir = args.wrk_dir, \
          p_raw_files=args.p_raw_files,\
          raw_f_subfold=args.raw_f_subfold,\
-         p_output=args.p_output,\
-         f_vars_to_extract=args.f_vars_to_extract,\
-         lo_export_csvfile=args.lo_export_csvfile,\
-         lverbose=args.lverbose)
+         p_output=args.p_out_new_exp,\
+         f_vars_to_extract=args.f_vars_to_extract)
+
+    log.banner('End execute {} as main()'.format(__file__))
