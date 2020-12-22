@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages  # multiple pages in pdf
 import paths                                          # the file paths.py is written by paths_init.py
 
-def plt_var(df_tot, new_exp, df_result, p_out_new_exp = paths.p_out_new_exp):
+def plt_var(df_tot, new_exp, df_result, p_out_new_exp = paths.p_stages):
     '''
 
     :param df_tot:  Dataframe containing containing all global annula mean (reference & new_exp)

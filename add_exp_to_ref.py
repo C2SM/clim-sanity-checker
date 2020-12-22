@@ -77,7 +77,7 @@ def add_line_descr_f(new_exp,f_exp_descr):
     return()
 
 def main(new_exp, \
-         p_out_new_exp=paths.p_out_new_exp, \
+         p_out_new_exp=paths.p_stages, \
          p_ref_csv_files = paths.p_ref_csv_files, \
          lverbose=False):
 

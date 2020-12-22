@@ -194,9 +194,8 @@ def add_color_df_result(df_result,pval_thresholds):
 def run(new_exp, \
        p_raw_files, \
        raw_f_subfold,\
-       p_ref_csv_files, \
+       p_stages, \
        wrk_dir, \
-       p_out_new_exp,\
        f_vars_to_extract, \
        tests, \
        spinup, \
@@ -209,6 +208,9 @@ def run(new_exp, \
     log.banner('Start sanity checker')
 
     # go in workdir
+    wrk_dir = utils.abs_path(wrk_dir)
+    p_stages = utils.abs_path(p_stages)
+    os.makedirs(p_stages,exist_ok=True)
     os.makedirs(wrk_dir,exist_ok=True)
     os.chdir((wrk_dir))
     log.info('Working directory is {}'.format(wrk_dir))
@@ -217,7 +219,7 @@ def run(new_exp, \
     # -------------------------------------------------------------
 
     # get data new exp in dataframe
-    actions = utils.determine_actions_for_data_processing(new_exp,tests,p_out_new_exp,wrk_dir,lclean)
+    actions = utils.determine_actions_for_data_processing(new_exp,tests,p_stages,lclean)
 
     # create dataframe out of raw data
     df_timeser_exp,df_pattern_exp,df_emis  = process_data.main(new_exp, \
@@ -225,11 +227,11 @@ def run(new_exp, \
                            tests, \
                            spinup,\
                            p_raw_files=p_raw_files, \
-                           p_wrkdir=wrk_dir, \
-                           p_output=p_out_new_exp, \
-                           raw_f_subfold=raw_f_subfold,\
+                           p_stages=p_stages, \
+                           raw_f_subfold=raw_f_subfold, \
                            f_vars_to_extract=f_vars_to_extract)
 
+    log.error('Exit')
     df_timeser_exp['exp'] = new_exp
     #df_pattern_exp['exp'] = new_exp
 
@@ -374,13 +376,9 @@ if __name__ == '__main__':
                             default = paths.p_raw_files,\
                             help = 'absolute path to raw files (default: {})'.format(paths.p_raw_files))
 
-    parser.add_argument('--p_output', dest='p_output', \
-                            default=paths.p_ref_csv_files, \
-                            help='absolute path to write csv files (default: {})'.format(paths.p_ref_csv_files))
-
     parser.add_argument('--p_stages', dest='p_stages', \
                             default=paths.p_stages, \
-                            help='relative or absolute path to write csv files of the testresults (default: {})'.format(paths.p_out_new_exp))
+                            help='relative or absolute path to write csv files of the testresults (default: {})'.format(paths.p_stages))
 
     parser.add_argument('--raw_f_subfold', dest= 'raw_f_subfold',\
                             default='',\
@@ -417,10 +415,9 @@ if __name__ == '__main__':
 
     run(new_exp = args.exp, \
            p_raw_files = args.p_raw_files, \
-           raw_f_subfold = args.raw_f_subfold,\
-           p_ref_csv_files = args.p_output, \
+           raw_f_subfold = args.raw_f_subfold, \
            wrk_dir = args.wrk_dir, \
-           p_out_new_exp = args.p_out_new_exp,\
+           p_stages = args.p_stages,\
            f_vars_to_extract = args.f_vars_to_extract, \
            tests = args.tests, \
            spinup = args.spinup, \
