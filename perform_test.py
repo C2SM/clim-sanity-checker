@@ -6,7 +6,17 @@ import argparse
 import os
 from utils import log
 import paths
+import numpy as np
 from color import style
+
+def add_color_df_result(df_result,metric_thresholds):
+    '''Add the color for the graph to the df_result datframe'''
+
+    df_result['col-graph'] = np.nan
+    for metric_lev in metric_thresholds:
+        df_result.loc[df_result.level == metric_lev.level,'col-graph'] = metric_lev.col_graph
+
+    return df_result
 
 def print_warning_color(df_result, metric_thresholds, metric):
     ''' Print database df_warning with the color col_warn'''
@@ -288,9 +298,11 @@ def main(\
                                threshold_prop('very low', 1e-10, 'DarkRed')]
         
         df_result[test] = sort_level_metric(df_result[test], metric_threshold[test],test_metrics[test])
+        df_result[test] = add_color_df_result(df_result[test],metric_threshold[test])
+
         print_warning_color(df_result[test], metric_threshold[test],test_metrics[test])
 
-    return df_result,metric_threshold,test_metrics
+    return df_result,df_ref
 
 if __name__ == '__main__':
 

@@ -40,14 +40,6 @@ def df_drop_inplace(df,col_list):
 
     return
 
-def add_color_df_result(df_result,pval_thresholds):
-    '''Add the color for the graph to the df_result datframe'''
-
-    df_result['col-graph'] = np.nan
-    for pval_lev in pval_thresholds:
-        df_result.loc[df_result.level == pval_lev.level,'col-graph'] = pval_lev.col_graph
-
-    return df_result
 
 def run(new_exp, \
        p_raw_files, \
@@ -92,7 +84,7 @@ def run(new_exp, \
                               raw_f_subfold=raw_f_subfold, \
                               f_vars_to_extract=f_vars_to_extract)
 
-    result_test,metric_threshold,test_metric = perform_test.main(\
+    results_test, references = perform_test.main(\
                            new_exp, \
                            results_data_processing = results_data_processing, \
                            p_stages=p_stages, \
@@ -101,13 +93,11 @@ def run(new_exp, \
                            f_vars_to_extract=f_vars_to_extract)
                                     
 
-    log.error('EXIT')
-
     # plot
     # -------------------------------------------------------------------
-    # add color of the plot in the dataframe
-    df_result = add_color_df_result(df_result,pval_thresholds)
-    plt.plt_var(df_ref.append(df_new_exp,sort=False), new_exp, df_result)
+    plt.plt_pattern_correlation(references['pattern_correlation'].append(results_data_processing['pattern_correlation'],sort=False),new_exp, results_test['pattern_correlation'], p_out_new_exp = p_stages)
+
+    plt.plt_welchstest(references['welchstest'].append(results_data_processing['welchstest'],sort=False), new_exp, results_test['welchstest'], p_out_new_exp = p_stages)
 
     # Add experiment to the reference pool
     #--------------------------------------------------------------------
@@ -121,9 +111,10 @@ def run(new_exp, \
         print('The experiment {} is NOT added to the reference pool \n'.format(new_exp))
         print('If you want to add the experiment {} to the reference pool later on, type the following line when you are ready:\n \
                           add_exp_to_ref --new_exp {}'.format(new_exp, new_exp))
-        print('EXITING')
 
-    print ('### Sanity test finished ###')
+    log.banner('')
+    log.banner ('Sanity test finished')
+    log.banner('')
 
 if __name__ == '__main__':
 
