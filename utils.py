@@ -2,6 +2,7 @@ import logging
 import sys
 import os
 
+from color import colors
 
 log = logging.getLogger()
 
@@ -26,12 +27,6 @@ def clean_path(dir, file):
 class CustomFormatter(logging.Formatter):
     """Logging Formatter to add colors and count warning / errors"""
 
-    grey = "\x1b[38;21m"
-    green = "\033[32m"
-    yellow = "\x1b[33;21m"
-    red = "\x1b[31;21m"
-    bold_red = "\x1b[31;1m"
-    reset = "\x1b[0m"
     format_debug = "     %(levelname)s: %(message)s (%(filename)s)"
     format_info = "%(message)s"
     format_banner = "=========  %(message)s"
@@ -39,11 +34,11 @@ class CustomFormatter(logging.Formatter):
     format_error = "%(levelname)s: %(message)s (%(filename)s:%(lineno)d)"
 
     FORMATS = {
-        logging.DEBUG: grey + format_debug + reset,
-        logging.INFO: grey + format_info + reset,
-        25: green + format_banner + reset,
-        logging.WARNING: yellow + format_warning + reset,
-        logging.ERROR: bold_red + format_error + reset,
+        logging.DEBUG: colors['black'] + format_debug + colors['reset'],
+        logging.INFO: colors['black'] + format_info + colors['reset'],
+        25: colors['green'] + format_banner + colors['reset'],
+        logging.WARNING: colors['orange'] + format_warning + colors['reset'],
+        logging.ERROR: colors['bold_red'] + format_error + colors['reset'],
         }
 
     def format(self, record):
@@ -61,9 +56,6 @@ def banner(self, message, *args, **kws):
            self._log(25, message, args, **kws) 
 
 def init_logger(lverbose):
-
-    # create logger with 'spam_application'
-    #logger = logging.getLogger('Test')
 
     if lverbose:
         level = logging.DEBUG

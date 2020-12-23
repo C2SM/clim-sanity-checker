@@ -15,36 +15,6 @@ import utils
 from utils import log
 import perform_test
 
-class style():
-    '''define colors for output on terminal'''
-
-    BLACK = lambda x: '\033[30m' + str(x)
-    RED = lambda x: '\033[31m' + str(x)
-    GREEN = lambda x: '\033[32m' + str(x)
-    ORANGE = lambda x: '\033[93m' + str(x)
-    RED_HIGHL = lambda x: '\u001b[41m' + str(x)
-    RESET = lambda x: '\033[0m' + str(x)
-
-class pval_thr_prop:
-    '''Properties linked to the p-value threshold'''
-
-    def __init__(self, lev, p_threshold, color_var):
-
-        # defining color text
-        dict_col = {'Red': style.RED, 'DarkRed': style.RED_HIGHL, 'Orange':style.ORANGE,'Green' : style.GREEN}
-
-        if color_var in dict_col.keys():
-            self.col_txt = dict_col[color_var]
-        else:
-            print('Warning no text color associated with {}'.format(color_var))
-            self.col_txt = style.RESET
-
-        # other properties
-        self.level = lev
-        self.p_thresh = p_threshold
-        self.col_txt = dict_col[color_var]
-        self.col_graph = color_var
-
 class table_ref:
     def __init__(self, file_summary):
         # tabs in the excel file
@@ -67,117 +37,6 @@ def df_drop_inplace(df,col_list):
 
     # drop list of existing columns
     df.drop(labels=list_to_drop,axis=1,inplace=True)
-
-    return
-
-def create_big_df(list_csv_files, filename_csv=''):
-    '''
-    Create big dataframe form list of csv files
-    :param list_csv_files: list of csv files for the big dataframe
-    :return: big dataframe containing the whole data
-    '''
-
-    # initialise big empty dataframe
-    df_tot = pd.DataFrame()
-
-    # create big dataframe
-    for fexp in list_csv_files:
-
-        exp = os.path.basename(fexp).rstrip('.csv').replace('glob_means_','')
-
-        # read the csv file
-        if os.path.isfile(fexp):
-            df_exp = pd.read_csv(fexp, sep=';')
-            df_exp['exp'] = exp
-
-            # append dataframe of exp to the total dataframe
-            df_tot = df_tot.append(df_exp, sort = False)
-
-        else:
-            print('Warning csv file is not a file : {}'.format(fexp))
-
-    if len(filename_csv) > 0 :
-        df_tot.to_csv(filename_csv, sep = ';')
-
-    return df_tot
-
-def welch_test_all_var(df_a, df_b , filename_student_test = ''):
-    '''
-    Perform Welch t-test for each variable fo dataframe df_b
-    :param df_a: reference datframe, containing big sample
-    :param df_b: datframe containing data to test
-    :param filename_student_test: filename for writing result of t-test result into a csv file
-    :return: result of the student test in a dataframe
-    '''
-
-    # initialisation for construction dataframe (much faster to use list than dataframe.append)
-    row_list_df = []
-
-    for var in df_b.keys():
-        if 'exp' in var:
-            continue
-
-        # Welch's t-test
-        t, p = stats.ttest_ind(df_a[var], df_b[var], equal_var = False, nan_policy='omit')
-
-        # append results for construction datframe df_result
-        dict1 = {'variable' : var, 't-value' : t , 'p-value' : p}
-        row_list_df.append(dict1)
-
-    # construction dataframe
-    df_result = pd.DataFrame(row_list_df, columns=['variable','t-value','p-value'] )
-
-    # sort per p value
-    df_result.sort_values(by=['p-value'], inplace=True)
-
-    # if a filename is given, write the student-stest result into the file named filename_student_test
-    if len(filename_student_test) > 0 :
-        df_result.to_csv(filename_student_test, sep = ',')
-
-    return (df_result)
-
-def sort_level_metric(df_result, metric_thresholds, metric):
-    '''add column in df_results filled with level of p-value'''
-
-    # define out the level of Warning
-    bins = [t.p_thresh for t in metric_thresholds]
-    bins = [0] + bins
-    metric_levels = [t.level for t in metric_thresholds]
-
-    # sort each variable into bins in function of its p-values
-    df_result['level'] = pd.cut(df_result[metric], bins, labels=metric_levels)
-
-    return df_result
-
-def print_warning_color(df_result, metric_thresholds, metric):
-    ''' Print database df_warning with the color col_warn'''
-
-    # dataframe containing only variables a warning has to be printed
-    df_warning = df_result[df_result['level'] != metric_thresholds[-1].level]
-
-    log.info('----------------------------------------------------------------------------------------------------------')
-
-    if df_warning.size > 0:
-
-        log.warning('The following variables give low {} : \n'.format(metric))
-
-        # for each level of warning, print the dataframe
-        for metric_lev in metric_thresholds[:-1]:
-
-            # dataframe containing only this level of warning
-            df_print_warn = df_warning[df_warning.level == metric_lev.level]
-
-            # print
-            if df_print_warn.size > 0:
-                log.info(style.RESET('{} {} '.format(metric_lev.level.upper(),metric)))
-                #print(metric_lev.col_txt(df_print_warn.drop(metric,axis=1)))
-                log.info(metric_lev.col_txt(df_print_warn))
-                log.info(style.RESET('\n'))
-    else:
-        log.info(style.GREEN('The experiment is fine. No {} under {} ').format(metric,metric_thresholds[1].p_thresh))
-        log.info(style.RESET('\n'))
-
-    log.info('----------------------------------------------------------------------------------------------------------')
 
     return
 
@@ -242,62 +101,7 @@ def run(new_exp, \
                            f_vars_to_extract=f_vars_to_extract)
                                     
 
-    #df_pattern_exp['exp'] = new_exp
-
-    #full_p_f_vars = os.path.join(paths.p_f_vars_proc,f_vars_to_extract)
-    #vars_to_analyse = list(pd.read_csv(full_p_f_vars, sep=',')['var'].values)
-
-    ## list of paths to all csv files
-    #p_csv_files = glob.glob(os.path.join(p_ref_csv_files,'emis_*csv'))
-    #if len(p_csv_files) == 0:
-    #    print('ERROR : santity_test.py : No reference files found in {}\n EXITING'.format(p_ref_csv_files))
-    #    exit()
-    #print(p_csv_files)
-
-    #df_ref_emis = pd.read_csv(p_csv_files[0], sep=';')
-    #df_ref_emis = df_ref_emis[vars_to_analyse]
-
-    #print(df_ref_emis)
-    #print(df_emis)
-
-
-    #df_emis['diff'] = df_emis - df_ref_emis
-
-    #emis_metric = 'deviation'
-
-    ## sort variables from their p-value
-    #devi_thresholds = [pval_thr_prop('very low', 1e-15, 'DarkRed'), \
-    #                   pval_thr_prop('low', 1e-16, 'Red'), \
-    #                   pval_thr_prop('middle', 1e-17, 'Orange'), \
-    #                   pval_thr_prop('high', 0, 'Green')]
-    #df_result_pattern = sort_level_metric(df_test, devi_thresholds,pattern_metric)
-    #print_warning_color(df_result_pattern, rcor_thresholds, pattern_metric)
-
-
-    ## pattern correlation test
-    #pattern_metric = 'R_squared'
-
-    #df_pattern_exp = df_pattern_exp[vars_to_analyse]
-    #print(df_pattern_exp)
-    #df_test = pd.DataFrame()
-    #df_test['variable'] = df_pattern_exp.columns.values
-    #df_test[pattern_metric] = df_pattern_exp.loc[0].values
-
-    ## sort variables from their p-value
-    #rcor_thresholds = [pval_thr_prop('very low', 0.94, 'DarkRed'), \
-    #                   pval_thr_prop('low', 0.95, 'Red'), \
-    #                   pval_thr_prop('middle', 0.97, 'Orange'), \
-    #                   pval_thr_prop('high', 1, 'Green')]
-    #df_result_pattern = sort_level_metric(df_test, rcor_thresholds,pattern_metric)
-    #print_warning_color(df_result_pattern, rcor_thresholds, pattern_metric)
-
-    test='welchstest'
-    # print warnings for small p-values
-    print_warning_color(result_test[test], metric_threshold[test],test_metric[test])
-
-    # print info output file
-    #print('To see the whole table containing p-values, please the file:{}'.format(file_result_welche))
-    #print()
+    log.error('EXIT')
 
     # plot
     # -------------------------------------------------------------------

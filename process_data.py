@@ -237,7 +237,7 @@ Process exp
         if (actions['test_postproc'][test]):
             test = 'pattern_correlation'
             reference ='/scratch/juckerj/sanity_check/ref_data/test_postproc_pattern_correlation_euler_REF_10y.nc'
-            df_pattern = pattern_proc_nc_to_df(exp, \
+            results_data_processing[test] = pattern_proc_nc_to_df(exp, \
                 filename     = processed_netcdf_filename[test],\
                 p_stages     = p_stages, \
                 reference = reference)
