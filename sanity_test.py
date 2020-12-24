@@ -93,11 +93,18 @@ def run(new_exp, \
                            f_vars_to_extract=f_vars_to_extract)
                                     
 
-    # plot
-    # -------------------------------------------------------------------
-    plt.plt_pattern_correlation(references['pattern_correlation'].append(results_data_processing['pattern_correlation'],sort=False),new_exp, results_test['pattern_correlation'], p_out_new_exp = p_stages)
+    if 'emissions' in tests:
+        test = 'emissions'
+        plt.plt_emissions(references[test].append(results_data_processing[test],sort=False),new_exp, results_test[test], p_out_new_exp = p_stages)
+        log.error('exit')
 
-    plt.plt_welchstest(references['welchstest'].append(results_data_processing['welchstest'],sort=False), new_exp, results_test['welchstest'], p_out_new_exp = p_stages)
+    if 'pattern_correlation' in tests:
+        test = 'pattern_correlation'
+        plt.plt_pattern_correlation(references[test].append(results_data_processing[test],sort=False),new_exp, results_test[test], p_out_new_exp = p_stages)
+
+    if 'welchstest' in tests:
+        test = 'welchstest'
+        plt.plt_welchstest(references[test].append(results_data_processing[test],sort=False), new_exp, results_test[test], p_out_new_exp = p_stages)
 
     # Add experiment to the reference pool
     #--------------------------------------------------------------------
