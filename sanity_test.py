@@ -136,20 +136,19 @@ def run(new_exp, \
 if __name__ == '__main__':
 
     # parsing arguments
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument('--exp','-e', dest = 'exp',\
                             required = True,\
-                            default = 'euler_REF_10y', \
                             help = 'exp to proceed')
 
     parser.add_argument('--p_raw_files', dest = 'p_raw_files',\
                             default = paths.p_raw_files,\
-                            help = 'absolute path to raw files (default: {})'.format(paths.p_raw_files))
+                            help = 'absolute path to raw files')
 
     parser.add_argument('--p_stages', dest='p_stages', \
                             default=paths.p_stages, \
-                            help='relative or absolute path to write csv files of the testresults (default: {})'.format(paths.p_stages))
+                            help='relative or absolute path to write csv files of the testresults')
 
     parser.add_argument('--raw_f_subfold', dest= 'raw_f_subfold',\
                             default='',\
@@ -157,11 +156,11 @@ if __name__ == '__main__':
 
     parser.add_argument('--wrkdir','-w', dest= 'wrk_dir',\
                             default=paths.p_wrkdir,\
-                            help='relative or absolute path to working directory (default: {}'.format(paths.p_wrkdir))
+                            help='relative or absolute path to working directory')
 
     parser.add_argument('--p_ref_csv_files', dest= 'p_ref_csv_files',\
                             default=paths.p_ref_csv_files,\
-                            help='relative or absolute path to reference files (default: {}'.format(paths.p_ref_csv_files))
+                            help='relative or absolute path to reference files')
 
     parser.add_argument('--f_vars_to_extract',dest='f_vars_to_extract',\
                            default='vars_echam-hammoz.csv',\
@@ -178,12 +177,12 @@ if __name__ == '__main__':
     parser.add_argument('--spinup', dest='spinup', \
                            type=int, \
                            default=3,\
-                           help='Do not consider first month of the data due to model spinup (default: 3)')
+                           help='Do not consider first month of the data due to model spinup')
 
     parser.add_argument('--tests','-t', dest='tests', \
                            default=['welchstest','pattern_correlation','emissions'], \
                            nargs='+',\
-                           help = 'Tests to apply on your data (default: welchstest pattern_correlation emissions')
+                           help = 'Tests to apply on your data')
 
 
     args = parser.parse_args()
