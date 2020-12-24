@@ -1,19 +1,27 @@
-# Script to test sanity of a an HAMMOZ run
+# Script to test sanity of climate model
 # C.Siegenthaler, 2019
+# J.Jucker, 2020
 
-import process_data
+# standard modules
 import argparse
 import os
-import pandas as pd
-import numpy as np
-import glob
-from scipy import stats
-import plot_mean_std as plt
+
+# aliased standard modules
+import pandas as pd # to evaluate
+
+# modules of sanity checker
 import add_exp_to_ref
-import paths                 # the file paths.py is written by paths_init.py
+import paths
 import utils
-from utils import log
 import perform_test
+import process_data
+import logger_config
+
+# aliased modules of sanity checker
+import plot_mean_std as plt
+
+# standalone imports
+from logger_config import log
 
 class table_ref:
     def __init__(self, file_summary):
@@ -54,23 +62,25 @@ def run(new_exp, \
        lverbose):
 
     # init logger
-    utils.init_logger(lverbose)
+    logger_config.init_logger(lverbose)
 
     log.banner('Start sanity checker')
 
-    # go in workdir
+    # make all paths from user to absolute paths
     wrk_dir = utils.abs_path(wrk_dir)
     p_stages = utils.abs_path(p_stages)
     p_ref_csv_files = utils.abs_path(p_ref_csv_files)
+
+    # create directories
     os.makedirs(p_stages,exist_ok=True)
     os.makedirs(wrk_dir,exist_ok=True)
+
+    # go to working directory
     os.chdir((wrk_dir))
     log.info('Working directory is {}'.format(wrk_dir))
 
-    # new experiment to test
-    # -------------------------------------------------------------
 
-    # get data new exp in dataframe
+    # data processing takes a while, check that no step is done twice
     actions = utils.determine_actions_for_data_processing(new_exp,tests,p_stages,lclean)
 
     # create dataframe out of raw data

@@ -1,10 +1,31 @@
+# standard modules
 import logging
 import sys
 import os
+import subprocess
 
-from color import colors
 
-log = logging.getLogger()
+# standalone imports
+from logger_config import log
+
+'''
+Module providing useful functions. It contains:
+
+    - clean_path: make a clean paths from a path and filename
+
+    - abs_path: convert path passed as argument into absolute
+
+    - determine_actions_for_data_processing:
+            Check what stages of data-processing
+            already took place, determine relevant
+            actions still to do
+
+    - shell_cmd: execute shell-command with subprocess.Popen
+
+C.Siegenthaler 2019
+J.Jucker 2020
+'''
+
 
 def clean_path(dir, file):
     '''
@@ -24,59 +45,12 @@ def clean_path(dir, file):
 
     return clean_path
 
-class CustomFormatter(logging.Formatter):
-    """Logging Formatter to add colors and count warning / errors"""
-
-    format_debug = "     %(levelname)s: %(message)s (%(filename)s)"
-    format_info = "%(message)s"
-    format_banner = "=========  %(message)s"
-    format_warning = "%(levelname)s: %(message)s (%(filename)s)"
-    format_error = "%(levelname)s: %(message)s (%(filename)s:%(lineno)d)"
-
-    FORMATS = {
-        logging.DEBUG: colors['black'] + format_debug + colors['reset'],
-        logging.INFO: colors['black'] + format_info + colors['reset'],
-        25: colors['green'] + format_banner + colors['reset'],
-        logging.WARNING: colors['orange'] + format_warning + colors['reset'],
-        logging.ERROR: colors['bold_red'] + format_error + colors['reset'],
-        }
-
-    def format(self, record):
-        log_fmt = self.FORMATS.get(record.levelno)
-        formatter = logging.Formatter(log_fmt)
-        return formatter.format(record)
-
-class ShutdownHandler(logging.Handler):
-    def emit(self, record):
-        logging.shutdown()
-        sys.exit(1)
-
-def banner(self, message, *args, **kws):
-           # Yes, logger takes its '*args' as 'args'.
-           self._log(25, message, args, **kws) 
-
-def init_logger(lverbose):
-
-    if lverbose:
-        level = logging.DEBUG
+def abs_path(path):
+    if os.path.isabs(path):
+        return path
     else:
-        level = logging.INFO
-
-    log.setLevel(level)
-
-    logging.addLevelName(25,"BANNER")
-    logging.Logger.banner = banner
-
-    # create console handler with a higher log level
-    ch = logging.StreamHandler()
-    ch.setLevel(level)
-
-    ch.setFormatter(CustomFormatter())
-
-    log.addHandler(ch)
-
-    # shutdown in case of logging.ERROR
-    log.addHandler(ShutdownHandler(level=logging.ERROR)) 
+        path = os.path.abspath(path)
+        return path
 
 def determine_actions_for_data_processing(exp, tests, p_stages,lforce):
 
@@ -115,19 +89,33 @@ def determine_actions_for_data_processing(exp, tests, p_stages,lforce):
 
     return(actions)
 
-def abs_path(path):
-    if os.path.isabs(path):
-        return path
-    else:
-        path = os.path.abspath(path)
-        return path
 
-if __name__ == '__main__':
+def shell_cmd(cmd,py_routine,lowarn=False):
 
-    path_to_clean = '../test'
-    path_abs = '/scratch/juckerj/'
-    test_1 = abs_path(path_to_clean)
-    test_2 = abs_path(path_abs)
-    print(test_1)
-    print(test_2)
+    """ 
+    Send shell command through subprocess.Popen and returns a string 
+    containing the cmd output
 
+    lowarn = True -> only a warning is written, no exit (To use with caution!)
+    """
+
+    # send cmd to be executed
+    p = subprocess.Popen(cmd, shell=True, \
+                         stdout = subprocess.PIPE, stderr = subprocess.PIPE, \
+                         universal_newlines=True)
+
+    # gets the output of the cmd
+    out, err = p.communicate()
+
+    # initailisation output status
+    out_status = 0
+    # check if cmd was executed properly
+    if p.returncode != 0:
+        log.debug("{} (shell_cmd): ERROR in the command: \n {}".format(py_routine,cmd))
+        if lowarn :
+            log.warning("Error returned: \n {}".format(err))
+            out_status = 1
+        else:
+            log.error("Error returned: {}".format(err))
+
+    return(out_status,str(out))

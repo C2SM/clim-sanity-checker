@@ -7,7 +7,7 @@ import os
 from utils import log
 import paths
 import numpy as np
-from color import style
+from color import Style
 
 def add_color_df_result(df_result,metric_thresholds):
     '''Add the color for the graph to the df_result datframe'''
@@ -43,7 +43,7 @@ def print_warning_color(df_result, metric_thresholds, metric):
                     log.info('{} {} '.format(metric_lev.level.upper(),metric))
                     log.info(metric_lev.col_txt(df_print_warn))
     else:
-        log.info(style.GREEN('The experiment is fine. No {} under {} \n').format(metric,metric_thresholds[1].p_thresh))
+        log.info(Style.GREEN('The experiment is fine. No {} under {} \n').format(metric,metric_thresholds[1].p_thresh))
 
     log.info('----------------------------------------------------------------------------------------------------------')
 
@@ -71,13 +71,13 @@ class threshold_prop:
     def __init__(self, lev, metric_threshold, color_var):
 
         # defining color text
-        dict_col = {'Red': style.RED, 'DarkRed': style.RED_HIGHL, 'Orange':style.ORANGE,'Green' : style.GREEN}
+        dict_col = {'Red': Style.RED, 'DarkRed': Style.RED_HIGHL, 'Orange':Style.ORANGE,'Green' : Style.GREEN}
 
         try:
             self.col_txt = dict_col[color_var]
         except KeyError:
             log.warning('No text color associated with {} --> setting to BLACK'.format(color_var))
-            self.col_txt = style.BLACK
+            self.col_txt = Style.BLACK
 
         # other properties
         self.level = lev
@@ -292,7 +292,7 @@ def main(\
             df_result[test] = emissions_all_var(df_exp[test], df_ref[test])
 
             metric_threshold[test] = [\
-                               threshold_prop('high', 0, 'Green'),\
+                               threshold_prop('high', 1e-19, 'Green'),\
                                threshold_prop('middle', 1e-16, 'Orange'), \
                                threshold_prop('low', 1e-13, 'Red'), \
                                threshold_prop('very low', 1e-10, 'DarkRed')]

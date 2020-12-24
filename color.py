@@ -1,3 +1,15 @@
+'''
+Module used to define colors for logging messages and plot-backgrounds.
+It contains:
+
+    colors: colornames with corresponding terminal code
+
+    Style: lamdas to color any string outside of logger
+
+C.Siegenthaler 2020
+J.Jucker 2020
+'''
+
 colors = {
     'black' : "\033[30m",
     'green' : "\033[32m",
@@ -8,8 +20,7 @@ colors = {
     'reset' : "\x1b[0m"
     }
 
-class style():
-    '''define colors for output on terminal'''
+class Style():
 
     BLACK = lambda x: colors['black'] + str(x) + colors['reset']
     GREEN = lambda x: colors['green'] + str(x) + colors['reset']
@@ -17,11 +28,3 @@ class style():
     RED = lambda x: colors['red'] + str(x) + colors['reset']
     BOLD_RED = lambda x: colors['bold_red'] + str(x) + colors['reset']
     RED_HIGHL = lambda x: colors['red_highl'] + str(x) + colors['reset']
-
-
-if __name__ == '__main__':
-    print(colors)
-    print(style.ORANGE('shshsh'))
-    print(style.GREEN('shshsh'))
-    print(style.BOLD_RED('shshsh'))
-    print('test')

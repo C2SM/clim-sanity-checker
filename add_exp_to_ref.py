@@ -5,7 +5,7 @@ import shutil
 import argparse
 import pandas as pd
 import paths                          # the file paths.py is written by paths_init.py
-import shell_utilities as su          # file shell_utilities.py part of the distribution
+import utils
 
 def add_line_descr_f(new_exp,f_exp_descr):
     '''
@@ -96,7 +96,7 @@ def main(new_exp, \
     # checkout new branch
     print('Create and checkout new branch {}'.format(new_branch_name))
     git_cmd = 'git checkout -B {}'.format(new_branch_name)
-    su.shell_cmd(git_cmd,py_routine='add_exp_to_ref.py')
+    utils.shell_cmd(git_cmd,py_routine='add_exp_to_ref.py')
 
     # mv file
     filename = 'glob_means_{}.csv'.format(new_exp)
@@ -115,13 +115,13 @@ def main(new_exp, \
     os.chdir(paths.p_scripts)                  # ensure we are in the script dir
     rel_path_new_f = os.path.relpath(new_path, paths.p_scripts)
     git_cmd = 'git add {} {}'.format(rel_path_new_f,f_exp_descr)
-    su.shell_cmd(git_cmd, py_routine='add_exp_to_ref.py')
+    utils.shell_cmd(git_cmd, py_routine='add_exp_to_ref.py')
 
     # commit 2 files: Exps_description.csv and csv file of global annual means of new_exp
     print('Commit files {} and {} in git.'.format(rel_path_new_f,f_exp_descr))
     commit_message = input('Please type your commit message :')
     git_cmd = 'git commit -m "{}"'.format(commit_message)
-    su.shell_cmd(git_cmd, py_routine='add_exp_to_ref.py')
+    utils.shell_cmd(git_cmd, py_routine='add_exp_to_ref.py')
 
     # Finish
     print('-------------------------------------------------------------------------\n'
