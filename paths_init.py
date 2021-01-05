@@ -22,6 +22,7 @@ def write_path(p_raw_files, \
     fp=open('paths.py','w')
 
     # write out paths
+    fp.write('rootdir = "{}"\n'.format(os.getcwd()))
     fp.write('p_raw_files = "{}"\n'.format(p_raw_files))
     fp.write('p_ref_csv_files = "{}"\n'.format(p_ref_csv_files))
     fp.write('p_stages = "{}"\n'.format(p_stages))

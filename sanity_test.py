@@ -81,16 +81,6 @@ def main(new_exp, \
                            p_ref_csv_files = p_ref_csv_files,\
                            f_vars_to_extract=f_vars_to_extract)
                                     
-
-    if 'emissions' in tests:
-        test = 'emissions'
-        plt.plt_emissions(references[test].append(results_data_processing[test],sort=False),new_exp, results_test[test], p_out_new_exp = p_stages)
-        log.error('exit')
-
-    if 'pattern_correlation' in tests:
-        test = 'pattern_correlation'
-        plt.plt_pattern_correlation(references[test].append(results_data_processing[test],sort=False),new_exp, results_test[test], p_out_new_exp = p_stages)
-
     if 'welchstest' in tests:
         test = 'welchstest'
         plt.plt_welchstest(references[test].append(results_data_processing[test],sort=False), new_exp, results_test[test], p_out_new_exp = p_stages)
@@ -101,7 +91,8 @@ def main(new_exp, \
     asw = input('If you are happy with this experiment, do you want to add it to the reference pool ? (yes/[No])\n')
     if (asw.strip().upper() == 'YES') or (asw.strip().upper() == 'Y'):
         add_exp_to_ref.main(new_exp, \
-                            p_out_new_exp = p_out_new_exp, \
+                            tests,\
+                            p_stages = p_stages, \
                             p_ref_csv_files = p_ref_csv_files)
     else:
         print('The experiment {} is NOT added to the reference pool \n'.format(new_exp))
