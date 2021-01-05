@@ -122,11 +122,11 @@ def main(exp, \
         # copy pdf with bar-plots from Welch's-test
         if test_cfg.name == 'welchstest':
             pdf_file = utils.clean_path(p_stages,'{}_{}.pdf'.format(test_cfg.ref_name,exp))
-            filename_in_ref_dir = '{}_{}.pdf'.format(test_cfg.ref_name,exp)
+            filename_in_ref_dir = '{}_plots.pdf'.format(test_cfg.ref_name)
             place_for_reference = os.path.join(p_ref_csv_files,test,filename_in_ref_dir)
             log.debug('Copy {} to {}'.format(csv_file,place_for_reference))
             files_to_commit.append(place_for_reference)
-            shutil.copy(csv_file,place_for_reference)
+            shutil.copy(pdf_file,place_for_reference)
 
     # fill up file 'Exps_description.csv'
     f_exp_descr = os.path.join(p_ref_csv_files,'Exps_description.csv')
