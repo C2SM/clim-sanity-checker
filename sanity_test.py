@@ -56,6 +56,8 @@ def run(new_exp, \
        p_ref_csv_files, \
        wrk_dir, \
        f_vars_to_extract, \
+       p_emis_ref, \
+       f_emis_ref, \
        tests, \
        spinup, \
        lclean, \
@@ -70,6 +72,7 @@ def run(new_exp, \
     wrk_dir = utils.abs_path(wrk_dir)
     p_stages = utils.abs_path(p_stages)
     p_ref_csv_files = utils.abs_path(p_ref_csv_files)
+    p_emis_ref = utils.abs_path(p_emis_ref)
 
     # create directories
     os.makedirs(p_stages,exist_ok=True)
@@ -92,7 +95,9 @@ def run(new_exp, \
                               p_raw_files=p_raw_files, \
                               p_stages=p_stages, \
                               raw_f_subfold=raw_f_subfold, \
-                              f_vars_to_extract=f_vars_to_extract)
+                              f_vars_to_extract=f_vars_to_extract,\
+                              p_emis_ref=p_emis_ref,\
+                              f_emis_ref=f_emis_ref)
 
     results_test, references = perform_test.main(\
                            new_exp, \
@@ -184,6 +189,14 @@ if __name__ == '__main__':
                            nargs='+',\
                            help = 'Tests to apply on your data')
 
+    parser.add_argument('--p_emis_ref', dest='p_emis_ref', \
+                           default='', \
+                           help = 'Absolute or relative path to reference netCDF for pattern correlation test')
+
+    parser.add_argument('--f_emis_ref', dest='f_emis_ref', \
+                           default='', \
+                           help = 'Filename of reference netCDF for pattern correlation test')
+
 
     args = parser.parse_args()
 
@@ -194,6 +207,8 @@ if __name__ == '__main__':
            p_stages = args.p_stages,\
            p_ref_csv_files = args.p_ref_csv_files, \
            f_vars_to_extract = args.f_vars_to_extract, \
+           p_emis_ref = args.p_emis_ref,\
+           f_emis_ref = args.f_emis_ref,\
            tests = args.tests, \
            spinup = args.spinup, \
            lclean = args.lclean, \

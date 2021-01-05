@@ -401,7 +401,9 @@ def main(exp,\
          p_raw_files,\
          p_stages,\
          raw_f_subfold,\
-         f_vars_to_extract):
+         f_vars_to_extract,\
+         p_emis_ref,\
+         f_emis_ref):
 
     log.banner('Start standard-postprocessing')
 
@@ -426,7 +428,9 @@ def main(exp,\
     log.banner('Start conversion from NetCDF to dataframe')
 
     if 'welchstest' in tests:
+
         test = 'welchstest'
+
         if (actions['test_postproc'][test] and not skip_next_step[test]):
             # transforming netcdf timeseries into csv file
             results_data_processing[test] = timeser_proc_nc_to_df(exp, \
@@ -440,7 +444,9 @@ def main(exp,\
         log.warning("Skip Welch's-Test")
 
     if 'emissions' in tests:
+
         test = 'emissions'
+
         if (actions['test_postproc'][test] and not skip_next_step[test]):
             results_data_processing[test] = emis_proc_nc_to_df(exp, \
                 filename     = processed_netcdf_filename[test],\
@@ -453,11 +459,13 @@ def main(exp,\
         log.warning('Skip emission test')
 
     if 'pattern_correlation' in tests:
+
         test = 'pattern_correlation'
+
         if (actions['test_postproc'][test] and not skip_next_step[test]):
             test = 'pattern_correlation'
-            # TODO find solution for reference for this test
-            reference ='/scratch/juckerj/sanity_check/ref_data/test_postproc_pattern_correlation_euler_REF_10y.nc'
+
+            reference = utils.clean_path(p_emis_ref,f_emis_ref)
             results_data_processing[test] = pattern_proc_nc_to_df(exp, \
                 filename     = processed_netcdf_filename[test],\
                 p_stages     = p_stages, \
@@ -477,7 +485,7 @@ def main(exp,\
 if __name__ == '__main__':
 
     # parsing arguments
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument('--exp','-e', dest = 'exp',\
                             required = True,\
@@ -486,11 +494,11 @@ if __name__ == '__main__':
 
     parser.add_argument('--p_raw_files', dest = 'p_raw_files',\
                             default = paths.p_raw_files,\
-                            help = 'absolute path to raw files (default: {})'.format(paths.p_raw_files))
+                            help = 'absolute path to raw files')
 
     parser.add_argument('--p_stages', dest='p_stages', \
                             default=paths.p_stages, \
-                            help='relative path to write csv files of the different processing steps (default: {})'.format(paths.p_stages))
+                            help='relative path to write csv files of the different processing steps')
 
     parser.add_argument('--raw_f_subfold', dest= 'raw_f_subfold',\
                             default='',\
@@ -498,7 +506,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--wrkdir','-w', dest= 'wrk_dir',\
                             default=paths.p_wrkdir,\
-                            help='relative or absolute path to working directory (default: {}'.format(paths.p_wrkdir))
+                            help='relative or absolute path to working directory')
 
     parser.add_argument('--f_vars_to_extract',dest='f_vars_to_extract',\
                            default='vars_echam-hammoz.csv',\
@@ -515,12 +523,20 @@ if __name__ == '__main__':
     parser.add_argument('--spinup', dest='spinup', \
                            type=int, \
                            default=3,\
-                           help='Do not consider first month of the data due to model spinup (default: 3)')
+                           help='Do not consider first month of the data due to model spinup')
 
     parser.add_argument('--tests','-t', dest='tests', \
                            default=['welchstest','pattern_correlation','emissions'], \
                            nargs='+',\
-                           help = 'Tests to apply on your data (default: welchstest pattern_correlation emissions')
+                           help = 'Tests to apply on your data')
+
+    parser.add_argument('--p_emis_ref', dest='p_emis_ref', \
+                           default='', \
+                           help = 'Absolute or relative path to reference netCDF for pattern correlation test')
+
+    parser.add_argument('--f_emis_ref', dest='f_emis_ref', \
+                           default='', \
+                           help = 'Filename of reference netCDF for pattern correlation test')
 
     args = parser.parse_args()
 
@@ -531,6 +547,7 @@ if __name__ == '__main__':
     # make all paths from user to absolute paths
     args.wrk_dir = utils.abs_path(args.wrk_dir)
     args.p_stages = utils.abs_path(args.p_stages)
+    args.p_emis_ref = utils.abs_path(args.p_emis_ref)
 
     # data processing takes a while, check that no step is done twice
     actions = utils.determine_actions_for_data_processing(args.exp,args.tests,args.p_stages,args.lclean)
@@ -551,6 +568,8 @@ if __name__ == '__main__':
          p_raw_files=args.p_raw_files,\
          raw_f_subfold=args.raw_f_subfold,\
          p_stages=args.p_stages,\
-         f_vars_to_extract=args.f_vars_to_extract)
+         f_vars_to_extract=args.f_vars_to_extract,\
+         p_emis_ref=args.p_emis_ref,\
+         f_emis_ref=args.f_emis_ref)
 
     log.banner('End execute {} as main()'.format(__file__))
