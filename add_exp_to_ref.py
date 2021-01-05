@@ -107,11 +107,6 @@ def main(exp, \
     new_branch_name = 'test_add_{}'.format(exp)
     files_to_commit = []
 
-    # checkout new branch
-    log.info('Create and checkout new branch {}'.format(new_branch_name))
-    git_cmd = 'git checkout -B {}'.format(new_branch_name)
-    utils.shell_cmd(git_cmd,py_routine='add_exp_to_ref.py')
-
     for test in tests:
         test_cfg = get_config_of_current_test(test)
         csv_file = utils.clean_path(p_stages,'test_postproc_{}_{}.csv'.format(test_cfg.name,exp))
@@ -129,6 +124,12 @@ def main(exp, \
     files_to_commit.append(f_exp_descr)
 
     os.chdir(paths.rootdir)
+
+    # checkout new branch
+    log.info('Create and checkout new branch {}'.format(new_branch_name))
+    git_cmd = 'git checkout -B {}'.format(new_branch_name)
+    utils.shell_cmd(git_cmd,py_routine='add_exp_to_ref.py')
+
     for file in files_to_commit:
         git_cmd = 'git add {}'.format(file)
         log.debug(git_cmd)
