@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--p_f_vars_proc',dest='p_f_vars_proc',\
                         default='variables_to_process', \
-                        help='Relative and absolute path to file containig variables to process')
+                        help='Relative or absolute path to file containig variables to process')
 
     args = parser.parse_args()
 
