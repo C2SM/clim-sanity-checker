@@ -15,13 +15,31 @@ import logger_config
 from logger_config import log
 from test_config import get_config_of_current_test
 
+'''
+Module providing the functionality to add an experiment
+to the reference pool. It contains:
+
+    - add_line_descr_f: Add a new line to the experiment description file
+            with all information about an experiment
+
+    - main: asks user for additional information about experiment, commits 
+        data of new experiment to git-repository
+
+        Help: python add_exp_tp_ref.py --help
+
+C.Siegenthaler 07.2020 (C2SM)
+J.Jucker 01.2021 (C2SM)
+
+'''
+
 def add_line_descr_f(exp,f_exp_descr):
     '''
     Add line for exp exp in file f_exp_descr
 
-    :param exp: new exp name
+    :param exp: new expirement name
     :param f_exp_descr: file in which the new line has to be added
-    :return:
+
+    return: None
     '''
 
     log.info('Adding line {} in the file {}:'.format(exp,f_exp_descr))
@@ -41,26 +59,26 @@ def add_line_descr_f(exp,f_exp_descr):
         pd.DataFrame(columns=cols_exp_descr_f)
     else:
         df_exp_descr = pd.read_csv(f_exp_descr, sep=';')
-        #TODO: check if file is not corrupted
 
     # collect information from user
     log.banner('Please give the following informations about your experiment')
     dict_line = {'Experiment name' : exp}
     for col_name in df_exp_descr.keys():
 
-        # experiment nbame is exp
-        if col_name == 'Experiment name' :
-            continue
-        # ask the user for other info
-        dict_line[col_name] = input('{} : '.format(col_name))
+        if col_name != 'Experiment name' :
+
+            # ask the user for info
+            dict_line[col_name] = input('{} : '.format(col_name))
 
    # amend the information if needed
     while True:
+
         # new dataframe containing new line for exp
         df_exp_descr_new = df_exp_descr.append(dict_line, ignore_index=True)
 
         log.banner ('Here is the content of the description file including your new experiment.')
         log.info(df_exp_descr_new)
+
         answ_chg = input('Is the new file right ? (y/n/abort).\n'
                          'If you type n, you will be able to change column values\n'
                          'If you type abort, the process of adding the experiment {} to the reference is stoped.\n'
@@ -84,7 +102,6 @@ def add_line_descr_f(exp,f_exp_descr):
 
         elif answ_chg.upper() == 'ABORT' :
             exit()
-#            return False
 
     return()
 
@@ -93,15 +110,6 @@ def main(exp, \
          p_stages=paths.p_stages, \
          p_ref_csv_files = paths.p_ref_csv_files, \
          lverbose=False):
-
-    '''
- Interface for adding the csv file containing the annual global means of the experiment [exp] located in p_stages into the reference pool p_ref_csv_files.
-
- C. Siegenthaler, C2SM 2020-07
-
-    '''
-
-    log.banner('Start add_exp_to_ref for experiment {}'.format(exp))
 
     # initialisation
     new_branch_name = 'test_add_{}'.format(exp)
@@ -112,7 +120,9 @@ def main(exp, \
 
         csv_file = utils.clean_path(p_stages,'test_postproc_{}_{}.csv'.format(test_cfg.name,exp))
 
+        # what is the filename in the reference pool
         filename_in_ref_dir = '{}_{}.csv'.format(test_cfg.ref_name,exp)
+        # what is the location to store that file
         place_for_reference = os.path.join(p_ref_csv_files,test,filename_in_ref_dir)
 
         log.debug('Copy {} to {}'.format(csv_file,place_for_reference))
@@ -121,18 +131,24 @@ def main(exp, \
 
         # copy pdf with bar-plots from Welch's-test
         if test_cfg.name == 'welchstest':
+
             pdf_file = utils.clean_path(p_stages,'{}_{}.pdf'.format(test_cfg.ref_name,exp))
+
+            # what is the name of the pdf in the reference pool
             filename_in_ref_dir = '{}_plots.pdf'.format(test_cfg.ref_name)
+            # what is the location to store that file
             place_for_reference = os.path.join(p_ref_csv_files,test,filename_in_ref_dir)
+
             log.debug('Copy {} to {}'.format(csv_file,place_for_reference))
             files_to_commit.append(place_for_reference)
             shutil.copy(pdf_file,place_for_reference)
 
-    # fill up file 'Exps_description.csv'
+    # fill up file 'Exps_description.csv' with additional information via user input
     f_exp_descr = os.path.join(p_ref_csv_files,'Exps_description.csv')
     add_line_descr_f(exp=exp,f_exp_descr=f_exp_descr)
     files_to_commit.append(f_exp_descr)
 
+    # root is important to not fail during git commands
     os.chdir(paths.rootdir)
 
     # checkout new branch
@@ -140,26 +156,24 @@ def main(exp, \
     git_cmd = 'git checkout -B {}'.format(new_branch_name)
     utils.shell_cmd(git_cmd,py_routine='add_exp_to_ref.py')
 
+    # commit all modified files prior in the function to git
     for file in files_to_commit:
         git_cmd = 'git add {}'.format(file)
         log.debug(git_cmd)
         utils.shell_cmd(git_cmd, py_routine=__name__)
 
-
-    # commit files: Exps_description.csv and csv file of each test
     log.debug('Commit files {}'.format(files_to_commit))
     commit_message = input('Please type your commit message :')
     git_cmd = 'git commit -m "{}"'.format(commit_message)
     utils.shell_cmd(git_cmd, py_routine=__name__)
 
     # Finish
-    log.info('Files are added in the new branch: {} in your local git repository.\n'
-          'To add the file in the official repository, Please perform the following steps:\n'
-          '1. Push the new branch into the official repo:\n'
-          '   git push --set-upstream origin {}\n'
-          '2. On the Open Web interface (GitHub) , open a Pull Request.\n'
-          '3. In the Pull Request, attach the relevant files in {} (for example Welch test result and different figures).'
-          ''.format(new_branch_name,new_branch_name,p_stages))
+    log.info(Style.GREEN('Files are added in the new branch: '
+                         '{} in your local git repository.'.format(new_branch_name)))
+    log.info('To add the file to the official repository, Please perform the following steps:')
+    log.info('1. Push the new branch into the official repo:')
+    log.info('   git push --set-upstream origin {}'.format(new_branch_name))
+    log.info('2. On the Open Web interface (GitHub) , open a Pull Request.')
 
     log.banner('End add_exp_to_ref for experiment {}'.format(exp))
     return()
@@ -194,6 +208,8 @@ if __name__ == '__main__':
     # init logger
     logger_config.init_logger(args.lverbose)
 
+    log.banner('Start execute {} as main()'.format(__file__))
+
     # make all paths from user to absolute paths
     args.p_stages = utils.abs_path(args.p_stages)
     args.p_ref_csv_files = utils.abs_path(args.p_ref_csv_files)
@@ -204,3 +220,4 @@ if __name__ == '__main__':
          p_ref_csv_files=args.p_ref_csv_files, \
          lverbose=args.lverbose)
 
+    log.banner('End execute {} as main()'.format(__file__))

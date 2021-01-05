@@ -1,21 +1,38 @@
-
+# standard modules
 import os
-import numpy as np
 import matplotlib
-matplotlib.use('Agg')                                 #for saving plot
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_pdf import PdfPages  # multiple pages in pdf
-import paths                                          # the file paths.py is written by paths_init.py
-from utils import log
+matplotlib.use('Agg')
+from matplotlib.backends.backend_pdf import PdfPages
 
-def plt_welchstest(df_tot, new_exp, df_result, p_out_new_exp = paths.p_stages):
+# aliased standard modules
+import numpy as np
+import matplotlib.pyplot as plt
+
+# modules of sanity checker
+import paths
+
+# standalone imports
+from logger_config import log
+
+'''
+Module that contains functions to plot the results of tests. It contains:
+
+    - plt_welchstest: plot column-bar of mean values together with all
+            references, put appropiate color as background of plots
+
+C.Siegenthaler 07.2020 (C2SM)
+
+'''
+
+def plt_welchstest(df_tot, new_exp, df_result, p_stages = paths.p_stages):
     '''
 
-    :param df_tot:  Dataframe containing containing all global annula mean (reference & new_exp)
+    :param df_tot:  Dataframe containing containing all global annual mean (reference & new_exp)
     :param new_exp:   Name of the new exp which is analysed
     :param df_result: Dataframe containing the results of the Welch's test
-    :param p_out_new_exp : path to save the figures
-    :return: Figure of the result
+    :param p_stages : path to save the figures
+
+    :return: None, but the figure is saved in p_stages
     '''
 
     # simple statistics, sort by exp (to be sure the order is the same in both dataframe
@@ -36,7 +53,7 @@ def plt_welchstest(df_tot, new_exp, df_result, p_out_new_exp = paths.p_stages):
 
     # needed for multipage pdf file
     filename_mean_std_figures = 'glob_means_{}.pdf'.format((new_exp))
-    p_pdf_file_var = os.path.join(p_out_new_exp,filename_mean_std_figures)
+    p_pdf_file_var = os.path.join(p_stages,filename_mean_std_figures)
     pp = PdfPages(p_pdf_file_var)
 
     # loop over all variables

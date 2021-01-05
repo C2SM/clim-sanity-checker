@@ -2,19 +2,39 @@
 from logger_config import log
 from color import Style
 
+'''
+Module providing classes and functions related to the tests. It contains:
+    
+    - get_config_of_current_test: return configuration 
+      of the test matching the string passed as argument
+
+    - class WelchsTest: define properties of Welch's t-test
+
+    - class EmissionsTest: define properties of emission test
+
+    - class PatternTest: define properties of pattern-correlation test
+
+    - class threshold_prop: contains the properties of a testmetric 
+      e.g. color, threshold or significance level
+
+J.Jucker 12.2020 (C2SM)
+
+'''
+
 def get_config_of_current_test(testname):
     if testname == 'welchstest':
-        config = welchs()
+        config = WelchsTest()
     elif testname == 'emissions':
-        config = emission()
+        config = EmissionsTest()
     elif testname == 'pattern_correlation':
-        config = pattern()
+        config = PatternTest()
     else:
         log.error('Test {} does not exist'.format(testname))
 
     return config
 
-class welchs:
+
+class WelchsTest:
     def __init__(self):
         self.name = 'welchstest'
         self.ref_name = 'glob_means'
@@ -24,27 +44,29 @@ class welchs:
                                threshold_prop('low', 5, 'Red'), \
                                threshold_prop('middle', 10, 'Orange'), \
                                threshold_prop('high', 100, 'Green')]
-class emission:
+
+class EmissionsTest:
     def __init__(self):
         self.name = 'emissions'
         self.ref_name = 'emis'
         self.metric = 'relative deviation [%]'
         self.metric_threshold = [\
-                               threshold_prop('high', 1e-19, 'Green'),\
-                               threshold_prop('middle', 1e-16, 'Orange'), \
-                               threshold_prop('low', 1e-13, 'Red'), \
-                               threshold_prop('very low', 1e-10, 'DarkRed')]
+                               threshold_prop('high', 0.001, 'Green'),\
+                               threshold_prop('middle', 0.01, 'Orange'), \
+                               threshold_prop('low', 0.1, 'Red'), \
+                               threshold_prop('very low', 1, 'DarkRed')]
 
-class pattern:
+class PatternTest:
     def __init__(self):
         self.name = 'pattern_correlation'
         self.ref_name = 'fldcor'
         self.metric = 'R^2'
         self.metric_threshold =  [\
-                               threshold_prop('high', 1e-19, 'Green'),\
-                               threshold_prop('middle', 1e-16, 'Orange'), \
-                               threshold_prop('low', 1e-13, 'Red'), \
-                               threshold_prop('very low', 1e-10, 'DarkRed')]
+                               threshold_prop('very low', 0.97, 'DarkRed'),\
+                               threshold_prop('low', 0.98, 'Red'), \
+                               threshold_prop('middle', 0.99, 'Orange'), \
+                               threshold_prop('high', 1, 'Green')]
+
 
 class threshold_prop:
     '''Properties linked to the metrics threshold'''

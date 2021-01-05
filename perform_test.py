@@ -19,6 +19,7 @@ import logger_config
 # standalone imports
 from logger_config import log
 from color import Style
+from test_config import get_config_of_current_test
 
 def add_color_df_result(df_result,metric_thresholds):
     '''Add the color for the graph to the df_result datframe'''
@@ -34,13 +35,12 @@ def print_warning_color(df_result, metric_thresholds, metric):
 
     # dataframe containing only variables a warning has to be printed
     df_warning = df_result[df_result['level'] != 'high']
-    #import IPython;IPython.embed()
 
     log.info('----------------------------------------------------------------------------------------------------------')
 
     if df_warning.size > 0:
 
-        log.warning('The following variables give low {} : \n'.format(metric))
+        log.warning('The following variables give problematic {} : \n'.format(metric))
 
         # for each level of warning, print the dataframe
         for metric_lev in metric_thresholds:
@@ -51,7 +51,7 @@ def print_warning_color(df_result, metric_thresholds, metric):
 
                 # print
                 if df_print_warn.size > 0:
-                    log.info('{} {} '.format(metric_lev.level.upper(),metric))
+                    log.info('Confidence is {} for {} '.format(metric_lev.level.upper(),metric))
                     log.info(metric_lev.col_txt(df_print_warn))
     else:
         log.info(Style.GREEN('The experiment is fine. No {} under {} \n').format(metric,metric_thresholds[1].p_thresh))
@@ -67,7 +67,6 @@ def sort_level_metric(df_result, metric_thresholds, metric):
     bins = [t.p_thresh for t in metric_thresholds]
 
     bins = [-1e-10] + bins
-
 
     metric_levels = [t.level for t in metric_thresholds]
 
@@ -95,7 +94,7 @@ class threshold_prop:
         self.p_thresh = metric_threshold
         self.col_graph = color_var
 
-def pattern_correlation_all_var(df_exp):
+def pattern_correlation_all_var(df_exp,test_cfg):
     '''
     Perform Welch t-test for each variable fo dataframe df_b
     :param df_a: reference datframe, containing big sample
@@ -113,13 +112,13 @@ def pattern_correlation_all_var(df_exp):
         log.debug("Pattern correlation test for {}".format(var))
 
         # append results for construction datframe df_result
-        dict1 = {'variable' : var, 'R^2' : df_exp[var].iloc[0] }
+        dict1 = {'variable' : var, test_cfg.metric : df_exp[var].iloc[0] }
         row_list_df.append(dict1)
 
     # construction dataframe
-    df_result = pd.DataFrame(row_list_df, columns=['variable','R^2'] )
+    df_result = pd.DataFrame(row_list_df, columns=['variable',test_cfg.metric] )
 
-    df_result.sort_values(by=['R^2'], inplace=True)
+    df_result.sort_values(by=[test_cfg.metric], inplace=True)
 
     return (df_result)
 
@@ -159,7 +158,7 @@ def welch_test_all_var(df_a, df_b , filename_student_test = ''):
 
     return (df_result)
 
-def emissions_all_var(df_exp, df_ref , filename_student_test = ''):
+def emissions_all_var(df_exp, df_ref , test_cfg,filename_student_test = ''):
     '''
     Perform Welch t-test for each variable fo dataframe df_b
     :param df_a: reference datframe, containing big sample
@@ -175,17 +174,18 @@ def emissions_all_var(df_exp, df_ref , filename_student_test = ''):
         if 'exp' in var:
             continue
         log.debug("Emissions test for {}".format(var))
-        deviation = abs(df_exp[var].iloc[0] - df_ref[var].iloc[0])
+        abs_deviation = abs(df_exp[var].iloc[0] - df_ref[var].iloc[0])
+        rel_deviation = abs_deviation/df_ref[var].iloc[0] * 100
 
         # append results for construction datframe df_result
-        dict1 = {'variable' : var, 'deviation' : deviation }
+        dict1 = {'variable' : var, test_cfg.metric : rel_deviation }
         row_list_df.append(dict1)
 
     # construction dataframe
-    df_result = pd.DataFrame(row_list_df, columns=['variable','deviation'])
+    df_result = pd.DataFrame(row_list_df, columns=['variable',test_cfg.metric])
 
     # sort per p value
-    df_result.sort_values(by=['deviation'], inplace=True)
+    df_result.sort_values(by=[test_cfg.metric], inplace=True)
 
     return (df_result)
 
@@ -228,38 +228,28 @@ def main(\
          p_ref_csv_files,\
          f_vars_to_extract):
 
-
-    ref_names = {}
-    ref_names['welchstest'] = 'glob_means_'
-    ref_names['emissions'] = 'emis_'
-    ref_names['pattern_correlation'] = 'fldcor_'
-
-    test_metrics ={} 
-    test_metrics['welchstest'] = 'p-value [%]'
-    test_metrics['emissions'] = 'deviation'
-    test_metrics['pattern_correlation'] = 'R^2'
-
     df_exp = {}
     df_ref = {}
     p_csv_files = {} 
     testresult_csv = {}
     df_result = {}
-    metric_threshold = {}
 
     for test in tests:
         log.info('Prepare references for test {}'.format(test))
 
+        test_cfg = get_config_of_current_test(test)
+
         results_data_processing[test]['exp'] = new_exp
 
         # list of paths to all csv files
-        p_csv_files[test] = glob.glob(os.path.join(p_ref_csv_files,test,'{}*csv'.format(ref_names[test])))
+        p_csv_files[test] = glob.glob(os.path.join(p_ref_csv_files,test,'{}_*csv'.format(test_cfg.ref_name)))
         if len(p_csv_files[test]) == 0:
             log.error('No reference files found in {}\n EXITING'.format(p_ref_csv_files))
 
         log.debug('{} reference(s) found for test {}'.format(len(p_csv_files[test]),test))
 
         # create big dataframe containing all reference exps
-        df_ref[test] = create_big_df(ref_names[test],list_csv_files=p_csv_files[test])
+        df_ref[test] = create_big_df(test_cfg.ref_name,list_csv_files=p_csv_files[test])
 
         # Exclude all the non-desired variables (1) var from file, 2) exp)
         full_p_f_vars = os.path.join(paths.p_f_vars_proc,test,f_vars_to_extract)
@@ -279,39 +269,22 @@ def main(\
             df_result[test] = welch_test_all_var(df_a=df_ref[test], df_b=df_exp[test],filename_student_test=testresult_csv[test])
             df_result[test]['p-value [%]'] = df_result[test]['p-value']*100.
 
-    # sort variables from their p-value
-            metric_threshold[test] = [threshold_prop('very low', 1, 'DarkRed'), \
-                               threshold_prop('low', 5, 'Red'), \
-                               threshold_prop('middle', 10, 'Orange'), \
-                               threshold_prop('high', 100, 'Green')]
-
         if test == 'pattern_correlation':
             log.banner('')
             log.banner("Perform pattern correlation test for each variable")
             log.banner('')
-            df_result[test] = pattern_correlation_all_var(df_exp[test])
-
-            metric_threshold[test] = [threshold_prop('very low', 0.97, 'DarkRed'), \
-                               threshold_prop('low', 0.99, 'Red'), \
-                               threshold_prop('middle', 0.995, 'Orange'), \
-                               threshold_prop('high', 1, 'Green')]
+            df_result[test] = pattern_correlation_all_var(df_exp[test],test_cfg)
 
         if test == 'emissions':
             log.banner('')
             log.banner("Perform emission test for each variable")
             log.banner('')
-            df_result[test] = emissions_all_var(df_exp[test], df_ref[test])
+            df_result[test] = emissions_all_var(df_exp[test], df_ref[test],test_cfg)
 
-            metric_threshold[test] = [\
-                               threshold_prop('high', 1e-19, 'Green'),\
-                               threshold_prop('middle', 1e-16, 'Orange'), \
-                               threshold_prop('low', 1e-13, 'Red'), \
-                               threshold_prop('very low', 1e-10, 'DarkRed')]
-        
-        df_result[test] = sort_level_metric(df_result[test], metric_threshold[test],test_metrics[test])
-        df_result[test] = add_color_df_result(df_result[test],metric_threshold[test])
+        df_result[test] = sort_level_metric(df_result[test], test_cfg.metric_threshold,test_cfg.metric)
+        df_result[test] = add_color_df_result(df_result[test],test_cfg.metric_threshold)
 
-        print_warning_color(df_result[test], metric_threshold[test],test_metrics[test])
+        print_warning_color(df_result[test], test_cfg.metric_threshold,test_cfg.metric)
 
     return df_result,df_ref
 

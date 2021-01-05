@@ -6,8 +6,8 @@ It contains:
 
     Style: lamdas to color any string outside of logger
 
-C.Siegenthaler 2020
-J.Jucker 2020
+C.Siegenthaler 2020 (C2SM)
+J.Jucker 12.2020 (C2SM)
 '''
 
 colors = {

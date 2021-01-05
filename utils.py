@@ -23,7 +23,7 @@ Module providing useful functions. It contains:
     - shell_cmd: execute shell-command with subprocess.Popen
 
 C.Siegenthaler 2019
-J.Jucker 2020
+J.Jucker 12.2020
 '''
 
 

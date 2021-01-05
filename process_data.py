@@ -223,7 +223,7 @@ returns:
     if os.path.isfile(ofile_tot):
         os.remove(ofile_tot)
     cdo_cmd = 'cdo merge {} {}'.format(' '.join(files_proceed),ofile_tot)
-    utils.shell_cmd(cdo_cmd,py_routine='std_avrg_using_cdo')
+    utils.shell_cmd(cdo_cmd,py_routine=__name__)
 
     [os.remove(f) for f in files_proceed]
 
