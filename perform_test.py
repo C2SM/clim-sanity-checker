@@ -1,12 +1,23 @@
-import utils
-from scipy import stats
-import glob
-import pandas as pd
+# standard modules
 import argparse
 import os
-from utils import log
-import paths
+import glob
+from scipy import stats
+
+# aliased standard modules
+import pandas as pd
 import numpy as np
+
+# modules of sanity checker
+import add_exp_to_ref
+import paths
+import utils
+import perform_test
+import process_data
+import logger_config
+
+# standalone imports
+from logger_config import log
 from color import Style
 
 def add_color_df_result(df_result,metric_thresholds):
@@ -307,7 +318,7 @@ def main(\
 if __name__ == '__main__':
 
     # parsing arguments
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument('--exp','-e', dest = 'exp',\
                             required = True,\
@@ -316,15 +327,15 @@ if __name__ == '__main__':
 
     parser.add_argument('--p_stages', dest='p_stages', \
                             default=paths.p_stages, \
-                            help='relative or absolute path to write csv files of the testresults (default: {})'.format(paths.p_stages))
+                            help='relative or absolute path to write csv files of the testresults')
 
     parser.add_argument('--wrkdir','-w', dest= 'wrk_dir',\
                             default=paths.p_wrkdir,\
-                            help='relative or absolute path to working directory (default: {}'.format(paths.p_wrkdir))
+                            help='relative or absolute path to working directory')
 
     parser.add_argument('--p_ref_csv_files', dest= 'p_ref_csv_files',\
                             default=paths.p_ref_csv_files,\
-                            help='relative or absolute path to reference files (default: {}'.format(paths.p_ref_csv_files))
+                            help='relative or absolute path to reference files')
 
     parser.add_argument('--f_vars_to_extract', dest='f_vars_to_extract',\
                            default='vars_echam-hammoz.csv',\
@@ -334,18 +345,14 @@ if __name__ == '__main__':
                            action='store_true', \
                            help = 'Debug output')
 
-    parser.add_argument('--clean','-c', dest='lclean', \
-                           action='store_true', \
-                           help = 'Redo all processing steps')
-
     parser.add_argument('--tests','-t', dest='tests', \
                            default=['welchstest','pattern_correlation','emissions'], \
                            nargs='+',\
-                           help = 'Tests to apply on your data (default: welchstest pattern_correlation emissions')
+                           help = 'Tests to apply on your data')
 
     args = parser.parse_args()
 
-    utils.init_logger(args.lverbose)
+    logger_config.init_logger(args.lverbose)
 
     log.banner('Start execute {} as main()'.format(__file__))
 

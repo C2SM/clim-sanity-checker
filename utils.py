@@ -73,7 +73,6 @@ def determine_actions_for_data_processing(exp, tests, p_stages,lforce):
         actions['standard_postproc'][test] = action_needed
 
         test_specific_csv = os.path.join(p_stages,'test_postproc_{}_{}.csv'.format(test,exp))
-        print(test_specific_csv)
 
         if (not os.path.isfile(test_specific_csv) or \
             lforce or \

@@ -23,33 +23,7 @@ import plot_mean_std as plt
 # standalone imports
 from logger_config import log
 
-class table_ref:
-    def __init__(self, file_summary):
-        # tabs in the excel file
-        tabs_table = {'exp' : 'Experiment description', \
-                      'globmean' : 'Global annual mean', \
-                      'patcor' : 'Pattern correlation', \
-                      'emi' : 'Emissions'}
-        # assigne one key per tab
-        for sh_name, tab in tabs_table.items():
-            self.__dict__[sh_name] = pd.read_excel(file_summary, tab)
-
-        # keep track of the tab names
-        self.tabs = tabs_table
-
-def df_drop_inplace(df,col_list):
-    ''' Drop columns in col_list if the column exists '''
-
-    # list of columns to drop (which are present in df
-    list_to_drop = [col for col in col_list if col in df.keys()]
-
-    # drop list of existing columns
-    df.drop(labels=list_to_drop,axis=1,inplace=True)
-
-    return
-
-
-def run(new_exp, \
+def main(new_exp, \
        p_raw_files, \
        raw_f_subfold,\
        p_stages, \
@@ -200,7 +174,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    run(new_exp = args.exp, \
+    main(new_exp = args.exp, \
            p_raw_files = args.p_raw_files, \
            raw_f_subfold = args.raw_f_subfold, \
            wrk_dir = args.wrk_dir, \
