@@ -2,14 +2,13 @@
 import os
 import argparse
 
-# modules of sanity checker
-import utils
-
 '''
 Module to setup important paths and filenames
 for the sanity checker. It contains:
 
     - write_path: write the file "paths.py" based on user input
+
+    -abs_path: duplicate from module utils.py
 
 C.Siegenthaler 07.2020 (C2SM)
 J.Jucker 01.2021 (C2SM)
@@ -23,11 +22,11 @@ def write_path(p_raw_files, \
                p_f_vars_proc):
 
     # make all paths absolute
-    p_raw_files = utils.abs_path(p_raw_files)
-    p_ref_csv_files = utils.abs_path(p_ref_csv_files)
-    p_stages = utils.abs_path(p_stages)
-    p_wrkdir = utils.abs_path(p_wrkdir)
-    p_f_vars_proc = utils.abs_path(p_f_vars_proc)
+    p_raw_files = abs_path(p_raw_files)
+    p_ref_csv_files = abs_path(p_ref_csv_files)
+    p_stages = abs_path(p_stages)
+    p_wrkdir = abs_path(p_wrkdir)
+    p_f_vars_proc = abs_path(p_f_vars_proc)
 
     # open the file
     fp=open('paths.py','w')
@@ -46,6 +45,13 @@ def write_path(p_raw_files, \
     fp.close()
 
     return()
+
+def abs_path(path):
+    if os.path.isabs(path):
+        return path
+    else:
+        path = os.path.abspath(path)
+        return path
 
 if __name__ == '__main__':
 
