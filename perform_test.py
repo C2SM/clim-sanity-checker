@@ -21,8 +21,35 @@ from logger_config import log
 from color import Style
 from test_config import get_config_of_current_test
 
+'''
+Module providing functions to perform the test. It contains:
+
+    - add_color_df_result: Add the color for the graph
+            to the dataframe with the test results         
+
+    - print_warning_color: Print dataframe with the color indicated in col_warn
+
+    - sort_level_metric: sort results according to metric level,
+            bin results into significance classes from metric_levels
+
+    - pattern_correlation: perform pattern correlation test
+
+    - welch_test: perform Welch's t-test using "stats.ttest_ind"
+
+    - emissions: perform emission test
+
+    - create_big_df: Create big dataframe form list of csv files
+
+    -main: controls all function in this module, can be called as main()
+
+            Help: python perform_test.py --help
+
+C.Siegenthaler 07.2020 (C2SM)
+J.Jucker 01.2021 (C2SM)
+
+'''
+
 def add_color_df_result(df_result,metric_thresholds):
-    '''Add the color for the graph to the df_result datframe'''
 
     df_result['col-graph'] = np.nan
     for metric_lev in metric_thresholds:
@@ -31,7 +58,6 @@ def add_color_df_result(df_result,metric_thresholds):
     return df_result
 
 def print_warning_color(df_result, metric_thresholds, metric):
-    ''' Print database df_warning with the color col_warn'''
 
     # dataframe containing only variables a warning has to be printed
     df_warning = df_result[df_result['level'] != 'high']
@@ -61,7 +87,6 @@ def print_warning_color(df_result, metric_thresholds, metric):
     return
 
 def sort_level_metric(df_result, metric_thresholds, metric):
-    '''add column in df_results filled with level of p-value'''
 
     # define out the level of Warning
     bins = [t.p_thresh for t in metric_thresholds]
@@ -75,32 +100,13 @@ def sort_level_metric(df_result, metric_thresholds, metric):
 
     return df_result
 
-class threshold_prop:
-    '''Properties linked to the metrics threshold'''
-
-    def __init__(self, lev, metric_threshold, color_var):
-
-        # defining color text
-        dict_col = {'Red': Style.RED, 'DarkRed': Style.RED_HIGHL, 'Orange':Style.ORANGE,'Green' : Style.GREEN}
-
-        try:
-            self.col_txt = dict_col[color_var]
-        except KeyError:
-            log.warning('No text color associated with {} --> setting to BLACK'.format(color_var))
-            self.col_txt = Style.BLACK
-
-        # other properties
-        self.level = lev
-        self.p_thresh = metric_threshold
-        self.col_graph = color_var
-
-def pattern_correlation_all_var(df_exp,test_cfg):
+def pattern_correlation(df_exp,test_cfg):
     '''
-    Perform Welch t-test for each variable fo dataframe df_b
+    Perform pattern correlation test for each variable fo dataframe df_b
     :param df_a: reference datframe, containing big sample
     :param df_b: datframe containing data to test
     :param filename_student_test: filename for writing result of t-test result into a csv file
-    :return: result of the student test in a dataframe
+    :return: result of the pattern correlation in a dataframe
     '''
 
     # initialisation for construction dataframe (much faster to use list than dataframe.append)
@@ -122,7 +128,7 @@ def pattern_correlation_all_var(df_exp,test_cfg):
 
     return (df_result)
 
-def welch_test_all_var(df_a, df_b , filename_student_test = ''):
+def welch_test(df_a, df_b , filename_student_test = ''):
     '''
     Perform Welch t-test for each variable fo dataframe df_b
     :param df_a: reference datframe, containing big sample
@@ -158,13 +164,13 @@ def welch_test_all_var(df_a, df_b , filename_student_test = ''):
 
     return (df_result)
 
-def emissions_all_var(df_exp, df_ref , test_cfg,filename_student_test = ''):
+def emissions(df_exp, df_ref , test_cfg,filename_student_test = ''):
     '''
-    Perform Welch t-test for each variable fo dataframe df_b
+    Perform emissions test for each variable of dataframe df_b
     :param df_a: reference datframe, containing big sample
     :param df_b: datframe containing data to test
     :param filename_student_test: filename for writing result of t-test result into a csv file
-    :return: result of the student test in a dataframe
+    :return: result of the emissions test in a dataframe
     '''
 
     # initialisation for construction dataframe (much faster to use list than dataframe.append)
@@ -174,6 +180,7 @@ def emissions_all_var(df_exp, df_ref , test_cfg,filename_student_test = ''):
         if 'exp' in var:
             continue
         log.debug("Emissions test for {}".format(var))
+
         abs_deviation = abs(df_exp[var].iloc[0] - df_ref[var].iloc[0])
         rel_deviation = abs_deviation/df_ref[var].iloc[0] * 100
 
@@ -191,7 +198,6 @@ def emissions_all_var(df_exp, df_ref , test_cfg,filename_student_test = ''):
 
 def create_big_df(ref_names, list_csv_files, filename_csv=''):
     '''
-    Create big dataframe form list of csv files
     :param list_csv_files: list of csv files for the big dataframe
     :return: big dataframe containing the whole data
     '''
@@ -244,7 +250,7 @@ def main(\
         # list of paths to all csv files
         p_csv_files[test] = glob.glob(os.path.join(p_ref_csv_files,test,'{}_*csv'.format(test_cfg.ref_name)))
         if len(p_csv_files[test]) == 0:
-            log.error('No reference files found in {}\n EXITING'.format(p_ref_csv_files))
+            log.error('No reference files found in {}'.format(p_ref_csv_files))
 
         log.debug('{} reference(s) found for test {}'.format(len(p_csv_files[test]),test))
 
@@ -266,20 +272,20 @@ def main(\
             log.banner('')
             log.banner("Perform Welch's t-test for each variable")
             log.banner('')
-            df_result[test] = welch_test_all_var(df_a=df_ref[test], df_b=df_exp[test],filename_student_test=testresult_csv[test])
+            df_result[test] = welch_test(df_a=df_ref[test], df_b=df_exp[test],filename_student_test=testresult_csv[test])
             df_result[test]['p-value [%]'] = df_result[test]['p-value']*100.
 
         if test == 'pattern_correlation':
             log.banner('')
             log.banner("Perform pattern correlation test for each variable")
             log.banner('')
-            df_result[test] = pattern_correlation_all_var(df_exp[test],test_cfg)
+            df_result[test] = pattern_correlation(df_exp[test],test_cfg)
 
         if test == 'emissions':
             log.banner('')
             log.banner("Perform emission test for each variable")
             log.banner('')
-            df_result[test] = emissions_all_var(df_exp[test], df_ref[test],test_cfg)
+            df_result[test] = emissions(df_exp[test], df_ref[test],test_cfg)
 
         df_result[test] = sort_level_metric(df_result[test], test_cfg.metric_threshold,test_cfg.metric)
         df_result[test] = add_color_df_result(df_result[test],test_cfg.metric_threshold)

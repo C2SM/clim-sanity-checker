@@ -22,9 +22,11 @@ It can be called as a function from sanity_check.py or directly
 as main().
 It contains:
 
-    - variables_to_extract: to be written
+    - variables_to_extract: Infer list of variables to extract from 
+            the list of expressions which contain the variables
 
-    - standard_postproc: process all raw data into a global annual mean netCDF
+    - standard_postproc: process all raw data into a global annual mean netCDF,
+            used in all test, contains hack for already processed data (ECHAM only)
 
     - timeser_proc_nc_to_df: Read netCDF with global mean values timeseries
             and transform it into dataframe, used for Welch's-Test
@@ -36,15 +38,15 @@ It contains:
             it into datafram, used for emissions test
 
     - main: main function that combines the different processing steps
+            
+            Help: python process_data.py --help
 
-C.Siegenthaler 2019
-J.Jucker 2020
+C.Siegenthaler 2019 (C2SM)
+J.Jucker 12.2020 (C2SM)
+
 '''
 
 def variables_to_extract(vars_in_expr):
-    '''
-Return the list of variables to extract from the list of expressions which contain the variables
-    '''
     
     # split expressions around =,-,*,/ and remove numbers
     for op_str in ['*','-','+','/'] :
@@ -106,9 +108,10 @@ returns:
     files_error = []      # list files giving error
     files_proceed = []    # list of files where data are collected 
     
+    # sometimes data is stored in a folder called Raw
     p_raw_folder = os.path.join(p_raw_files,exp,raw_f_subfold)
 
-    # Special case, echam specific : 
+    # SPECIAL CASE, echam specific : 
     # if the folder containing the Raw files have been deleted, but folder 'Data' contains already global annual means 
     if not os.path.isdir(p_raw_folder):
         log.warning('The folder containing the raw data has been deleted : {}'.format(p_raw_folder))
@@ -124,16 +127,21 @@ returns:
             log.error('Could not find files in alternative directory {}'.format(time_series_altern_fold))
         else:
             log.info('The alternative folder has been found instead: {}'.format(p_altern_timeser_fold))
+
             if len(time_series_altern_fold) == 1: index_ts = 0
             if len(time_series_altern_fold) > 1:
+
                for (i, item) in enumerate(time_series_altern_fold):
                    print(i, item)
                index_ts = int(input('Please type the index of the file to use (negative means none of them) : '))
+
             # If index positive, copy the time serie and exit
             if index_ts >= 0 :
                log.info('File used : {}'.format(time_series_altern_fold[index_ts]))
                cdo_cmd = 'cdo -chname,CDNC,burden_CDNC -chname,ICNC,burden_ICNC -chname,SCF,SCRE -chname,LCF,LCRE {} {}'.format(time_series_altern_fold[index_ts],ofile_tot)
                utils.shell_cmd (cdo_cmd,py_routine=__name__)
+
+               # convert netCDF to dataframe, therefore skip next processing step
                if test == 'welchstest':
                    timeser_proc_nc_to_df(\
                                          exp,\
@@ -145,8 +153,9 @@ returns:
                    skip_next_steps = False
 
                return(ofile_tot,skip_next_steps)
+
+    # NORMAL CASE
     else:
-        #print info
         log.info('Analyse files in : {}'.format(p_raw_folder))
 
     # loop over output stream
@@ -201,6 +210,7 @@ returns:
         tmp_merged = 'tmp_{}_{}.nc'.format(exp,stream)
         if os.path.isfile(tmp_merged):
             os.remove(tmp_merged)
+
         cdo_cmd = 'cdo -copy {} {}'.format(' '.join(tmp_selvar_files), tmp_merged)
         utils.shell_cmd (cdo_cmd,py_routine=__name__)
 
@@ -227,8 +237,10 @@ returns:
 
     [os.remove(f) for f in files_proceed]
 
-    # Finishing
-    log.warning('Files with a problem: {}'.format(','.join(files_error)))
+    # Finish
+    if len(files_error) != 0 : 
+        log.warning('Files with a problem: {}'.format(','.join(files_error)))
+
     log.info('Postprocess data using CDO for test {} finished. \n Output here : {}'.format(test,ofile_tot))
 
     # return name of output file
@@ -410,6 +422,7 @@ def main(exp,\
     results_data_processing = {}
     processed_netcdf_filename = {}
     skip_next_step = {}
+
     for test in tests:
         if (actions['standard_postproc'][test]): 
             processed_netcdf_filename[test], skip_next_step[test]= standard_postproc(exp, \
