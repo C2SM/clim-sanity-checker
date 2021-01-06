@@ -3,21 +3,21 @@ import argparse
 import os
 
 # aliased standard modules
-import pandas as pd # to evaluate
+import pandas as pd
 
 # modules of sanity checker
 import add_exp_to_ref
-import paths
-import utils
+import lib.paths as paths
+import lib.utils as utils
 import perform_test
 import process_data
-import logger_config
+import lib.logger_config as logger_config
 
 # aliased modules of sanity checker
-import plot_mean_std as plt
+import lib.plot_mean_std as plt
 
 # standalone imports
-from logger_config import log
+from lib.logger_config import log
 
 '''
 Script to test sanity of climate models. It contains:

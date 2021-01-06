@@ -5,10 +5,10 @@ import os
 import subprocess
 
 # modules of sanity checker
-import paths
+import lib.paths
 
 # standalone imports
-from logger_config import log
+from lib.logger_config import log
 
 '''
 Module providing useful functions. It contains:

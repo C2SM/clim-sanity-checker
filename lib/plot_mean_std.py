@@ -9,10 +9,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # modules of sanity checker
-import paths
+import lib.paths
 
 # standalone imports
-from logger_config import log
+from lib.logger_config import log
 
 '''
 Module that contains functions to plot the results of tests. It contains:

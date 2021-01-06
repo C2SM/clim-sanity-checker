@@ -10,16 +10,16 @@ import numpy as np
 
 # modules of sanity checker
 import add_exp_to_ref
-import paths
-import utils
+import lib.paths as paths
+import lib.utils as utils
 import perform_test
 import process_data
-import logger_config
+import lib.logger_config as logger_config
 
 # standalone imports
-from logger_config import log
-from color import Style
-from test_config import get_config_of_current_test
+from lib.logger_config import log
+from lib.color import Style
+from lib.test_config import get_config_of_current_test
 
 '''
 Module providing functions to perform the test. It contains:

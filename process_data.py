@@ -9,12 +9,12 @@ import xarray as xr
 import numpy as np
 
 # modules of sanity checker
-import paths
-import utils
-import logger_config
+import lib.paths as paths
+import lib.utils as utils
+import lib.logger_config as logger_config
 
 # standalone imports
-from logger_config import log
+from lib.logger_config import log
 
 '''
 Module doing all the postprocessing of the raw model output.

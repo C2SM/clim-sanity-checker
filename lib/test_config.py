@@ -1,6 +1,6 @@
 # standalone imports
-from logger_config import log
-from color import Style
+from lib.logger_config import log
+from lib.color import Style
 
 '''
 Module providing classes and functions related to the tests. It contains:

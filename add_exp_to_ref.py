@@ -7,14 +7,14 @@ import argparse
 import pandas as pd # to evaluate
 
 # modules of sanity checker
-import paths
-import utils
-import logger_config
+import lib.paths as paths
+import lib.utils as utils
+import lib.logger_config as logger_config
 
 # standalone imports
-from logger_config import log
-from test_config import get_config_of_current_test
-from color import Style
+from lib.logger_config import log
+from lib.test_config import get_config_of_current_test
+from lib.color import Style
 
 '''
 Module providing the functionality to add an experiment

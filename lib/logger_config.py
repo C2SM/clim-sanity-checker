@@ -3,7 +3,7 @@ import logging
 import sys
 
 # standalone imports
-from color import colors
+from lib.color import colors
 
 '''
 Module providing all classes and functions
