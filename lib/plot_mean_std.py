@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # modules of sanity checker
-import lib.paths
+import lib.paths as paths
 
 # standalone imports
 from lib.logger_config import log
