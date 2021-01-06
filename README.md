@@ -18,7 +18,7 @@ Currently there are 3 different tests available:
   
 ## Structure
 
-This tool consists of three modules that can be run independently and a wrapper to execute the one after each other:
+This tool consists of three modules that can be run independently and a wrapper to execute them one after each other:
 
    * [sanity_test.py](sanity_test.py), wrapper that chains modules below
    * [process_data.py](process_data.py), convert raw model output into pd.dataframe
