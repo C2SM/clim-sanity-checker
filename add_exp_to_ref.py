@@ -14,6 +14,7 @@ import logger_config
 # standalone imports
 from logger_config import log
 from test_config import get_config_of_current_test
+from color import Style
 
 '''
 Module providing the functionality to add an experiment

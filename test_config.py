@@ -51,10 +51,10 @@ class EmissionsTest:
         self.ref_name = 'emis'
         self.metric = 'relative deviation [%]'
         self.metric_threshold = [\
-                               threshold_prop('high', 0.001, 'Green'),\
-                               threshold_prop('middle', 0.01, 'Orange'), \
-                               threshold_prop('low', 0.1, 'Red'), \
-                               threshold_prop('very low', 1, 'DarkRed')]
+                               threshold_prop('high', 0.01, 'Green'),\
+                               threshold_prop('middle', 0.1, 'Orange'), \
+                               threshold_prop('low', 1, 'Red'), \
+                               threshold_prop('very low', 10, 'DarkRed')]
 
 class PatternTest:
     def __init__(self):
