@@ -6,12 +6,27 @@ in order to identify systematic bias in the climatological results (due for exam
 This tool is based on a excel tool David Neubaurer (ETHZ) developed for ECHAM-HAMMOZ : 
 https://redmine.hammoz.ethz.ch/projects/hammoz/wiki/Reference_experiments_to_test_computing_platform 
 
-This 1st version has been written for analysing global annual means of a 10 years simulation of ECHAM-HAMMOZ.
-Jonas Jucker added support for analysing global annual means of an AMIP experiment run with ICON. 
-When constructing the tool, a special attention was taken to stay generally enough so that it is easy to use the tool for other climate results.
+It allows to analyze annual global means of a 10 year period (any other period of time is possible as well) for ECHAM-HAMMOZ and ICON.
+In general data from other models can be processed as well.
 
-For the moment, only the Welch's test ist performed on the annual global means of your experiment agains 
-the pool of reference simulations. 
+Currently there are 3 different tests available:
+   * Welch's t-Test
+   * Pattern Correlation Test
+   * Emissions Test (I/O)
+   
+   For more details about the implementation of each test see Tests.
+  
+## Structure
+
+This tool consists of three modules that can be run independently and a wrapper to execute the one after each other:
+
+   * [sanity_test.py](sanity_test.py), wrapper that chains modules below
+   * [process_data.py](process_data.py), convert raw model output into pd.dataframe
+   * [perform_test.py](perform_test.py), apply test based on the pd.dataframe and references stored in [references](ref)
+   * [add_exp_to_ref.py](add_exp_to_ref.py), add .csv with results of tests to [references](ref)
+  
+Each modules writes intermediate files to a directory passed with argument --p_stages, the subsequent module then looks into
+that directory for files needed. The tool is written in a way, that no time-consuming processing step is done twice.
 
 ## Quick start
 
@@ -86,10 +101,6 @@ experiment in figure results_new_exp/plot_variables.
 Most of the paths used in sanity_test.py are read by default from the file paths.py, 
 but the defaults paths can be overriden by passing them in arguments.
 For more infos about the argument list, please type python sanity_test.py -h
-
-## Models supported 
-This tool was written using ECHAM-HAMMOZ output files as model.
-It has been tested for icon files as well (contact Jonas Jucker for more infos)).
 
 ## Variables to analyse
 The definition of the variables to analyse is done in the files located in the folder variables_to_process.
