@@ -1,7 +1,3 @@
-# Script to test sanity of climate model
-# C.Siegenthaler, 2019
-# J.Jucker, 2020
-
 # standard modules
 import argparse
 import os
@@ -22,6 +18,23 @@ import plot_mean_std as plt
 
 # standalone imports
 from logger_config import log
+
+'''
+Script to test sanity of climate models. It contains:
+
+    - main: process model output, perform tests and plot results,
+            each function called by main() can be called itself
+            as a main(). Prior to the execution, paths_init.py
+            needs to be executed. 
+            Note that this script requires user input at some stages,
+            so it cannot be run as a batched job.
+
+            Help: python sanity_test.py --help
+
+# C.Siegenthaler, 2019
+# J.Jucker, 2020
+
+'''
 
 def main(new_exp, \
        p_raw_files, \
@@ -83,11 +96,11 @@ def main(new_exp, \
                                     
     if 'welchstest' in tests:
         test = 'welchstest'
-        plt.plt_welchstest(references[test].append(results_data_processing[test],sort=False), new_exp, results_test[test], p_out_new_exp = p_stages)
+        plt.plt_welchstest(references[test].append(results_data_processing[test],sort=False), new_exp, results_test[test], p_stages = p_stages)
 
     # Add experiment to the reference pool
     #--------------------------------------------------------------------
-    print('-------------------------------------------------------------------------')
+    log.info('-------------------------------------------------------------------------')
     asw = input('If you are happy with this experiment, do you want to add it to the reference pool ? (yes/[No])\n')
     if (asw.strip().upper() == 'YES') or (asw.strip().upper() == 'Y'):
         add_exp_to_ref.main(new_exp, \
@@ -95,9 +108,12 @@ def main(new_exp, \
                             p_stages = p_stages, \
                             p_ref_csv_files = p_ref_csv_files)
     else:
-        print('The experiment {} is NOT added to the reference pool \n'.format(new_exp))
-        print('If you want to add the experiment {} to the reference pool later on, type the following line when you are ready:\n \
-                          add_exp_to_ref --new_exp {}'.format(new_exp, new_exp))
+        args_for_manual_execution = utils.derive_arguments_for_add_exp_to_ref(new_exp, tests, p_stages, p_ref_csv_files)
+        log.info('The experiment {} is NOT added to the reference pool \n'.format(new_exp))
+        log.info('If you want to add the experiment {} to the reference pool later on, type the following line when you are ready:'.format(new_exp, new_exp))
+
+        log.info('')
+        log.info('python add_exp_to_ref.py {}'.format(args_for_manual_execution))
 
     log.banner('')
     log.banner ('Sanity test finished')

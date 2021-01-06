@@ -4,6 +4,8 @@ import sys
 import os
 import subprocess
 
+# modules of sanity checker
+import paths
 
 # standalone imports
 from logger_config import log
@@ -21,6 +23,11 @@ Module providing useful functions. It contains:
             actions still to do
 
     - shell_cmd: execute shell-command with subprocess.Popen
+
+    - derive_arguments_for_add_exp_to_ref: create argument list to run
+            add_exp_to_ref.py as main manually
+
+    - rel_path: convert path to relative path with respect to paths.rootdir
 
 C.Siegenthaler 2019
 J.Jucker 12.2020
@@ -118,3 +125,23 @@ def shell_cmd(cmd,py_routine,lowarn=False):
             log.error("Error returned: {}".format(err))
 
     return(out_status,str(out))
+
+def derive_arguments_for_add_exp_to_ref(exp,tests, p_stages, p_ref_csv_files):
+
+    args = '--exp {} '.format(exp)
+
+    args += '--tests '
+    for test in tests:
+        args += '{} '.format(test)
+
+    p_stages = rel_path(p_stages)
+    args += '--p_stages {} '.format(p_stages)
+
+    p_ref_csv_files = rel_path(p_ref_csv_files)
+    args += '--p_ref_csv_files {} '.format(p_ref_csv_files)
+
+    return args
+
+def rel_path(path):
+    path = os.path.relpath(path,paths.rootdir)
+    return path
