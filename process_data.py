@@ -414,7 +414,6 @@ def main(exp,\
          p_stages,\
          raw_f_subfold,\
          f_vars_to_extract,\
-         p_emis_ref,\
          f_emis_ref):
 
     log.banner('Start standard-postprocessing')
@@ -478,11 +477,10 @@ def main(exp,\
         if (actions['test_postproc'][test] and not skip_next_step[test]):
             test = 'pattern_correlation'
 
-            reference = utils.clean_path(p_emis_ref,f_emis_ref)
             results_data_processing[test] = pattern_proc_nc_to_df(exp, \
                 filename     = processed_netcdf_filename[test],\
                 p_stages     = p_stages, \
-                reference = reference)
+                reference = f_emis_ref)
         else:
             log.info('Processing for test {} already done'.format(test))
             f_csv = os.path.join(p_stages, 'test_postproc_{}_{}.csv'.format(test,exp))
@@ -543,13 +541,9 @@ if __name__ == '__main__':
                            nargs='+',\
                            help = 'Tests to apply on your data')
 
-    parser.add_argument('--p_emis_ref', dest='p_emis_ref', \
-                           default='', \
-                           help = 'Absolute or relative path to reference netCDF for pattern correlation test')
-
     parser.add_argument('--f_emis_ref', dest='f_emis_ref', \
                            default='', \
-                           help = 'Filename of reference netCDF for pattern correlation test')
+                           help = 'Absolute or relative path to reference netCDF for pattern correlation test')
 
     args = parser.parse_args()
 
@@ -560,7 +554,7 @@ if __name__ == '__main__':
     # make all paths from user to absolute paths
     args.wrk_dir = utils.abs_path(args.wrk_dir)
     args.p_stages = utils.abs_path(args.p_stages)
-    args.p_emis_ref = utils.abs_path(args.p_emis_ref)
+    args.f_emis_ref = utils.abs_path(args.f_emis_ref)
 
     # data processing takes a while, check that no step is done twice
     actions = utils.determine_actions_for_data_processing(args.exp,args.tests,args.p_stages,args.lclean)
@@ -582,7 +576,6 @@ if __name__ == '__main__':
          raw_f_subfold=args.raw_f_subfold,\
          p_stages=args.p_stages,\
          f_vars_to_extract=args.f_vars_to_extract,\
-         p_emis_ref=args.p_emis_ref,\
          f_emis_ref=args.f_emis_ref)
 
     log.banner('End execute {} as main()'.format(__file__))

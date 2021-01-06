@@ -55,6 +55,9 @@ def add_line_descr_f(exp,f_exp_descr):
                             '-fast-transcendentals (y/n)',\
                             '-no-prec-sqrt (y/n)',\
                             '-no-prec-div (y/n)',\
+                            'welchstest (y/n)',\
+                            'pattern_correlation (y/n)',\
+                            'emissions (y/n)',\
                             'Date of experiment (month yyyy)']
         pd.DataFrame(columns=cols_exp_descr_f)
     else:
@@ -115,6 +118,11 @@ def main(exp, \
     new_branch_name = 'test_add_{}'.format(exp)
     files_to_commit = []
 
+    # fill up file 'Exps_description.csv' with additional information via user input
+    f_exp_descr = os.path.join(p_ref_csv_files,'Exps_description.csv')
+    add_line_descr_f(exp=exp,f_exp_descr=f_exp_descr)
+    files_to_commit.append(f_exp_descr)
+
     for test in tests:
         test_cfg = get_config_of_current_test(test)
 
@@ -143,10 +151,6 @@ def main(exp, \
             files_to_commit.append(place_for_reference)
             shutil.copy(pdf_file,place_for_reference)
 
-    # fill up file 'Exps_description.csv' with additional information via user input
-    f_exp_descr = os.path.join(p_ref_csv_files,'Exps_description.csv')
-    add_line_descr_f(exp=exp,f_exp_descr=f_exp_descr)
-    files_to_commit.append(f_exp_descr)
 
     # root is important to not fail during git commands
     os.chdir(paths.rootdir)
