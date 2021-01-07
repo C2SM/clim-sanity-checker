@@ -10,7 +10,11 @@ It creates a module called *paths.py* in [lib](lib), that is used by all modules
 
 |argument|description|default| 
 |---|---|---|
-|--p_raw_files, -pr|absolute or relative path to your raw files, **mandatory** argument|
+|--p_raw_files, -pr|absolute or relative path to your raw files, **mandatory** argument|None|
+|--p_stages|absolute or relative path to the folder where intermediate processing steps of the modules are stored. **Caution:** Needs free disk space |stages|
+|--p_wrkdir|absolute or relative path to the working directory. **Caution:** Needs free disk space |wrkdir|
+|--p_f_vars_proc|absolute or relative path to folder containig variables to process for each test. This path is extenden automatically the following: [p_f_vars_to_proc / test / f_vars_to_extract]|variables_to_process|
+|--p_ref_csv_files|absolute or relative path to reference files. This path is extended automatically for each test the following [p_ref_csv_files / test]|ref/echam-hammoz|
 
 
 
