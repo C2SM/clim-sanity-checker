@@ -6,7 +6,7 @@ this tool.
 This test compares the annual mean values against a set of references. It is able to detect, whether
 two samples have equal means.
 The function used to do the statistical test is:  
-** scipy.stats.ttest_ind **
+**scipy.stats.ttest_ind**
 If a p-value is below 5 %, the test is not passed.
 
 ### Additional processing for Welch's t-Test
