@@ -1,8 +1,18 @@
 # Module arguments
 To all modules a variety of command-line arguments can be passed to specify the type of tests, the location of the raw data or to increase verbosity.
 Below you find a detailed description of each argument available.
-Another way to get the arguments for each module is to run:  
+Another way to get all possible arguments for each module is:  
+
 *python your_module.py --help*
+
+For conveniance, long paths or arguments that ususally stay the same can be set at the very beginning with the scripts *paths_init.py*.
+It creates a module called *paths.py* in [lib](lib), that is used by all modules to get default values for some arguments.
+
+|argument|description|default| 
+|---|---|---|
+|--p_raw_files, -pr|absolute or relative path to your raw files, **mandatory** argument|
+
+
 
 |argument|description   |for modules |default| 
 |---|---|---|---|
@@ -17,3 +27,4 @@ Another way to get the arguments for each module is to run:
 |--clean, -c| Redo all processing steps from module *process_data.py* | sanity_test.py, process_data.py | not set|
 |--verbose, -v | Debug output | all | not set|
 |--spinup| Integer, indicates the number of months the model output is not considered due to model spinup| sanity_test.py, process_data.py | 3|
+
