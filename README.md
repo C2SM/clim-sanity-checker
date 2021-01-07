@@ -32,6 +32,40 @@ Detailed information about the structure of the clim-sanity-checker can be found
 
 ## Quick start
 
+**Configure paths with paths_init.py:**  
+*python paths_init.py -pr /project/s903/nedavid/plattform_comparison/*
+
+This will create the file *paths.py* in the folder [lib](lib) for later use. Note that any path defined in *paths.py*
+can be overridden by command-line arguments.
+
+**Run sanity_test.py:**  
+*python sanity_test.py -exp your_experiment_name --f_vars_to_extract vars_echam-hammoz.csv --raw_f_subfold Raw*
+
+This command will launch:
+   * The preprocessing for the model output (stored in the folder *Raw*) based on the *vars_echam-hammoz.csv* variable definitions.
+   * Perform all tests.
+   * Asks you, whether this test should be added to the reference pool or not.
+   
+ Detailed information about all available options of *sanity_test.py* or other modules is provided in [options_clim-sanity-checker](options_clim-sanity-checker.md).
+ 
+ ## Variable Definition
+ 
+ This tool can analyze all possible variables or combinations of individual fields. One needs to define
+ the variable name, the formula to derive it from model output and the file-extension (e.g. atm_2d) for each test
+ in [variables_to_process](variables_to_process). An example for ECHAM-HAMMOZ is [vars_echam-hammoz.csv](variables_to_process/welchstest/vars_echam-hammoz.csv).
+ 
+ For ECHAM-HAMMOZ and ICON there exist already such a table for some of the test:
+ 
+ #### ECHAM-HAMMOZ
+The variable definitons for the Welch's t-Test are derived from the publication of
+*Neubauer et al.: The global aerosol–climate model ECHAM6.3–HAM2.3 – Part 2: Cloud evaluation, aerosol radiative forcing, and climate sensitivity, Geosci. Model Dev., 12, 3609–3639, https://doi.org/10.5194/gmd-12-3609-2019, 2019*.  
+For the Emission Test the variable definitions are taken from an excel-sheet provided by David Neubauer.
+
+#### ICON
+The variable definitions for the Welch's t-Test are adapted from the file below provided by Colin Tully:  
+![vars_icon](https://user-images.githubusercontent.com/39263956/103921491-dfbe8b80-5112-11eb-8ee7-abc19ac3ce2d.png)
+
+
 To use this tool for analysing the experiment called *my_exp*, please follow the following steps:
 
 1. Prepare the python environment
@@ -104,15 +138,7 @@ Most of the paths used in sanity_test.py are read by default from the file paths
 but the defaults paths can be overriden by passing them in arguments.
 For more infos about the argument list, please type python sanity_test.py -h
 
-## Variables to analyse
-The definition of the variables to analyse is done in the files located in the folder variables_to_process.
-I took the variables David Neubauer usually monitor with ECHAM-HAMMOZ.
-A definition of most of these variables can be found in 
-Neubauer et al.: The global aerosol–climate model ECHAM6.3–HAM2.3 – Part 2: Cloud evaluation, aerosol radiative forcing, and climate sensitivity, Geosci. Model Dev., 12, 3609–3639, https://doi.org/10.5194/gmd-12-3609-2019, 2019.
 
-The definition of the variables is quite flexible, 
-you can define your own variables to analyse either in exanding teh existing file, 
-or in creating your own file.
  
 ## Organisation of sanity_test.py
 As already said above, the following steps are conducted in sanity_test.py :
