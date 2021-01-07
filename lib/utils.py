@@ -5,7 +5,7 @@ import os
 import subprocess
 
 # modules of sanity checker
-import lib.paths
+import lib.paths as paths
 
 # standalone imports
 from lib.logger_config import log
