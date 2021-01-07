@@ -5,6 +5,7 @@ Another way to get all possible arguments for each module is:
 
 *python your_module.py --help*
 
+#### Arguments for paths_init.py
 For conveniance, long paths or arguments that ususally stay the same can be set at the very beginning with the scripts *paths_init.py*.
 It creates a module called *paths.py* in [lib](lib), that is used by all modules to get default values for some arguments.
 
@@ -16,7 +17,7 @@ It creates a module called *paths.py* in [lib](lib), that is used by all modules
 |--p_f_vars_proc|absolute or relative path to folder containig variables to process for each test. This path is extenden automatically the following: [p_f_vars_to_proc / test / f_vars_to_extract]|variables_to_process|
 |--p_ref_csv_files|absolute or relative path to reference files. This path is extended automatically for each test the following [p_ref_csv_files / test]|ref/echam-hammoz|
 
-
+#### Arguments for Modules
 
 |argument|description   |for modules |default| 
 |---|---|---|---|
