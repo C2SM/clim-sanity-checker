@@ -25,7 +25,7 @@ This tool consists of three modules that can be run independently and a wrapper 
    * [perform_test.py](perform_test.py), apply test based on the pd.dataframe and references stored in [references](ref)
    * [add_exp_to_ref.py](add_exp_to_ref.py), add .csv with results of tests to [references](ref)
   
-Each modules writes intermediate files to a directory passed with argument --p_stages, the subsequent module then looks into
+Each module writes intermediate files to a directory passed with argument --p_stages, the subsequent module then looks into
 that directory for files needed. The tool is written in a way, that no time-consuming processing step is done twice.
 
 ## Quick start
@@ -216,5 +216,3 @@ independently of the sanity test tool to replace general_proc.sh, or be replaced
 
 ## Missing
 1. analyse of variables only over ocean
-2. correlation pattern check
-3. emission check
