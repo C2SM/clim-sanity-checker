@@ -8,6 +8,7 @@ Another way to get the arguments for each module is to run:
 |---|---|---|---|
 |--exp, -e        |name of your experiment, should be unique|all | None |
 |--p_raw_files  |absolute or relative path to your raw files, this path is extended with the argument *--exp* and *--raw_f_subfold* the following: [p_raw_files / exp / raw_f_subfold]  | sanitiy_test.py, process_data.py  | defined in paths.py  |
+|--raw_f_subfold| Subfolder where the raw data is, ECHAM-specific | sanity_test.py, process_data.py | ' '|
 |--p_stages  | absolute or relative path to the folder where intermediate processing steps of the modules are stored. **Caution:** Needs free disk space |all  | defined in paths.py  |
 |--wrkdir| absolute or relative path to the working directory. **Caution:** Needs free disk space | all | defined in paths.py |
 | --tests, -t| test to apply on your data|all| welchstest pattern_correlation emissions|
