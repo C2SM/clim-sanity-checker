@@ -32,6 +32,20 @@ Detailed information about the structure of the clim-sanity-checker can be found
 
 ## Quick start
 
+**Configure paths with paths_init.py:**  
+*python paths_init.py -pr /project/s903/nedavid/plattform_comparison/*
+
+This will create the file *paths.py* in the folder [lib](lib) for later use. Note that any path defined in *paths.py*
+can be overridden by command-line arguments.
+
+**Run sanity_test.py:**  
+*python sanity_test.py -exp your_experiment_name --f_vars_to_extract vars_echam-hammoz.csv --raw_f_subfold Raw*
+
+This command will launch:
+   * The preprocessing for the model output (stored in the folder *Raw*) based on the *vars_echam-hammoz.csv* variable definitions.
+   * Perform all tests.
+   * Asks you, whether this test should be added to the reference pool or not.
+
 To use this tool for analysing the experiment called *my_exp*, please follow the following steps:
 
 1. Prepare the python environment
