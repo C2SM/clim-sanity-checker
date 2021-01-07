@@ -46,7 +46,7 @@ This command will launch:
    * Perform all tests.
    * Asks you, whether this test should be added to the reference pool or not.
    
- Detailed information about all available options of *sanity_test.py* or other modules is provided in [module arguments(module_arguments.md).
+ Detailed information about all available options of *sanity_test.py* or other modules is provided in [module arguments](module_arguments.md).
  
  ## Variable Definition
  
