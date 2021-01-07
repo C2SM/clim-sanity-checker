@@ -14,7 +14,7 @@ Currently there are 3 different tests available:
    * Pattern Correlation Test
    * Emissions Test (I/O)
    
-   For more details about the implementation of each test see Tests.
+   For more details about the implementation of each test see [test descriptions](test.md).
   
 ## Structure
 
