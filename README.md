@@ -45,6 +45,8 @@ This command will launch:
    * The preprocessing for the model output (stored in the folder *Raw*) based on the *vars_echam-hammoz.csv* variable definitions.
    * Perform all tests.
    * Asks you, whether this test should be added to the reference pool or not.
+   
+ Detailed information about all available options of *sanity_test.py* or other modules is provided in [options_clim-sanity-checker](options_clim-sanity-checker.md).
 
 To use this tool for analysing the experiment called *my_exp*, please follow the following steps:
 
