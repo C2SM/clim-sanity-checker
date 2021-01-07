@@ -28,6 +28,8 @@ This tool consists of three modules that can be run independently and a wrapper 
 Each module writes intermediate files to a directory passed with argument --p_stages, the subsequent module then looks into
 that directory for files needed. The tool is written in a way, that no time-consuming processing step is done twice.
 
+Detailed information about the structure of the clim-sanity-checker can be found in [structure](structure.md).
+
 ## Quick start
 
 To use this tool for analysing the experiment called *my_exp*, please follow the following steps:
