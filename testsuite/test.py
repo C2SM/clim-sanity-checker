@@ -1,6 +1,8 @@
 import  pandas as pd
 import xarray as xr
+import utils 
 import numpy as np
+
 
 time = pd.date_range("2000-01-01", freq="D", periods=366)
 lat = np.arange(10,20,0.1)

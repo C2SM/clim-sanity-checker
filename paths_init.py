@@ -26,19 +26,22 @@ def write_path(p_raw_files, \
     p_stages = abs_path(p_stages)
     p_wrkdir = abs_path(p_wrkdir)
 
-    # open the file
-    fp=open('lib/paths.py','w')
+    places_for_file = ['lib/paths.py','testsuite/paths.py']
 
-    # write out paths
-    fp.write('rootdir = "{}"\n'.format(os.getcwd()))
-    fp.write('p_f_vars_proc = "{}/variables_to_process/"\n'.format(os.getcwd()))
-    fp.write('p_raw_files = "{}"\n'.format(p_raw_files))
-    fp.write('p_ref_csv_files = "{}"\n'.format(p_ref_csv_files))
-    fp.write('p_stages = "{}"\n'.format(p_stages))
-    fp.write('p_wrkdir = "{}"\n'.format(p_wrkdir))
+    for place in places_for_file:
+        # open the file
+        fp=open(place,'w')
 
-    # close file
-    fp.close()
+        # write out paths
+        fp.write('rootdir = "{}"\n'.format(os.getcwd()))
+        fp.write('p_f_vars_proc = "{}/variables_to_process/"\n'.format(os.getcwd()))
+        fp.write('p_raw_files = "{}"\n'.format(p_raw_files))
+        fp.write('p_ref_csv_files = "{}"\n'.format(p_ref_csv_files))
+        fp.write('p_stages = "{}"\n'.format(p_stages))
+        fp.write('p_wrkdir = "{}"\n'.format(p_wrkdir))
+
+        # close file
+        fp.close()
 
     return()
 

@@ -1,2 +1,3 @@
 lib/paths.py
+testsuite/paths.py
 __pycache__
