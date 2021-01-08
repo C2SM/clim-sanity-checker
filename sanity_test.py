@@ -12,6 +12,7 @@ import lib.utils as utils
 import perform_test
 import process_data
 import lib.logger_config as logger_config
+import lib.test_config as test_config
 
 # aliased modules of sanity checker
 import lib.plot_mean_std as plt
@@ -98,7 +99,15 @@ def main(new_exp, \
 
     # Add experiment to the reference pool
     #--------------------------------------------------------------------
-    log.info('-------------------------------------------------------------------------')
+    log.banner('')
+    log.banner('Check results again before adding to reference pool')
+    log.banner('')
+
+    for test in tests:
+        test_cfg = test_config.get_config_of_current_test(test)
+        utils.print_warning_if_testresult_is_bad(test,results_test[test], test_cfg.metric_threshold,test_cfg.metric)
+
+
     asw = input('If you are happy with this experiment, do you want to add it to the reference pool ? (yes/[No])\n')
     if (asw.strip().upper() == 'YES') or (asw.strip().upper() == 'Y'):
         add_exp_to_ref.main(new_exp, \

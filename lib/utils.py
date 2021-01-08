@@ -9,6 +9,7 @@ import lib.paths as paths
 
 # standalone imports
 from lib.logger_config import log
+from lib.color import Style
 
 '''
 Module providing useful functions. It contains:
@@ -145,3 +146,22 @@ def derive_arguments_for_add_exp_to_ref(exp,tests, p_stages, p_ref_csv_files):
 def rel_path(path):
     path = os.path.relpath(path,paths.rootdir)
     return path
+
+def print_warning_if_testresult_is_bad(test,df_result, metric_thresholds, metric):
+
+    # dataframe containing only variables a warning has to be printed
+    df_warning = df_result[df_result['level'] == 'very low']
+
+    log.info('----------------------------------------------------------------------------------------------------------')
+    log.info(test)
+
+    if df_warning.size > 0:
+
+        log.info(Style.RED('Results are bad! \n It is not recommended to add this test to the reference pool'))
+        # for each level of warning, print the dataframe
+    else:
+        log.info(Style.GREEN('Results OK'))
+
+    log.info('----------------------------------------------------------------------------------------------------------')
+
+    return
