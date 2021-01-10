@@ -165,3 +165,22 @@ def print_warning_if_testresult_is_bad(test,df_result, metric_thresholds, metric
     log.info('----------------------------------------------------------------------------------------------------------')
 
     return
+
+def exit_if_testresult_is_bad(test,df_result, metric_thresholds, metric):
+
+    # dataframe containing only variables a warning has to be printed
+    df_warning = df_result[df_result['level'] != 'high']
+
+    log.info('----------------------------------------------------------------------------------------------------------')
+    log.info(test)
+
+    if df_warning.size > 0:
+
+        log.info(Style.RED('Results are bad! \n'))
+        # for each level of warning, print the dataframe
+    else:
+        log.info(Style.GREEN('Results OK'))
+
+    log.info('----------------------------------------------------------------------------------------------------------')
+
+    return
