@@ -65,5 +65,14 @@ For the Emission Test the variable definitions are taken from an excel-sheet pro
 The variable definitions for the Welch's t-Test are adapted from the file below provided by Colin Tully:  
 ![vars_icon](https://user-images.githubusercontent.com/39263956/103921491-dfbe8b80-5112-11eb-8ee7-abc19ac3ce2d.png)
 
+## Requirements
+The clim-sanity-checker needs a CDO executable as well as several non-standard Python-packages.
+To install the Python-dependencies run:  
+* pip install -r requirements.txt
+
+#### Piz Daint
+There is a virtual-environment available for this machine:  
+*source paths_to_come/bin/activate/* to get the right Python-environment  
+*module load daint-gpu ; module load CDO* to have CDO available
 ## Missing
 1. analyse of variables only over ocean
