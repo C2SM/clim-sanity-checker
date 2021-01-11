@@ -32,5 +32,5 @@ It creates a module called *paths.py* in [lib](lib), that is used by all modules
 |--clean, -c| Redo all processing steps from module *process_data.py* | sanity_test.py, process_data.py | not set|
 |--verbose, -v | Debug output | all | not set|
 |--spinup| Integer, indicates the number of months the model output is not considered due to model spinup| sanity_test.py, process_data.py | 3|
-|--testsuite,ts | Run of testsuite (deactivates interactive parts, exit for bad testresults) |sanity_test.py, perform_test.py| not set| 
+|--testsuite, -ts | Run of testsuite (deactivates interactive parts, exit for bad testresults) |sanity_test.py, perform_test.py| not set| 
 
