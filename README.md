@@ -74,5 +74,11 @@ To install the Python-dependencies run:
 There is a virtual-environment available for this machine:  
 *source paths_to_come/bin/activate/* to get the right Python-environment  
 *module load daint-gpu ; module load CDO* to have CDO available
+
+## Testsuite
+There exists a small testsuite to check if every test work as expected located in [testsuite](testsuite).
+To run, simply type:  
+*pytest* or *pytest -s* (for more verbosity)  
+**It is recommended to run the testsuite before any use of the clim-sanity-checker!**
 ## Missing
 1. analyse of variables only over ocean
