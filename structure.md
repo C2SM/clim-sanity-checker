@@ -21,3 +21,16 @@ the directory passed as argument *--p_stages*
 
 The function in combination with timeser_proc_nc_to_df is been based on the script general_proc.sh written by 
 Sylvaine Ferrachat (IAC, ETHZ) and tried to be generalized.
+
+#### timeser_proc_nc_to_df
+Process the netCDF produced in **standard_postproc** further using CDO to get a timeseries of annual mean values for each field.
+Finally a .csv file of this timeseries is stored (this file serves as a reference if the experiment is added to the reference pool).
+
+#### pattern_proc_nc_to_df
+Process the netCDF produced in **standard_postproc** further using CDO to get multi-annual means per gridcell for each field.
+Then the actual field-correlation using CDO is computed. The resulting R^2-values for each field is stored in a .csv file for later use.
+This .csv file serves as described above as a reference if the experiment is added to the reference pool.
+
+#### emis_proc_nc_to_df
+Process the netCDF produced in **standard_postproc** further using CDO to get a mean value over the entire period for each field.
+This .csv file serves as described above as a reference if the experiment is added to the reference pool.
