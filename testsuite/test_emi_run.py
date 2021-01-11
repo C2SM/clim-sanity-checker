@@ -17,9 +17,10 @@ def test_emi_embed():
 
     status, _ =utils.shell_cmd(cmd)
 
+    utils.delete_data(files_generated)
+
     assert status == 0, 'sanity_test.py failed'
 
-    utils.delete_data(files_generated)
 
 def test_emi_chained():
 
@@ -44,6 +45,6 @@ def test_emi_chained():
 
     status, _ =utils.shell_cmd(cmd)
 
-    assert status == 0, 'perform_test.py failed'
-
     utils.delete_data(files_generated)
+
+    assert status == 0, 'perform_test.py failed'

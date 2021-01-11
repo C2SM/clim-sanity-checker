@@ -313,7 +313,6 @@ returns:
 
     # removed degenerated dimensions
     data = data.squeeze(drop = True)
-    print(data)
 
     # transforms into dataframe
     df_data = data.to_dataframe()
@@ -586,7 +585,6 @@ if __name__ == '__main__':
     args.wrk_dir = utils.abs_path(args.wrk_dir)
     args.p_stages = utils.abs_path(args.p_stages)
     args.f_pattern_ref = utils.abs_path(args.f_pattern_ref)
-    print(args.f_pattern_ref)
 
     # data processing takes a while, check that no step is done twice
     actions = utils.determine_actions_for_data_processing(args.exp,args.tests,args.p_stages,args.lclean)

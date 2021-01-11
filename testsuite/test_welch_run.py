@@ -16,9 +16,9 @@ def test_welch_embed():
 
     status, _ = utils.shell_cmd(cmd)
 
+    utils.delete_data(files_generated)
     assert status == 0, 'sanity_test.py failed'
 
-    utils.delete_data(files_generated)
 
 def test_welch_chained():
     input_dir = 'testsuite/data'
@@ -42,6 +42,6 @@ def test_welch_chained():
 
     status, _ = utils.shell_cmd(cmd)
 
-    assert status == 0, 'perform_test.py failed'
-
     utils.delete_data(files_generated)
+
+    assert status == 0, 'perform_test.py failed'
