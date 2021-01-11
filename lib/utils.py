@@ -120,7 +120,7 @@ def shell_cmd(cmd,py_routine,lowarn=False):
     if p.returncode != 0:
         log.debug("{} (shell_cmd): ERROR in the command: \n {}".format(py_routine,cmd))
         if lowarn :
-            log.warning("Error returned: \n {}".format(err))
+            log.warning("Shell command failed (but explicitly keep program alive) : \n {}".format(err))
             out_status = 1
         else:
             log.error("Error returned: {}".format(err))

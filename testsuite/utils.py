@@ -45,6 +45,62 @@ def generate_data(input_dir,folder,identifier,field):
 
     return files_generated
 
+def generate_identical_data(input_dir,folder,identifier,field):
+
+    files_generated = []
+    data_location = os.path.join(input_dir,folder)
+    os.makedirs(data_location,exist_ok=true)
+
+    for year in range(2000,2006):
+        time = pd.date_range('{}-01-01'.format(year), freq="d", periods=365)
+        lat = np.arange(10,20,0.1)
+        lon = np.arange(10,20,0.1)
+
+        test = xr.dataarray(np.full((365,100,100),0.45), coords=[time,lat, lon], dims=['time','lat','lon'],name=field)
+        months = range(1,13)
+        for m in months:
+            month = '{:0>2d}'.format(m)
+            filename = '{}/{}_{}_{}.nc'.format(data_location,year,month,identifier)
+            one_month = test.sel(time=test['time.month'] == m)
+            one_month.to_netcdf(filename)
+            files_generated.append(filename)
+
+    return files_generated
+
+def generate_ref(ref_dir,name,fields):
+
+    os.makedirs(ref_dir,exist_ok=True)
+
+    files_generated = []
+    time = pd.date_range('2002-12-31 12:00:00', freq="D", periods=1)
+    lat = np.arange(10,20,0.1)
+    lon = np.arange(10,20,0.1)
+
+    test = xr.DataArray()
+    ds_to_merge = []
+    for field in fields:
+        #test = xr.DataArray(np.random.rand(1,100,100), coords=[time,lat, lon], dims=['time','lat','lon'],name=field)
+        data = np.full((1,100,100),0.45)
+        #for a in np.nditer(data,op_flags=['readwrite']):
+        #    a[...] = a + (0.49 - a)
+
+        #data = np.full((1,100,100),0.5)
+        test = xr.DataArray(data, coords=[time,lat, lon], dims=['time','lat','lon'],name=field)
+        ds_to_merge.append(test)
+
+    merged_ds = xr.merge(ds_to_merge)
+    filename_raw = '{}/{}_raw'.format(ref_dir,name) 
+    merged_ds.to_netcdf(filename_raw)
+    files_generated.append(filename_raw)
+
+    filename = '{}/{}'.format(ref_dir,name) 
+    cmd = 'cdo -setctomiss,-9e+33 {} {}'.format(filename_raw,filename)
+    status, _ = shell_cmd(cmd)
+    assert status == 0
+    files_generated.append(filename)
+
+    return files_generated
+
 def delete_data(files_to_delete):
     for file in files_to_delete:
         os.remove(file)

@@ -46,6 +46,30 @@ J.Jucker 12.2020 (C2SM)
 
 '''
 
+def download_ref_to_stages_if_required(f_emis_ref,p_stages,f_vars_to_extract,test):
+        
+        # no ref-file passed as argument of process_data
+        if f_emis_ref == paths.rootdir:
+            log.info('Download reference file from ftp-server')
+
+            filename_ftp_link = f_vars_to_extract.replace('.csv','.txt').replace('vars_','ftp_')
+            path_to_ftp_link = os.path.join(paths.p_f_vars_proc,test)
+            file_with_ftp_link = utils.clean_path(path_to_ftp_link,filename_ftp_link)
+
+            output_file = os.path.join(p_stages,'ftp_ref_pattern.nc')
+
+            cmd = 'wget --input-file={} --output-document={}'.format(file_with_ftp_link,output_file)
+            log.debug('ftp-command: {}'.format(cmd))
+            utils.shell_cmd(cmd,py_routine=__name__)
+
+            f_emis_ref = output_file
+
+        else:
+            log.info('Using user-defined reference file for test {}'.format(test))
+
+        return f_emis_ref
+
+
 def variables_to_extract(vars_in_expr):
     
     # split expressions around =,-,*,/ and remove numbers
@@ -478,6 +502,8 @@ def main(exp,\
         if (actions['test_postproc'][test] and not skip_next_step[test]):
             test = 'pattern_correlation'
 
+            f_emis_ref = download_ref_to_stages_if_required(f_emis_ref,p_stages,f_vars_to_extract,test)
+
             results_data_processing[test] = pattern_proc_nc_to_df(exp, \
                 filename     = processed_netcdf_filename[test],\
                 p_stages     = p_stages, \
@@ -556,6 +582,7 @@ if __name__ == '__main__':
     args.wrk_dir = utils.abs_path(args.wrk_dir)
     args.p_stages = utils.abs_path(args.p_stages)
     args.f_emis_ref = utils.abs_path(args.f_emis_ref)
+    print(args.f_emis_ref)
 
     # data processing takes a while, check that no step is done twice
     actions = utils.determine_actions_for_data_processing(args.exp,args.tests,args.p_stages,args.lclean)

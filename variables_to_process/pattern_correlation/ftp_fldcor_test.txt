@@ -1,0 +1,1 @@
+ftp://iacftp.ethz.ch/pub_read/juckerj/icon_grid_DOM01.nc
