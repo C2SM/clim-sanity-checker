@@ -22,6 +22,13 @@ the directory passed as argument *--p_stages*
 The function in combination with timeser_proc_nc_to_df is been based on the script general_proc.sh written by 
 Sylvaine Ferrachat (IAC, ETHZ) and tried to be generalized.
 
+**CAUTION:**  
+For the ECHAM-data stored in /project/s903/nedavid/platform a hack is introduced, because for some experiments no unprocessed model output
+is available. In case no raw dat is found, the module looks for other direcoties, containing processed timeseries of the data. If some files are found, the user 
+has the possibility to choose via input what file to choose.
+This piece of code is poorly implemented and can easily fail, if applied to other use-cases!
+
+
 #### timeser_proc_nc_to_df
 Process the netCDF produced in **standard_postproc** further using CDO to get a timeseries of annual mean values for each field.
 Finally a .csv file of this timeseries is stored (this file serves as a reference if the experiment is added to the reference pool).
