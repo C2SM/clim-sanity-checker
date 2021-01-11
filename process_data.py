@@ -289,6 +289,7 @@ returns:
 
     # removed degenerated dimensions
     data = data.squeeze(drop = True)
+    print(data)
 
     # transforms into dataframe
     df_data = data.to_dataframe()

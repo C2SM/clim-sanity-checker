@@ -92,6 +92,7 @@ def main(new_exp, \
                            p_stages=p_stages, \
                            tests= tests, \
                            p_ref_csv_files = p_ref_csv_files,\
+                           ltestsuite = ltestsuite,\
                            f_vars_to_extract=f_vars_to_extract)
                                     
     if 'welchstest' in tests:
@@ -123,11 +124,6 @@ def main(new_exp, \
 
             log.info('')
             log.info('python add_exp_to_ref.py {}'.format(args_for_manual_execution))
-
-    else:
-        for test in tests:
-            test_cfg = test_config.get_config_of_current_test(test)
-            utils.exit_if_testresult_is_bad(test,results_test[test], test_cfg.metric_threshold,test_cfg.metric)
 
     log.banner('')
     log.banner ('Sanity test finished')

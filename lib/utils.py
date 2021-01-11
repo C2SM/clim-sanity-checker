@@ -176,8 +176,7 @@ def exit_if_testresult_is_bad(test,df_result, metric_thresholds, metric):
 
     if df_warning.size > 0:
 
-        log.info(Style.RED('Results are bad! \n'))
-        # for each level of warning, print the dataframe
+        log.error(Style.RED('Results are bad! \n'))
     else:
         log.info(Style.GREEN('Results OK'))
 

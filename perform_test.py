@@ -232,6 +232,7 @@ def main(\
          tests, \
          p_stages, \
          p_ref_csv_files,\
+         ltestsuite,\
          f_vars_to_extract):
 
     df_exp = {}
@@ -292,6 +293,11 @@ def main(\
 
         print_warning_color(df_result[test], test_cfg.metric_threshold,test_cfg.metric)
 
+        if ltestsuite:
+            for test in tests:
+                test_cfg = get_config_of_current_test(test)
+                utils.exit_if_testresult_is_bad(test,df_result[test], test_cfg.metric_threshold,test_cfg.metric)
+
     return df_result,df_ref
 
 if __name__ == '__main__':
@@ -329,6 +335,10 @@ if __name__ == '__main__':
                            nargs='+',\
                            help = 'Tests to apply on your data')
 
+    parser.add_argument('--testsuite','-ts', dest='ltestsuite', \
+                           action='store_true', \
+                           help = 'Run of testsuite')
+
     args = parser.parse_args()
 
     logger_config.init_logger(args.lverbose)
@@ -355,6 +365,7 @@ if __name__ == '__main__':
            p_stages = args.p_stages,\
            p_ref_csv_files = args.p_ref_csv_files, \
            f_vars_to_extract = args.f_vars_to_extract, \
+           ltestsuite = args.ltestsuite,\
            tests = args.tests)
 
     log.banner('End execute {} as main()'.format(__file__))
