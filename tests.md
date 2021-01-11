@@ -22,6 +22,12 @@ the values are squared with the operator *-sqr*.
 
 If the R^2 values is below 0.98 the test is not passed.
 
+In order to apply this test, a reference netCDF is needed. Per default a reference is downloaded from the ftp-server of ETHZ.
+The link needs to be defined in a file, having the same name ans location as the desired f_vars_to_proc.
+As an example [vars_echam-hammoz.csv](variables_to_process/pattern_correlation/vars_echam-hammoz.csv) and [ftp_echam-hammoz.txt](variables_to_process/pattern_correlation/ftp_echam-hammoz.txt) is a matching pair.
+
+In case one wants to use a custom reference file, the file can be passed with the *-f_pattern_ref* argument.
+
 #### Additional processing for Pattern Correlation Test
 After the standars preprocessing another processing step using CDO takes place:  
 **cdo timmean -yearmean -vertsum**  
