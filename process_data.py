@@ -46,10 +46,10 @@ J.Jucker 12.2020 (C2SM)
 
 '''
 
-def download_ref_to_stages_if_required(f_emis_ref,p_stages,f_vars_to_extract,test):
+def download_ref_to_stages_if_required(f_pattern_ref,p_stages,f_vars_to_extract,test):
         
         # no ref-file passed as argument of process_data
-        if f_emis_ref == paths.rootdir:
+        if f_pattern_ref == paths.rootdir:
             log.info('Download reference file from ftp-server')
 
             filename_ftp_link = f_vars_to_extract.replace('.csv','.txt').replace('vars_','ftp_')
@@ -62,12 +62,12 @@ def download_ref_to_stages_if_required(f_emis_ref,p_stages,f_vars_to_extract,tes
             log.debug('ftp-command: {}'.format(cmd))
             utils.shell_cmd(cmd,py_routine=__name__)
 
-            f_emis_ref = output_file
+            f_pattern_ref = output_file
 
         else:
             log.info('Using user-defined reference file for test {}'.format(test))
 
-        return f_emis_ref
+        return f_pattern_ref
 
 
 def variables_to_extract(vars_in_expr):
@@ -439,13 +439,17 @@ def main(exp,\
          p_stages,\
          raw_f_subfold,\
          f_vars_to_extract,\
-         f_emis_ref):
+         f_pattern_ref):
 
     log.banner('Start standard-postprocessing')
 
     results_data_processing = {}
     processed_netcdf_filename = {}
     skip_next_step = {}
+
+    # init in case standard_postproc is skipped
+    for test in tests:
+        skip_next_step[test] = False
 
     for test in tests:
         if (actions['standard_postproc'][test]): 
@@ -502,12 +506,12 @@ def main(exp,\
         if (actions['test_postproc'][test] and not skip_next_step[test]):
             test = 'pattern_correlation'
 
-            f_emis_ref = download_ref_to_stages_if_required(f_emis_ref,p_stages,f_vars_to_extract,test)
+            f_pattern_ref = download_ref_to_stages_if_required(f_pattern_ref,p_stages,f_vars_to_extract,test)
 
             results_data_processing[test] = pattern_proc_nc_to_df(exp, \
                 filename     = processed_netcdf_filename[test],\
                 p_stages     = p_stages, \
-                reference = f_emis_ref)
+                reference = f_pattern_ref)
         else:
             log.info('Processing for test {} already done'.format(test))
             f_csv = os.path.join(p_stages, 'test_postproc_{}_{}.csv'.format(test,exp))
@@ -568,9 +572,9 @@ if __name__ == '__main__':
                            nargs='+',\
                            help = 'Tests to apply on your data')
 
-    parser.add_argument('--f_emis_ref', dest='f_emis_ref', \
+    parser.add_argument('--f_pattern_ref', dest='f_pattern_ref', \
                            default='', \
-                           help = 'Absolute or relative path to reference netCDF for pattern correlation test')
+                           help = 'Absolute or relative path to reference netCDF for spatial correlation tests')
 
     args = parser.parse_args()
 
@@ -581,8 +585,8 @@ if __name__ == '__main__':
     # make all paths from user to absolute paths
     args.wrk_dir = utils.abs_path(args.wrk_dir)
     args.p_stages = utils.abs_path(args.p_stages)
-    args.f_emis_ref = utils.abs_path(args.f_emis_ref)
-    print(args.f_emis_ref)
+    args.f_pattern_ref = utils.abs_path(args.f_pattern_ref)
+    print(args.f_pattern_ref)
 
     # data processing takes a while, check that no step is done twice
     actions = utils.determine_actions_for_data_processing(args.exp,args.tests,args.p_stages,args.lclean)
@@ -604,6 +608,6 @@ if __name__ == '__main__':
          raw_f_subfold=args.raw_f_subfold,\
          p_stages=args.p_stages,\
          f_vars_to_extract=args.f_vars_to_extract,\
-         f_emis_ref=args.f_emis_ref)
+         f_pattern_ref=args.f_pattern_ref)
 
     log.banner('End execute {} as main()'.format(__file__))
