@@ -30,6 +30,10 @@ Module providing useful functions. It contains:
 
     - rel_path: convert path to relative path with respect to paths.rootdir
 
+    - print_warning_if_testresult_is_bad: places an extra warning for user for bad trestresults
+
+    - exit_if_testresult_is_bad: function for testsuite, exit if a bad testresult occurs
+
 C.Siegenthaler 2019
 J.Jucker 12.2020
 '''
@@ -149,7 +153,6 @@ def rel_path(path):
 
 def print_warning_if_testresult_is_bad(test,df_result, metric_thresholds, metric):
 
-    # dataframe containing only variables a warning has to be printed
     df_warning = df_result[df_result['level'] == 'very low']
 
     log.info('----------------------------------------------------------------------------------------------------------')
@@ -168,7 +171,6 @@ def print_warning_if_testresult_is_bad(test,df_result, metric_thresholds, metric
 
 def exit_if_testresult_is_bad(test,df_result, metric_thresholds, metric):
 
-    # dataframe containing only variables a warning has to be printed
     df_warning = df_result[df_result['level'] != 'high']
 
     log.info('----------------------------------------------------------------------------------------------------------')
@@ -176,7 +178,7 @@ def exit_if_testresult_is_bad(test,df_result, metric_thresholds, metric):
 
     if df_warning.size > 0:
 
-        log.error(Style.RED('Results are bad! \n'))
+        log.error(Style.RED('Results are bad!'))
     else:
         log.info(Style.GREEN('Results OK'))
 
