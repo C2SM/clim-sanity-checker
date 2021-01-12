@@ -1,16 +1,10 @@
 var,formula,file
-emi_DMS,emi_DMS,emi
-emi_SO2,emi_SO2,emi
-emi_SO4,emi_SO4,emi
 emi_BC,emi_BC,emi
 emi_OC,emi_OC,emi
-emi_SS,emi_SS,emi
-emi_DU,emi_DU,emi
 emi_SO2_awb,emi_SO2_awb,emi
 emi_SO4_awb,emi_SO4_awb,emi
 emi_BC_awb,emi_BC_awb,emi
 emi_OC_awb,emi_OC_awb,emi
-emi_BC_airc,emi_BC_airc,emi
 emi_OC_biogenic,emi_OC_biogenic,emi
 emi_SO2_dom,emi_SO2_dom,emi
 emi_SO4_dom,emi_SO4_dom,emi
@@ -47,10 +41,3 @@ emi_SO2_wst,emi_SO2_wst,emi
 emi_SO4_wst,emi_SO4_wst,emi
 emi_BC_wst,emi_BC_wst,emi
 emi_OC_wst,emi_OC_wst,emi
-emi_DU_dust,emi_DU_dust,emi
-emi_DMS_oceani,emi_DMS_oceani,emi
-emi_SS_seasalt,emi_SS_seasalt,emi
-emi_SO2_volcc,emi_SO2_volcc,emi
-emi_SO4_volcc,emi_SO4_volcc,emi
-emi_SO2_volce,emi_SO2_volce,emi
-emi_SO4_volce,emi_SO4_volce,emi

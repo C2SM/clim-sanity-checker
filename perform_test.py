@@ -262,7 +262,12 @@ def main(\
         full_p_f_vars = os.path.join(paths.p_f_vars_proc,test,f_vars_to_extract)
         vars_to_analyse = list(pd.read_csv(full_p_f_vars, sep=',')['var'].values)
         vars_to_analyse.append('exp')
-        df_ref[test] = df_ref[test][vars_to_analyse]
+        try:
+            df_ref[test] = df_ref[test][vars_to_analyse]
+        except KeyError as e:
+            log.warning(e)
+            log.error('Variables defined in {} are not contained in reference {}'.format(utils.rel_path(f_vars_to_extract),utils.rel_path(p_ref_csv_files)))
+
         df_exp[test] = results_data_processing[test][vars_to_analyse]
 
         log.info('References for test {} prepared'.format(test))

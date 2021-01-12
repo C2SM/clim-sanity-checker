@@ -22,6 +22,9 @@ It can be called as a function from sanity_check.py or directly
 as main().
 It contains:
 
+    - download_ref_to_stages_if_required: if no reference for pattern is defined, download
+            from ftp-link and store it in directory stages
+
     - variables_to_extract: Infer list of variables to extract from 
             the list of expressions which contain the variables
 
@@ -84,6 +87,8 @@ def variables_to_extract(vars_in_expr):
     for v in vars_uniq:
         if len(v.strip('1234567890.'))>1: 
             variables.append(v)
+
+    print(variables)
     
     return(variables)
 
