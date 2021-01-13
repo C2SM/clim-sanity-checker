@@ -172,6 +172,7 @@ def print_warning_if_testresult_is_bad(test,df_result, metric_thresholds, metric
 def exit_if_testresult_is_bad(test,df_result, metric_thresholds, metric):
 
     df_warning = df_result[df_result['level'] != 'high']
+    df_warning = df_warning[df_warning['level'] != 'middle']
 
     log.info('----------------------------------------------------------------------------------------------------------')
     log.info(test)

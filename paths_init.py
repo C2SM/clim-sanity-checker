@@ -18,7 +18,8 @@ J.Jucker 01.2021 (C2SM)
 def write_path(p_raw_files, \
                p_ref_csv_files,\
                p_stages,\
-               p_wrkdir):
+               p_wrkdir,\
+               ltestsuite):
 
     # make all paths absolute
     p_raw_files = abs_path(p_raw_files)
@@ -26,12 +27,17 @@ def write_path(p_raw_files, \
     p_stages = abs_path(p_stages)
     p_wrkdir = abs_path(p_wrkdir)
 
+    if ltestsuite:
+        p_f_vars_proc = '{}/testsuite/variables_to_process/'.format(os.getcwd())
+    else:
+        p_f_vars_proc = '{}/variables_to_process/'.format(os.getcwd())
+
     # open the file
     fp=open('lib/paths.py','w')
 
     # write out paths
     fp.write('rootdir = "{}"\n'.format(os.getcwd()))
-    fp.write('p_f_vars_proc = "{}/variables_to_process/"\n'.format(os.getcwd()))
+    fp.write('p_f_vars_proc = "{}"\n'.format(p_f_vars_proc))
     fp.write('p_raw_files = "{}"\n'.format(p_raw_files))
     fp.write('p_ref_csv_files = "{}"\n'.format(p_ref_csv_files))
     fp.write('p_stages = "{}"\n'.format(p_stages))
@@ -70,9 +76,14 @@ if __name__ == '__main__':
                         default='wrkdir', \
                         help='Relative or absolute path to the working directory (needs disk space)')
 
+    parser.add_argument('--testsuite','-ts', dest='ltestsuite', \
+                           action='store_true', \
+                           help = 'Run of testsuite')
+
     args = parser.parse_args()
 
     write_path(p_raw_files     = args.p_raw_files, \
                p_ref_csv_files = args.p_ref_csv_files, \
                p_stages        = args.p_stages, \
-               p_wrkdir        = args.p_wrkdir)
+               p_wrkdir        = args.p_wrkdir,\
+               ltestsuite      = args.ltestsuite)

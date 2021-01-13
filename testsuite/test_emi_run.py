@@ -8,7 +8,7 @@ def test_emi_embed():
     files_generated = utils.generate_data(input_dir,exp_name,'emi_A','SO2')
     files_generated.extend(utils.generate_data(input_dir,exp_name,'emi_B','CO2'))
 
-    cmd = 'python paths_init.py -pr {}'.format(input_dir)
+    cmd = 'python paths_init.py -pr {} -ts'.format(input_dir)
     status, _ =utils.shell_cmd(cmd)
 
     assert status == 0, 'paths_init.py failed'
@@ -30,7 +30,7 @@ def test_emi_chained():
     files_generated = utils.generate_data(input_dir,exp_name,'emi_A','SO2')
     files_generated.extend(utils.generate_data(input_dir,exp_name,'emi_B','CO2'))
 
-    cmd = 'python paths_init.py -pr {}'.format(input_dir)
+    cmd = 'python paths_init.py -pr {} -ts'.format(input_dir)
     status, _ =utils.shell_cmd(cmd)
 
     assert status == 0, 'paths_init.py failed'

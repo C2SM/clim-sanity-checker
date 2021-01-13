@@ -88,8 +88,6 @@ def variables_to_extract(vars_in_expr):
         if len(v.strip('1234567890.'))>1: 
             variables.append(v)
 
-    print(variables)
-    
     return(variables)
 
 def standard_postproc(exp,\
@@ -113,7 +111,7 @@ Arguments:
    f_vars_to_extract : csv file containg the variables to proceed
 
 returns: 
-   time series of yearly global means for variables defined in f_vars_to_extract 
+   netCDF filename containing the fields as defined in f_vars_to_extract
     '''
 
     log.info('Postprocess data using CDO for test {}'.format(test))
@@ -283,11 +281,11 @@ def timeser_proc_nc_to_df(exp, \
     '''
 Arguments: 
     exp               = experiment name
-    filename          = filename of the global means time series file
+    filename          = filename of the netCDF returned by function standard_postproc
     p_stages:         = directory where processing steps are stored
 
 returns:
-    dataframe with processed data
+    dataframe with processed data for welchstest
     '''
 
     test = 'welchstest'
@@ -340,12 +338,12 @@ def pattern_proc_nc_to_df(exp, \
     '''
 Arguments: 
     exp               = experiment name
-    filename          = filename to the global means file
+    filename          = filename of the netCDF returned by function standard_postproc
     reference:        = filename to the reference
     p_stages:         = directory where processing steps are stored
 
 returns:
-    dataframe with processed data
+    dataframe with processed data for pattern correlation test
     '''
     
     test = 'pattern_correlation'
@@ -393,7 +391,7 @@ def emis_proc_nc_to_df(exp, \
     '''
 Arguments: 
     exp               = experiment name
-    filename          = filename to the global means file
+    filename          = filename of the netCDF returned by function standard_postproc
     p_stages:         = directory where processing steps are stored
 
 returns:
