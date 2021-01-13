@@ -13,7 +13,7 @@ def test_emi_embed():
 
     assert status == 0, 'paths_init.py failed'
     
-    cmd = 'python sanity_test.py -v -e {} -t emissions --p_ref_csv_files testsuite/ref --f_vars_to_extract vars_emi_test.csv -c -ts'.format(exp_name)
+    cmd = 'python sanity_test.py -v -e {} -t emissions --p_ref_csv_files testsuite/ref --f_vars_to_extract vars_emi_test.csv --spinup 0 -c -ts'.format(exp_name)
 
     status, _ =utils.shell_cmd(cmd)
 
@@ -35,7 +35,7 @@ def test_emi_chained():
 
     assert status == 0, 'paths_init.py failed'
     
-    cmd = 'python process_data.py -v -e {} -t emissions --f_vars_to_extract vars_emi_test.csv -c'.format(exp_name)
+    cmd = 'python process_data.py -v -e {} -t emissions --f_vars_to_extract vars_emi_test.csv --spinup 0 -c'.format(exp_name)
 
     status, _ =utils.shell_cmd(cmd)
 
