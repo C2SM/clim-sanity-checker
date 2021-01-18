@@ -75,7 +75,7 @@ class RmseTest:
         self.ref_name = 'rmse'
         self.metric = 'normalized RMSE'
         self.metric_threshold = [\
-                               threshold_prop('high', 0.005, 'Green'),\
+                               threshold_prop('high', 0.01, 'Green'),\
                                threshold_prop('middle', 0.05, 'Orange'), \
                                threshold_prop('low', 0.1, 'Red'), \
                                threshold_prop('very low', 0.2, 'DarkRed')]
