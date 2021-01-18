@@ -128,6 +128,34 @@ def pattern_correlation(df_exp,test_cfg):
 
     return (df_result)
 
+def rmse(df_exp,test_cfg):
+    '''
+    Perform pattern correlation test for each variable fo dataframe df_b
+    :param df_a: reference datframe, containing big sample
+    :param df_b: datframe containing data to test
+    :param filename_student_test: filename for writing result of t-test result into a csv file
+    :return: result of the pattern correlation in a dataframe
+    '''
+
+    # initialisation for construction dataframe (much faster to use list than dataframe.append)
+    row_list_df = []
+
+    for var in df_exp.keys():
+        if 'exp' in var:
+            continue
+        log.debug("Rmse test for {}".format(var))
+
+        # append results for construction datframe df_result
+        dict1 = {'variable' : var, test_cfg.metric : df_exp[var].iloc[0] }
+        row_list_df.append(dict1)
+
+    # construction dataframe
+    df_result = pd.DataFrame(row_list_df, columns=['variable',test_cfg.metric] )
+
+    df_result.sort_values(by=[test_cfg.metric], inplace=True)
+
+    return (df_result)
+
 def welch_test(df_a, df_b , filename_student_test = ''):
     '''
     Perform Welch t-test for each variable fo dataframe df_b
@@ -292,6 +320,12 @@ def main(\
             log.banner("Perform emission test for each variable")
             log.banner('')
             df_result[test] = emissions(df_exp[test], df_ref[test],test_cfg)
+
+        if test == 'rmse':
+            log.banner('')
+            log.banner("Perform rmse test for each variable")
+            log.banner('')
+            df_result[test] = rmse(df_exp[test], test_cfg)
 
         df_result[test] = sort_level_metric(df_result[test], test_cfg.metric_threshold,test_cfg.metric)
         df_result[test] = add_color_df_result(df_result[test],test_cfg.metric_threshold)

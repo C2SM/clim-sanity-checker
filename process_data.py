@@ -145,7 +145,7 @@ returns:
         p_altern_timeser_fold = os.path.join(p_raw_files,exp,'Data')
         if test == 'welchstest':
             time_series_altern_fold = glob.glob(os.path.join(p_altern_timeser_fold,'timeser_daint_*.nc'))
-        if test == 'pattern_correlation':
+        if test == 'pattern_correlation' or test == 'rmse':
             time_series_altern_fold = glob.glob(os.path.join(p_altern_timeser_fold,'multi_annual_means_*.nc'))
         if test == 'emissions':
             time_series_altern_fold = glob.glob(os.path.join(p_altern_timeser_fold,'emi_*.nc'))
@@ -433,6 +433,92 @@ returns:
     return(df_data)
 
 
+def normalize_data(dataset):
+
+    log.info('Normalize fields in {} with mean and standard deviation'.format(dataset))
+
+    data = dataset.replace('.nc','')
+    std_data = '{}_std.nc'.format(data)
+    mean_data = '{}_mean.nc'.format(data)
+    sub_data = '{}_sub.nc'.format(data)
+    normalized_data = '{}_normalized.nc'.format(data)
+
+    log.debug('Clean intermediate files for normalization')
+    shell_cmd = 'rm {} {} {} {}'.format(std_data,mean_data,sub_data,normalized_data)
+    utils.shell_cmd(shell_cmd,py_routine=__name__,lowarn=True)
+
+    cdo_cmd = 'cdo -L fldstd {} {}'.format(dataset,std_data)
+    utils.shell_cmd (cdo_cmd,py_routine=__name__)
+
+    cdo_cmd = 'cdo -L fldmean {} {}'.format(dataset,mean_data)
+    utils.shell_cmd (cdo_cmd,py_routine=__name__)
+
+    cdo_cmd = 'cdo -L sub {} -enlarge,{} {} {}'.format(dataset,dataset,mean_data,sub_data)
+    utils.shell_cmd (cdo_cmd,py_routine=__name__)
+
+    cdo_cmd = 'cdo -L div {} -enlarge,{} {} {}'.format(sub_data, sub_data,std_data, normalized_data)
+    utils.shell_cmd (cdo_cmd,py_routine=__name__)
+
+    return normalized_data
+    
+def rmse_proc_nc_to_df(exp, \
+        filename, \
+        reference, \
+        p_stages):
+
+    '''
+Arguments: 
+    exp               = experiment name
+    filename          = filename of the netCDF returned by function standard_postproc
+    reference:        = filename to the reference
+    p_stages:         = directory where processing steps are stored
+
+returns:
+    dataframe with processed data for pattern correlation test
+    '''
+    
+    test = 'rmse'
+    rmse_interim = 'test_postproc_intermediate_{}_{}.nc'.format(test,exp)
+
+    rmse_filename = 'test_proc_{}_{}.nc'.format(test,exp)
+
+    cdo_cmd = 'cdo -L timmean -yearmean -vertsum {} {}'.format(filename,rmse_interim) 
+    utils.shell_cmd (cdo_cmd,py_routine=__name__)
+
+    reference_normalized = normalize_data(reference)
+    rmse_interim_normalized = normalize_data(rmse_interim)
+    # list of variables in the timeserie netcdf file to drop (not to put into the dataframe)
+    vars_to_drop = []
+
+    log.info('Compute root mean square error between {} and {} (reference)'.format(rmse_interim_normalized,reference_normalized))
+
+    cdo_cmd = 'cdo -L sqrt -fldmean -sqr -sub {} {} {}'.format(rmse_interim_normalized,reference_normalized, rmse_filename)
+    utils.shell_cmd (cdo_cmd,py_routine=__name__)
+    
+    # open dataset
+    data = xr.open_dataset(rmse_filename)
+
+    # Delete variables
+    # useless variable time_bnds
+    if ('time_bnds' in data.keys()):
+        data = data.drop('time_bnds')
+    # 3D vars
+    if len(vars_to_drop)>0:
+        data.drop(labels = vars_to_drop)
+
+    # transforms into dataframe
+    df_data = data.to_dataframe()
+
+    os.makedirs(p_stages, exist_ok=True)
+    csv_filename = os.path.join(p_stages,'test_postproc_{}_{}.csv'.format(test,exp))
+    df_data.to_csv(csv_filename, index = None, header=True, sep = ';')
+    log.info('CSV file can be found here: {}'.format(csv_filename))     
+
+    log.info('Finished {} for file {}'.format(__name__,rmse_filename))
+
+    return(df_data)
+
+
 def main(exp,\
          actions, \
          tests,\
@@ -520,6 +606,27 @@ def main(exp,\
             results_data_processing[test] = pd.read_csv(f_csv, sep=';')
     else:
         log.warning('Skip pattern correlation test')
+
+    if 'rmse' in tests:
+
+        test = 'rmse'
+
+        if (actions['test_postproc'][test] and not skip_next_step[test]):
+            test = 'rmse'
+
+            f_pattern_ref = download_ref_to_stages_if_required(f_pattern_ref,p_stages,f_vars_to_extract,test)
+
+            results_data_processing[test] = rmse_proc_nc_to_df(exp, \
+                filename     = processed_netcdf_filename[test],\
+                p_stages     = p_stages, \
+                reference = f_pattern_ref)
+        else:
+            log.info('Processing for test {} already done'.format(test))
+            f_csv = os.path.join(p_stages, 'test_postproc_{}_{}.csv'.format(test,exp))
+            results_data_processing[test] = pd.read_csv(f_csv, sep=';')
+    else:
+        log.warning('Skip Rmse test')
+
 
     log.banner('End conversion from NetCDF to dataframe')
 

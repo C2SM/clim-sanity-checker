@@ -28,6 +28,8 @@ def get_config_of_current_test(testname):
         config = EmissionsTest()
     elif testname == 'pattern_correlation':
         config = PatternTest()
+    elif testname == 'rmse':
+        config = RmseTest()
     else:
         log.error('Test {} does not exist'.format(testname))
 
@@ -66,6 +68,17 @@ class PatternTest:
                                threshold_prop('low', 0.98, 'Red'), \
                                threshold_prop('middle', 0.99, 'Orange'), \
                                threshold_prop('high', 1, 'Green')]
+
+class RmseTest:
+    def __init__(self):
+        self.name = 'rmse'
+        self.ref_name = 'rmse'
+        self.metric = 'normalized RMSE'
+        self.metric_threshold = [\
+                               threshold_prop('high', 0.005, 'Green'),\
+                               threshold_prop('middle', 0.05, 'Orange'), \
+                               threshold_prop('low', 0.1, 'Red'), \
+                               threshold_prop('very low', 0.2, 'DarkRed')]
 
 
 class threshold_prop:

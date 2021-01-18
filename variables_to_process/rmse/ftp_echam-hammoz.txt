@@ -1,0 +1,1 @@
+../pattern_correlation/ftp_echam-hammoz.txt
