@@ -122,7 +122,10 @@ returns:
 
     # get variables to process:
     p_test_vars_proc = os.path.join(paths.p_f_vars_proc, test)
+    print(p_test_vars_proc)
+    print(f_vars_to_extract)
     full_p_f_vars = utils.clean_path(p_test_vars_proc,f_vars_to_extract)
+    print(full_p_f_vars)
     df_vars = pd.read_csv(full_p_f_vars, sep=',')
 
     # define expressions
@@ -143,11 +146,11 @@ returns:
     if not os.path.isdir(p_raw_folder):
         log.warning('The folder containing the raw data has been deleted : {}'.format(p_raw_folder))
         p_altern_timeser_fold = os.path.join(p_raw_files,exp,'Data')
-        if test == 'welchstest':
+        if test == 'welch':
             time_series_altern_fold = glob.glob(os.path.join(p_altern_timeser_fold,'timeser_daint_*.nc'))
-        if test == 'pattern_correlation' or test == 'rmse':
+        if test == 'fldcor' or test == 'rmse':
             time_series_altern_fold = glob.glob(os.path.join(p_altern_timeser_fold,'multi_annual_means_*.nc'))
-        if test == 'emissions':
+        if test == 'emi':
             time_series_altern_fold = glob.glob(os.path.join(p_altern_timeser_fold,'emi_*.nc'))
 
         if len(time_series_altern_fold) < 1:
@@ -169,7 +172,7 @@ returns:
                utils.shell_cmd (cdo_cmd,py_routine=__name__)
 
                # convert netCDF to dataframe, therefore skip next processing step
-               if test == 'welchstest':
+               if test == 'welch':
                    timeser_proc_nc_to_df(\
                                          exp,\
                                          ofile_tot,\
@@ -288,7 +291,7 @@ returns:
     dataframe with processed data for welchstest
     '''
 
-    test = 'welchstest'
+    test = 'welch'
 
     if already_a_timeseries == False:
         timeser_filename = 'test_postproc_{}_{}.nc'.format(test,exp)
@@ -346,7 +349,7 @@ returns:
     dataframe with processed data for pattern correlation test
     '''
     
-    test = 'pattern_correlation'
+    test = 'fldcor'
     pattern_filename = 'test_postproc_intermediate_{}_{}.nc'.format(test,exp)
 
     field_correlation_filename = 'test_proc_{}_{}.nc'.format(test,exp)
@@ -398,7 +401,7 @@ returns:
     dataframe with processed data
     '''
     
-    test = 'emissions'
+    test = 'emi'
     emis_filename = 'test_postproc_{}_{}.nc'.format(test,exp)
 
     cdo_cmd = 'cdo -L timmean -fldmean -vertsum {} {}'.format(filename,emis_filename) 
@@ -556,9 +559,9 @@ def main(exp,\
 
     log.banner('Start conversion from NetCDF to dataframe')
 
-    if 'welchstest' in tests:
+    if 'welch' in tests:
 
-        test = 'welchstest'
+        test = 'welch'
 
         if (actions['test_postproc'][test] and not skip_next_step[test]):
             # transforming netcdf timeseries into csv file
@@ -572,9 +575,9 @@ def main(exp,\
     else:
         log.warning("Skip Welch's-Test")
 
-    if 'emissions' in tests:
+    if 'emi' in tests:
 
-        test = 'emissions'
+        test = 'emi'
 
         if (actions['test_postproc'][test] and not skip_next_step[test]):
             results_data_processing[test] = emis_proc_nc_to_df(exp, \
@@ -587,12 +590,11 @@ def main(exp,\
     else:
         log.warning('Skip emission test')
 
-    if 'pattern_correlation' in tests:
+    if 'fldcor' in tests:
 
-        test = 'pattern_correlation'
+        test = 'fldcor'
 
         if (actions['test_postproc'][test] and not skip_next_step[test]):
-            test = 'pattern_correlation'
 
             f_pattern_ref = download_ref_to_stages_if_required(f_pattern_ref,p_stages,f_vars_to_extract,test)
 
@@ -677,7 +679,7 @@ if __name__ == '__main__':
                            help='Do not consider first month of the data due to model spinup')
 
     parser.add_argument('--tests','-t', dest='tests', \
-                           default=['welchstest','pattern_correlation','emissions'], \
+                           default=['welch','fldcor','emi'], \
                            nargs='+',\
                            help = 'Tests to apply on your data')
 

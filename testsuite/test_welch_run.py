@@ -2,7 +2,7 @@ import testsuite.utils as utils
 
 def test_welch_embed():
     input_dir = 'testsuite/data'
-    exp_name = 'welch'
+    exp_name = 'run_embed'
 
     files_generated = utils.generate_data(input_dir,exp_name,'2d_A','TSURF')
     files_generated.extend(utils.generate_data(input_dir,exp_name,'2d_B','T2M'))
@@ -12,7 +12,7 @@ def test_welch_embed():
 
     assert status == 0, 'paths_init.py failed'
     
-    cmd = 'python sanity_test.py -e {} -t welchstest --spinup 0 --p_ref_csv_files testsuite/ref --f_vars_to_extract vars_welchs_test.csv -c -ts'.format(exp_name)
+    cmd = 'python sanity_test.py -e {} -t welch --spinup 0 --p_ref_csv_files testsuite/ref --f_vars_to_extract vars_welchs_test.csv -c -ts'.format(exp_name)
 
     status, _ = utils.shell_cmd(cmd)
 
@@ -22,7 +22,7 @@ def test_welch_embed():
 
 def test_welch_chained():
     input_dir = 'testsuite/data'
-    exp_name = 'welch'
+    exp_name = 'run_chained'
 
     files_generated = utils.generate_data(input_dir,exp_name,'2d_A','TSURF')
     files_generated.extend(utils.generate_data(input_dir,exp_name,'2d_B','T2M'))
@@ -32,13 +32,13 @@ def test_welch_chained():
 
     assert status == 0, 'paths_init.py failed'
     
-    cmd = 'python process_data.py -e {} -t welchstest --spinup 0 --f_vars_to_extract vars_welchs_test.csv -c'.format(exp_name)
+    cmd = 'python process_data.py -e {} -t welch --spinup 0 --f_vars_to_extract vars_welchs_test.csv -c'.format(exp_name)
 
     status, _ = utils.shell_cmd(cmd)
 
     assert status == 0, 'process_data.py failed'
 
-    cmd = 'python perform_test.py  -e {} -t welchstest  --p_ref_csv_files testsuite/ref --f_vars_to_extract vars_welchs_test.csv -ts'.format(exp_name)
+    cmd = 'python perform_test.py  -e {} -t welch  --p_ref_csv_files testsuite/ref --f_vars_to_extract vars_welchs_test.csv -ts'.format(exp_name)
 
     status, _ = utils.shell_cmd(cmd)
 

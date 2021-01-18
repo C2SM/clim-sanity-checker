@@ -22,11 +22,11 @@ J.Jucker 12.2020 (C2SM)
 '''
 
 def get_config_of_current_test(testname):
-    if testname == 'welchstest':
+    if testname == 'welch':
         config = WelchsTest()
-    elif testname == 'emissions':
+    elif testname == 'emi':
         config = EmissionsTest()
-    elif testname == 'pattern_correlation':
+    elif testname == 'fldcor':
         config = PatternTest()
     elif testname == 'rmse':
         config = RmseTest()
@@ -38,7 +38,7 @@ def get_config_of_current_test(testname):
 
 class WelchsTest:
     def __init__(self):
-        self.name = 'welchstest'
+        self.name = 'welch'
         self.ref_name = 'glob_means'
         self.metric = 'p-value [%]'
         self.metric_threshold = [\
@@ -49,7 +49,7 @@ class WelchsTest:
 
 class EmissionsTest:
     def __init__(self):
-        self.name = 'emissions'
+        self.name = 'emi'
         self.ref_name = 'emis'
         self.metric = 'relative deviation [%]'
         self.metric_threshold = [\

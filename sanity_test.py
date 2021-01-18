@@ -95,8 +95,8 @@ def main(new_exp, \
                            ltestsuite = ltestsuite,\
                            f_vars_to_extract=f_vars_to_extract)
                                     
-    if 'welchstest' in tests:
-        test = 'welchstest'
+    if 'welch' in tests:
+        test = 'welch'
         plt.plt_welchstest(references[test].append(results_data_processing[test],sort=False), new_exp, results_test[test], p_stages = p_stages)
 
     if not ltestsuite:
@@ -180,7 +180,7 @@ if __name__ == '__main__':
                            help='Do not consider first month of the data due to model spinup')
 
     parser.add_argument('--tests','-t', dest='tests', \
-                           default=['welchstest','pattern_correlation','emissions'], \
+                           default=['welch','fldcor','emi'], \
                            nargs='+',\
                            help = 'Tests to apply on your data')
 

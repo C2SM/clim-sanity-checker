@@ -302,20 +302,20 @@ def main(\
 
         testresult_csv[test] = os.path.join(p_stages,'result_{}_{}.csv'.format(test,new_exp))
 
-        if test == 'welchstest':
+        if test == 'welch':
             log.banner('')
             log.banner("Perform Welch's t-test for each variable")
             log.banner('')
             df_result[test] = welch_test(df_a=df_ref[test], df_b=df_exp[test],filename_student_test=testresult_csv[test])
             df_result[test]['p-value [%]'] = df_result[test]['p-value']*100.
 
-        if test == 'pattern_correlation':
+        if test == 'fldcor':
             log.banner('')
-            log.banner("Perform pattern correlation test for each variable")
+            log.banner("Perform fldcor test for each variable")
             log.banner('')
             df_result[test] = pattern_correlation(df_exp[test],test_cfg)
 
-        if test == 'emissions':
+        if test == 'emi':
             log.banner('')
             log.banner("Perform emission test for each variable")
             log.banner('')
@@ -370,7 +370,7 @@ if __name__ == '__main__':
                            help = 'Debug output')
 
     parser.add_argument('--tests','-t', dest='tests', \
-                           default=['welchstest','pattern_correlation','emissions'], \
+                           default=['welch','fldcor','emi'], \
                            nargs='+',\
                            help = 'Tests to apply on your data')
 
