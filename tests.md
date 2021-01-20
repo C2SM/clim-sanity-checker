@@ -39,6 +39,8 @@ and finally averages these values over the entire period (usually 10 years).
 This test is looking at the normalized RMSE of a reference and the experiment. To do so 
 the CDO operators *sqrt -fldmean -sqr -sub* are used.
 
+If the normalized RMSE is above 0.1 the test is not passed.
+
 In order to apply this test, a reference netCDF is needed. The handling of the references is identical as for the Field Correlation Test.
 
 ### Additional processing for Normalized Root Mean Square Error Test
