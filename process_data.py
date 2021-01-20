@@ -128,10 +128,7 @@ returns:
 
     # get variables to process:
     p_test_vars_proc = os.path.join(paths.p_f_vars_proc, test)
-    print(p_test_vars_proc)
-    print(f_vars_to_extract)
     full_p_f_vars = utils.clean_path(p_test_vars_proc,f_vars_to_extract)
-    print(full_p_f_vars)
     df_vars = pd.read_csv(full_p_f_vars, sep=',')
 
     # define expressions
