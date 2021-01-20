@@ -15,7 +15,7 @@ After the standard preprocessing another processing step using CDO takes place:
  
  This command sums the fields vertically (in case 3-D fields are present), reduces 2-D fields to one value and computes the mean values per year.
 
-## Pattern Correlation Test
+## Field Correlation Test
 This test compares the spatial correlation of fields. To do so
 the CDO operator *-fldcor* is applied. To have more sensitiv results
 the values are squared with the operator *-sqr*.
@@ -28,12 +28,25 @@ As an example [vars_echam-hammoz.csv](variables_to_process/pattern_correlation/v
 
 In case one wants to use a custom reference file, the file can be passed with the *-f_pattern_ref* argument.
 
-#### Additional processing for Pattern Correlation Test
+#### Additional processing for Field Correlation Test
 After the standars preprocessing another processing step using CDO takes place:  
 **cdo timmean -yearmean -vertsum**  
 
 This command sums the fields vertically (in case 3-D fields are present), computes the mean values of each gridcell per year,  
 and finally averages these values over the entire period (usually 10 years).
+
+## Normalized Root Mean Square Error Test
+This test is looking at the normalized RMSE of a reference and the experiment. To do so 
+the CDO operators *sqrt -fldmean -sqr -sub* are used.
+
+In order to apply this test, a reference netCDF is needed. The handling of the references is identical as for the Field Correlation Test.
+
+### Additional processing for Normalized Root Mean Square Error Test
+After the standars preprocessing another processing step using CDO takes place:  
+**cdo timmean -yearmean -vertsum**  
+
+Finally, to be independent from the absolute values of a field and its unit, a normalization step for both the reference and the experiment
+data takes place. For the normalization the CDO operators *fldstd* and  *fldmean* are used.
 
 ## Emission Test
 This test checks if the emissions fed into the model as input is correctly processed during the model run. It computes
