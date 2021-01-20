@@ -30,9 +30,11 @@ Module providing useful functions. It contains:
 
     - rel_path: convert path to relative path with respect to paths.rootdir
 
-    - print_warning_if_testresult_is_bad: places an extra warning for user for bad trestresults
+    - print_warning_if_testresult_is_bad: places an extra 
+            warning for user for bad trestresults
 
-    - exit_if_testresult_is_bad: function for testsuite, exit if a bad testresult occurs
+    - exit_if_testresult_is_bad: function for testsuite,
+            exit if a bad testresult occurs
 
 C.Siegenthaler 2019
 J.Jucker 12.2020
@@ -57,12 +59,14 @@ def clean_path(dir, file):
 
     return clean_path
 
+
 def abs_path(path):
     if os.path.isabs(path):
         return path
     else:
         path = os.path.abspath(path)
         return path
+
 
 def determine_actions_for_data_processing(exp, tests, p_stages,lforce):
 
@@ -76,7 +80,9 @@ def determine_actions_for_data_processing(exp, tests, p_stages,lforce):
     # see if standard-postprocessing is needed
     for test in tests:
 
-        standard_proc_nc = os.path.join(p_stages,'standard_postproc_{}_{}.nc'.format(test,exp))
+        standard_proc_nc = os.path.join(
+            p_stages,'standard_postproc_{}_{}.nc'
+            .format(test,exp))
         if (not os.path.isfile(standard_proc_nc) or lforce):
             action_needed = True
         else:
@@ -84,11 +90,11 @@ def determine_actions_for_data_processing(exp, tests, p_stages,lforce):
 
         actions['standard_postproc'][test] = action_needed
 
-        test_specific_csv = os.path.join(p_stages,'test_postproc_{}_{}.csv'.format(test,exp))
+        test_specific_csv = os.path.join(
+            p_stages,'test_postproc_{}_{}.csv'.format(test,exp))
 
-        if (not os.path.isfile(test_specific_csv) or \
-            lforce or \
-            actions['standard_postproc'][test]):
+        if (not os.path.isfile(test_specific_csv) or
+                lforce or actions['standard_postproc'][test]):
 
             action_needed = True
         else:
@@ -111,8 +117,8 @@ def shell_cmd(cmd,py_routine,lowarn=False):
     """
 
     # send cmd to be executed
-    p = subprocess.Popen(cmd, shell=True, \
-                         stdout = subprocess.PIPE, stderr = subprocess.PIPE, \
+    p = subprocess.Popen(cmd, shell=True,
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                          universal_newlines=True)
 
     # gets the output of the cmd
@@ -122,14 +128,17 @@ def shell_cmd(cmd,py_routine,lowarn=False):
     out_status = 0
     # check if cmd was executed properly
     if p.returncode != 0:
-        log.debug("{} (shell_cmd): ERROR in the command: \n {}".format(py_routine,cmd))
-        if lowarn :
-            log.warning("Shell command failed (but explicitly keep program alive) : \n {}".format(err))
+        log.debug("{} (shell_cmd): ERROR in the command: \n {}"
+                  .format(py_routine,cmd))
+        if lowarn:
+            log.warning("Shell command failed, but explicitly "
+                        "keep program alive: \n {}".format(err))
             out_status = 1
         else:
             log.error("Error returned: {}".format(err))
 
     return(out_status,str(out))
+
 
 def derive_arguments_for_add_exp_to_ref(exp,tests, p_stages, p_ref_csv_files):
 
@@ -147,34 +156,45 @@ def derive_arguments_for_add_exp_to_ref(exp,tests, p_stages, p_ref_csv_files):
 
     return args
 
+
 def rel_path(path):
     path = os.path.relpath(path,paths.rootdir)
     return path
 
-def print_warning_if_testresult_is_bad(test,df_result, metric_thresholds, metric):
+
+def print_warning_if_testresult_is_bad(test,
+                                       df_result,
+                                       metric_thresholds,
+                                       metric):
 
     df_warning = df_result[df_result['level'] == 'very low']
 
-    log.info('----------------------------------------------------------------------------------------------------------')
+    log.info('-----------------------------------------'
+             '-----------------------------------------')
     log.info(test)
 
     if df_warning.size > 0:
 
-        log.info(Style.RED('Results are bad! \n It is not recommended to add this test to the reference pool'))
+        log.info(Style.RED('Results are bad! \n' 
+                           'It is not recommended to add this '
+                           'test to the reference pool'))
         # for each level of warning, print the dataframe
     else:
         log.info(Style.GREEN('Results OK'))
 
-    log.info('----------------------------------------------------------------------------------------------------------')
+    log.info('-----------------------------------------'
+             '-----------------------------------------')
 
     return
+
 
 def exit_if_testresult_is_bad(test,df_result, metric_thresholds, metric):
 
     df_warning = df_result[df_result['level'] != 'high']
     df_warning = df_warning[df_warning['level'] != 'middle']
 
-    log.info('----------------------------------------------------------------------------------------------------------')
+    log.info('-----------------------------------------'
+             '-----------------------------------------')
     log.info(test)
 
     if df_warning.size > 0:
@@ -183,6 +203,7 @@ def exit_if_testresult_is_bad(test,df_result, metric_thresholds, metric):
     else:
         log.info(Style.GREEN('Results OK'))
 
-    log.info('----------------------------------------------------------------------------------------------------------')
+    log.info('-----------------------------------------'
+             '-----------------------------------------')
 
     return

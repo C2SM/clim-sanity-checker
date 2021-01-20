@@ -12,7 +12,7 @@ related to logging. It contains:
     - log: logger instance used in all other modules
 
     - CustomFormatter: format log-messages for each log-level
-    
+
     - ShutdownHandler: define additional action for level "error"
 
     - banner: additional log-level for important steps in scripts
@@ -40,7 +40,7 @@ class CustomFormatter(logging.Formatter):
         25: colors['green'] + format_banner + colors['reset'],
         logging.WARNING: colors['orange'] + format_warning + colors['reset'],
         logging.ERROR: colors['bold_red'] + format_error + colors['reset'],
-        }
+    }
 
     def format(self, record):
         log_fmt = self.FORMATS.get(record.levelno)
@@ -53,8 +53,10 @@ class ShutdownHandler(logging.Handler):
         logging.shutdown()
         sys.exit(1)
 
+
 def banner(self, message, *args, **kws):
-           self._log(25, message, args, **kws) 
+    self._log(25, message, args, **kws) 
+
 
 def init_logger(lverbose):
 
