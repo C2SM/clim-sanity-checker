@@ -35,10 +35,16 @@ It contains:
             and transform it into dataframe, used for Welch's-Test
 
     - pattern_proc_nc_to_df: Read netCDF with global mean values and transform
-            it into dataframe, used for pattern correlation test
+            it into dataframe, used for field correlation test
 
     - emis_proc_nc_to_df: Read netCDF with global mean values and transform
-            it into datafram, used for emissions test
+            it into dataframe, used for emissions test
+
+    - rmse_proc_nc_to_df: Read netCDF with global mean values and normalize it with
+            mean and standard deviation, same for the reference. Calculate RMSE using
+            these normalize fields and store result into dataframe, used for rmse test
+
+    - normalize_data: normalize netCDF with mean and standard deviation
 
     - main: main function that combines the different processing steps
             
@@ -490,6 +496,7 @@ returns:
 
     reference_normalized = normalize_data(reference)
     rmse_interim_normalized = normalize_data(rmse_interim)
+
     # list of variables in the timeserie netcdf file to drop (not to put into the dataframe)
     vars_to_drop = []
 

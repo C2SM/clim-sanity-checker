@@ -34,6 +34,8 @@ Module providing functions to perform the test. It contains:
 
     - pattern_correlation: perform pattern correlation test
 
+    - rmse: perform RMSE test
+
     - welch_test: perform Welch's t-test using "stats.ttest_ind"
 
     - emissions: perform emission test
@@ -105,7 +107,6 @@ def pattern_correlation(df_exp,test_cfg):
     Perform pattern correlation test for each variable fo dataframe df_b
     :param df_a: reference datframe, containing big sample
     :param df_b: datframe containing data to test
-    :param filename_student_test: filename for writing result of t-test result into a csv file
     :return: result of the pattern correlation in a dataframe
     '''
 
@@ -130,10 +131,9 @@ def pattern_correlation(df_exp,test_cfg):
 
 def rmse(df_exp,test_cfg):
     '''
-    Perform pattern correlation test for each variable fo dataframe df_b
+    Perform rmse  test for each variable fo dataframe df_b
     :param df_a: reference datframe, containing big sample
     :param df_b: datframe containing data to test
-    :param filename_student_test: filename for writing result of t-test result into a csv file
     :return: result of the pattern correlation in a dataframe
     '''
 

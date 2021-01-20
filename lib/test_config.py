@@ -12,7 +12,9 @@ Module providing classes and functions related to the tests. It contains:
 
     - class EmissionsTest: define properties of emission test
 
-    - class PatternTest: define properties of pattern-correlation test
+    - class FldcorTest: define properties of field correlation test
+
+    - class RmseTest: define properties of normalize root mean square error test
 
     - class threshold_prop: contains the properties of a testmetric 
       e.g. color, threshold or significance level
@@ -27,7 +29,7 @@ def get_config_of_current_test(testname):
     elif testname == 'emi':
         config = EmissionsTest()
     elif testname == 'fldcor':
-        config = PatternTest()
+        config = FldcorTest()
     elif testname == 'rmse':
         config = RmseTest()
     else:
@@ -58,7 +60,7 @@ class EmissionsTest:
                                threshold_prop('low', 1, 'Red'), \
                                threshold_prop('very low', 10, 'DarkRed')]
 
-class PatternTest:
+class FldcorTest:
     def __init__(self):
         self.name = 'pattern_correlation'
         self.ref_name = 'fldcor'
