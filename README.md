@@ -3,7 +3,7 @@
 This tool allows to statistically check the output of a new climate simulation against a set of reference simulations, 
 in order to identify systematic bias in the climatological results (due for example to a bug, or too aggressive compiler options). 
 
-This tool is based on a excel tool David Neubaurer (ETHZ) developed for ECHAM-HAMMOZ : 
+This tool is based on a excel tool David Neubauer (ETHZ) developed for ECHAM-HAMMOZ : 
 https://redmine.hammoz.ethz.ch/projects/hammoz/wiki/Reference_experiments_to_test_computing_platform 
 
 It allows to analyze annual global means of a 10 year period (any other period of time is possible as well) for ECHAM-HAMMOZ and ICON.
