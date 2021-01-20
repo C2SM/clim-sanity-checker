@@ -1,0 +1,1 @@
+../fldcor/ftp_icon_atm-amip.txt

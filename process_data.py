@@ -679,7 +679,7 @@ if __name__ == '__main__':
                            help='Do not consider first month of the data due to model spinup')
 
     parser.add_argument('--tests','-t', dest='tests', \
-                           default=['welch','fldcor','emi'], \
+                           default=['welch','fldcor','rmse','emi'], \
                            nargs='+',\
                            help = 'Tests to apply on your data')
 

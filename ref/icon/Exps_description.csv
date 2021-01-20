@@ -1,8 +1,8 @@
-Experiment name;Platform;OS;Compiler (with version);Optimisation level (-OX);-fast-transcendentals (y/n);-no-prec-sqrt (y/n);-no-prec-div (y/n); welchstest (y/n); pattern_correlation (y/n); emissions (y/n);Date of experiment (month yyyy)
-0;amip_Daint_Cray_July20;CSCS Piz Daint;SUSE Linux Enterprise Server 15;cray/9.0.2;O2;n;n;n;y;n;n;July 2020
-1;amip_Euler_GCC_July20;Euler ETHZ;CentOS Linux 7 (Core);gcc/6.3.0;02;n;n;n;y;n;n;July 2020
-2;amip_Daint_GCC_Sep20;CSCS Piz Daint;SUSE Linux Enterprise Server 15;gcc/9.3.0;O2;n;n;n;y;n;n;September 2020
-3;amip_Daint_PGI_Sep20;CSCS Piz Daint;SUSE Linux Enterprise Server 15;pgi/20.1.1;O2;n;n;n;y;n;n;September 2020
-4;amip_Daint_GCC_Nov20;CSCS Piz Daint;SUSE Linux Enterprise Server 15;gcc/9.3.0;O2;n;n;n;y;n;n;November 2020
-5;amip_Daint_PGI_Nov20;CSCS Piz Daint;SUSE Linux Enterprise Server 15;pgi/20.1.1;O2;n;n;n;y;n;n;November 2020
-6;amip_Euler_GCC_Nov20;Euler ETHZ;CentOS Linux 7 (Core);gcc/6.3.0;O2;n;n;n;y;n;n;November 2020
+Experiment name;Platform;OS;Compiler (with version);Optimisation level (-OX);-fast-transcendentals (y/n);-no-prec-sqrt (y/n);-no-prec-div (y/n); welch (y/n); fldcor (y/n); rmse (y/n); emi (y/n);Date of experiment (month yyyy)
+0;amip_Daint_Cray_July20;CSCS Piz Daint;SUSE Linux Enterprise Server 15;cray/9.0.2;O2;n;n;n;y;n;n;n;July 2020
+1;amip_Euler_GCC_July20;Euler ETHZ;CentOS Linux 7 (Core);gcc/6.3.0;02;n;n;n;y;n;n;n;July 2020
+2;amip_Daint_GCC_Sep20;CSCS Piz Daint;SUSE Linux Enterprise Server 15;gcc/9.3.0;O2;n;n;n;y;n;n;n;September 2020
+3;amip_Daint_PGI_Sep20;CSCS Piz Daint;SUSE Linux Enterprise Server 15;pgi/20.1.1;O2;n;n;n;y;n;n;n;September 2020
+4;amip_Daint_GCC_Nov20;CSCS Piz Daint;SUSE Linux Enterprise Server 15;gcc/9.3.0;O2;n;n;n;y;n;n;n;November 2020
+5;amip_Daint_PGI_Nov20;CSCS Piz Daint;SUSE Linux Enterprise Server 15;pgi/20.1.1;O2;n;n;n;y;n;n;n;November 2020
+6;amip_Euler_GCC_Nov20;Euler ETHZ;CentOS Linux 7 (Core);gcc/6.3.0;O2;n;n;n;y;n;n;n;November 2020
