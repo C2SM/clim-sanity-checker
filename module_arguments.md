@@ -16,6 +16,7 @@ It creates a module called *paths.py* in [lib](lib), that is used by all modules
 |--p_wrkdir|absolute or relative path to the working directory. **Caution:** Needs free disk space |wrkdir|
 |--p_f_vars_proc|absolute or relative path to folder containig variables to process for each test. This path is extenden automatically the following: [p_f_vars_to_proc / test / f_vars_to_extract]|variables_to_process|
 |--p_ref_csv_files|absolute or relative path to reference files. This path is extended automatically for each test the following [p_ref_csv_files / test]|ref/echam-hammoz|
+|--testsuite, -ts | Run of testsuite (use variables_to_process folder for testsuite) | not set| 
 
 #### Arguments for Modules
 
@@ -26,7 +27,7 @@ It creates a module called *paths.py* in [lib](lib), that is used by all modules
 |--raw_f_subfold| Subfolder where the raw data is, ECHAM-specific | sanity_test.py, process_data.py | ' '|
 |--p_stages  | absolute or relative path to the folder where intermediate processing steps of the modules are stored. **Caution:** Needs free disk space |all  | defined in paths.py  |
 |--wrkdir| absolute or relative path to the working directory. **Caution:** Needs free disk space | all | defined in paths.py |
-| --tests, -t| test to apply on your data|all| welchstest pattern_correlation emissions|
+| --tests, -t| test to apply on your data|all| welch fldcor rmse emi|
 |--p_ref_csv_files| absolute or relative path to reference files. This path is extended automatically for each test the following [p_ref_csv_files / test] | sanity_test.py, perform_test.py, add_exp_to_ref.py| defined in paths.py|
 |--f_vars_to_extract | file name containing variables to analyse. This file needs to be located in [variables_to_process / test] | sanity_test.py, process_data.py, perform_test.py| vars_echam-hammoz.csv|
 |--f_pattern_ref| absolute or relative path to a reference netCDF file for spatial correlation tests| sanity_test.py, process_data.py| download from ftp-server, link defined in directory of file *vars_to_extract*|
