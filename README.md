@@ -9,10 +9,11 @@ https://redmine.hammoz.ethz.ch/projects/hammoz/wiki/Reference_experiments_to_tes
 It allows to analyze annual global means of a 10 year period (any other period of time is possible as well) for ECHAM-HAMMOZ and ICON.
 In general data from other models can be processed as well.
 
-Currently there are 3 different tests available:
-   * Welch's t-Test
-   * Pattern Correlation Test
-   * Emissions Test (I/O)
+Currently there are 4 different tests available:
+   * Welch's t-Test (welch)
+   * Field Correlation Test (fldcor)
+   * RMSE Test (rmse)
+   * Emissions Test (emi)
    
    For more details about the implementation of each test see [test descriptions](tests.md).
   

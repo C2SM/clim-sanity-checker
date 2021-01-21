@@ -1,1 +1,1 @@
-../pattern_correlation/ftp_echam-hammoz.txt
+../fldcor/ftp_echam-hammoz.txt

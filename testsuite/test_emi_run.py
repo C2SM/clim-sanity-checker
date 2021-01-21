@@ -3,7 +3,7 @@ import testsuite.utils as utils
 def test_emi_embed():
 
     input_dir = 'testsuite/data'
-    exp_name = 'emi'
+    exp_name = 'run_embed'
 
     files_generated = utils.generate_data(input_dir,exp_name,'emi_A','SO2')
     files_generated.extend(utils.generate_data(input_dir,exp_name,'emi_B','CO2'))
@@ -13,7 +13,7 @@ def test_emi_embed():
 
     assert status == 0, 'paths_init.py failed'
     
-    cmd = 'python sanity_test.py -v -e {} -t emissions --p_ref_csv_files testsuite/ref --f_vars_to_extract vars_emi_test.csv --spinup 0 -c -ts'.format(exp_name)
+    cmd = 'python sanity_test.py -v -e {} -t emi --p_ref_csv_files testsuite/ref --f_vars_to_extract vars_emi_test.csv --spinup 0 -c -ts'.format(exp_name)
 
     status, _ =utils.shell_cmd(cmd)
 
@@ -25,7 +25,7 @@ def test_emi_embed():
 def test_emi_chained():
 
     input_dir = 'testsuite/data'
-    exp_name = 'emi'
+    exp_name = 'run_chained'
 
     files_generated = utils.generate_data(input_dir,exp_name,'emi_A','SO2')
     files_generated.extend(utils.generate_data(input_dir,exp_name,'emi_B','CO2'))
@@ -35,13 +35,13 @@ def test_emi_chained():
 
     assert status == 0, 'paths_init.py failed'
     
-    cmd = 'python process_data.py -v -e {} -t emissions --f_vars_to_extract vars_emi_test.csv --spinup 0 -c'.format(exp_name)
+    cmd = 'python process_data.py -v -e {} -t emi --f_vars_to_extract vars_emi_test.csv --spinup 0 -c'.format(exp_name)
 
     status, _ =utils.shell_cmd(cmd)
 
     assert status == 0, 'process_data.py failed'
 
-    cmd = 'python perform_test.py -v -e {} -t emissions  --p_ref_csv_files testsuite/ref --f_vars_to_extract vars_emi_test.csv -ts'.format(exp_name)
+    cmd = 'python perform_test.py -v -e {} -t emi --p_ref_csv_files testsuite/ref --f_vars_to_extract vars_emi_test.csv -ts'.format(exp_name)
 
     status, _ =utils.shell_cmd(cmd)
 

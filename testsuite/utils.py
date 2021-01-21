@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import xarray as xr
 import numpy as np
+import netCDF4 as nc
 
 def shell_cmd(cmd,lowarn=False):
 
@@ -49,7 +50,7 @@ def generate_identical_data(input_dir,folder,identifier,field):
 
     files_generated = []
     data_location = os.path.join(input_dir,folder)
-    os.makedirs(data_location,exist_ok=true)
+    os.makedirs(data_location,exist_ok=True)
 
     for year in range(2000,2006):
         time = pd.date_range('{}-01-01'.format(year), freq="d", periods=365)
@@ -98,6 +99,45 @@ def generate_ref(ref_dir,name,fields):
     status, _ = shell_cmd(cmd)
     assert status == 0
     files_generated.append(filename)
+
+    return files_generated
+
+def generate_test(input_dir,folder,identifier,field):
+
+    files_generated = []
+    data_location = os.path.join(input_dir,folder)
+    os.makedirs(data_location,exist_ok=True)
+
+    data = np.full((1,100,100),0.45)
+
+    for year in range(2000,2006):
+        lat = np.arange(10,20,0.1)
+        lon = np.arange(10,20,0.1)
+
+        months = range(1,13)
+        for m in months:
+
+            month = '{:0>2d}'.format(m)
+            filename = '{}/{}_{}_{}.nc'.format(data_location,year,month,identifier)
+            timestring = '{}{}01'.format(year,month)
+            time = np.float32(int(timestring))
+            print(time)
+
+            netcdf = nc.Dataset(filename, "w", format='NETCDF4')
+            netcdf.createDimension('lon',100)
+            netcdf.createDimension('lat',100)
+            netcdf.createDimension('time', None)
+
+            time_var = netcdf.createVariable('time', np.float32, ('time',))
+            time_var.calendar = 'proleptic_gregorian'
+            time_var[0] = timestring
+            nc.date2num(time,calendar='proleptic_gregorian')
+            field_var = netcdf.createVariable(field,np.float32,('time','lat','lon'))
+
+            field_var[0,:,:] = data
+            netcdf.close()
+            
+            files_generated.append(filename)
 
     return files_generated
 

@@ -34,6 +34,8 @@ Module providing functions to perform the test. It contains:
 
     - pattern_correlation: perform pattern correlation test
 
+    - rmse: perform RMSE test
+
     - welch_test: perform Welch's t-test using "stats.ttest_ind"
 
     - emissions: perform emission test
@@ -105,7 +107,6 @@ def pattern_correlation(df_exp,test_cfg):
     Perform pattern correlation test for each variable fo dataframe df_b
     :param df_a: reference datframe, containing big sample
     :param df_b: datframe containing data to test
-    :param filename_student_test: filename for writing result of t-test result into a csv file
     :return: result of the pattern correlation in a dataframe
     '''
 
@@ -130,10 +131,9 @@ def pattern_correlation(df_exp,test_cfg):
 
 def rmse(df_exp,test_cfg):
     '''
-    Perform pattern correlation test for each variable fo dataframe df_b
+    Perform rmse  test for each variable fo dataframe df_b
     :param df_a: reference datframe, containing big sample
     :param df_b: datframe containing data to test
-    :param filename_student_test: filename for writing result of t-test result into a csv file
     :return: result of the pattern correlation in a dataframe
     '''
 
@@ -302,20 +302,20 @@ def main(\
 
         testresult_csv[test] = os.path.join(p_stages,'result_{}_{}.csv'.format(test,new_exp))
 
-        if test == 'welchstest':
+        if test == 'welch':
             log.banner('')
             log.banner("Perform Welch's t-test for each variable")
             log.banner('')
             df_result[test] = welch_test(df_a=df_ref[test], df_b=df_exp[test],filename_student_test=testresult_csv[test])
             df_result[test]['p-value [%]'] = df_result[test]['p-value']*100.
 
-        if test == 'pattern_correlation':
+        if test == 'fldcor':
             log.banner('')
-            log.banner("Perform pattern correlation test for each variable")
+            log.banner("Perform fldcor test for each variable")
             log.banner('')
             df_result[test] = pattern_correlation(df_exp[test],test_cfg)
 
-        if test == 'emissions':
+        if test == 'emi':
             log.banner('')
             log.banner("Perform emission test for each variable")
             log.banner('')
@@ -370,7 +370,7 @@ if __name__ == '__main__':
                            help = 'Debug output')
 
     parser.add_argument('--tests','-t', dest='tests', \
-                           default=['welchstest','pattern_correlation','emissions'], \
+                           default=['welch','fldcor','rmse','emi'], \
                            nargs='+',\
                            help = 'Tests to apply on your data')
 

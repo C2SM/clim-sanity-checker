@@ -56,9 +56,10 @@ def add_line_descr_f(exp,f_exp_descr):
                             '-fast-transcendentals (y/n)',\
                             '-no-prec-sqrt (y/n)',\
                             '-no-prec-div (y/n)',\
-                            'welchstest (y/n)',\
-                            'pattern_correlation (y/n)',\
-                            'emissions (y/n)',\
+                            'welch (y/n)',\
+                            'fldcor (y/n)',\
+                            'rmse (y/n)',\
+                            'emi (y/n)',\
                             'Date of experiment (month yyyy)']
         pd.DataFrame(columns=cols_exp_descr_f)
     else:
@@ -200,7 +201,7 @@ if __name__ == '__main__':
                         help=' path to the pool of csv files, one per reference experiment')
 
     parser.add_argument('--tests','-t', dest='tests', \
-                           default=['welchstest','pattern_correlation','emissions'], \
+                           default=['welch','fldcor','rmse','emi'], \
                            nargs='+',\
                            help = 'Tests to add to reference pool')
 
