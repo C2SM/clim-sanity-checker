@@ -1,13 +1,13 @@
 # Sanity Checker for climate model 
 
-This tool allows to statistically check the output of a new climate simulation against a set of reference simulations, 
+This tool perfoms a statistical check of the output of a new climate simulation compared to a set of reference simulations, 
 in order to identify systematic bias in the climatological results (due for example to a bug, or too aggressive compiler options). 
 
-This tool is based on a excel tool David Neubauer (ETHZ) developed for ECHAM-HAMMOZ : 
+This tool is based on a Excel tool David Neubauer (ETHZ) developed for ECHAM-HAMMOZ : 
 https://redmine.hammoz.ethz.ch/projects/hammoz/wiki/Reference_experiments_to_test_computing_platform 
 
-It allows to analyze annual global means of a 10 year period (any other period of time is possible as well) for ECHAM-HAMMOZ and ICON.
-In general data from other models can be processed as well.
+It allows the analysis of annual global means of a 10 year period (any other period of time is possible as well) for ECHAM-HAMMOZ and ICON.
+In general, data from other models can be processed as well.
 
 Currently there are 4 different tests available:
    * Welch's t-Test (welch)
@@ -27,7 +27,7 @@ This tool consists of three modules that can be run independently and a wrapper 
    * [add_exp_to_ref.py](add_exp_to_ref.py), add .csv with results of tests to [references](ref)
   
 Each module writes intermediate files to a directory passed with argument --p_stages, the subsequent module then looks into
-that directory for files needed. The tool is written in a way, that no time-consuming processing step is done twice.
+that directory for files needed. The tool is written to avoid performing time-consuming processing steps more than once.
 
 Detailed information about the structure of the clim-sanity-checker can be found in [structure](structure.md).
 
@@ -42,10 +42,10 @@ can be overridden by command-line arguments.
 **Run sanity_test.py:**  
 *python sanity_test.py -exp your_experiment_name --f_vars_to_extract vars_echam-hammoz.csv --raw_f_subfold Raw*
 
-This command will launch:
-   * The preprocessing for the model output (stored in the folder *Raw*) based on the *vars_echam-hammoz.csv* variable definitions.
+This command will:
+   * Launch the preprocessing for the model output (stored in the folder *Raw*) based on the *vars_echam-hammoz.csv* variable definitions.
    * Perform all tests.
-   * Asks you, whether this test should be added to the reference pool or not.
+   * Ask you whether this test should be added to the reference pool or not.
    
  Detailed information about all available options of *sanity_test.py* or other modules is provided in [module arguments](module_arguments.md).
  
@@ -55,12 +55,12 @@ This command will launch:
  the variable name, the formula to derive it from model output and the file-extension (e.g. atm_2d) for each test
  in [variables_to_process](variables_to_process). An example for ECHAM-HAMMOZ is [vars_echam-hammoz.csv](variables_to_process/welchstest/vars_echam-hammoz.csv).
  
- For ECHAM-HAMMOZ and ICON there exist already such a table for some of the test:
+ For ECHAM-HAMMOZ and ICON there already exists such a table for some of the tests:
  
  #### ECHAM-HAMMOZ
-The variable definitons for the Welch's t-Test are derived from the publication of
+The variable definitions for the Welch's t-Test are derived from the publication of
 *Neubauer et al.: The global aerosol–climate model ECHAM6.3–HAM2.3 – Part 2: Cloud evaluation, aerosol radiative forcing, and climate sensitivity, Geosci. Model Dev., 12, 3609–3639, https://doi.org/10.5194/gmd-12-3609-2019, 2019*.  
-For the Emission Test the variable definitions are taken from an excel-sheet provided by David Neubauer.
+For the Emission Test the variable definitions are taken from an Excel-sheet provided by David Neubauer.
 
 #### ICON
 The variable definitions for the Welch's t-Test are adapted from the file below provided by Colin Tully:  
@@ -77,9 +77,9 @@ There is a virtual-environment available for this machine:
 *module load daint-gpu ; module load CDO* to have CDO available
 
 ## Testsuite
-There exists a small testsuite to check if every test work as expected located in [testsuite](testsuite).
+There is a small testsuite to check if every test works as expected located in [testsuite](testsuite).
 To run, simply type:  
 *pytest* or *pytest -s* (for more verbosity)  
 **It is recommended to run the testsuite before any use of the clim-sanity-checker!**
 ## Missing
-1. analyse of variables only over ocean
+1. analysis of variables only over ocean
