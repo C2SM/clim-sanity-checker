@@ -1,11 +1,11 @@
 # Module description
-All important processing steps for each of the three modules is described below. Only steps relevant to data processing are described.
+All important processing steps for each of the three modules are described below. Only steps relevant to data processing are described.
 
 ## process_data.py
 
 #### standard_postproc
 Computes the variables defined in file 
-f_vars_to_extract from the raw netcdf model output files using CDO library.
+f_vars_to_extract from the raw netcdf model output files using the CDO library.
 For the raw model output, all the files located in [p_raw_files]/[exp]/[raw_f_subfold] 
 minus the spinup (default = 3 files) are used.
 
@@ -19,14 +19,14 @@ The expected file is an array with 3 columns separated by ',':
 Files with a problem are skipped. All variables are then merged into one single netCDF-file that is stored in
 the directory passed as argument *--p_stages*
 
-The function in combination with timeser_proc_nc_to_df is been based on the script general_proc.sh written by 
-Sylvaine Ferrachat (IAC, ETHZ) and tried to be generalized.
+The function in combination with timeser_proc_nc_to_df has been based on the script general_proc.sh written by 
+Sylvaine Ferrachat (IAC, ETHZ).
 
 **CAUTION:**  
 For the ECHAM-data stored in /project/s903/nedavid/platform a hack is introduced, because for some experiments no unprocessed model output
-is available. In case no raw dat is found, the module looks for other direcoties, containing processed timeseries of the data. If some files are found, the user 
+is available. In case no raw data is found, the module looks for other directories, containing processed timeseries of the data. If some files are found, the user 
 has the possibility to choose via input what file to choose.
-This piece of code is poorly implemented and can easily fail, if applied to other use-cases!
+This piece of code is poorly implemented and can easily fail if applied to other use-cases!
 
 
 #### timeser_proc_nc_to_df
