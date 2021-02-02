@@ -2,6 +2,7 @@
 import os
 import argparse
 import glob
+import datetime
 
 # aliased standard modules
 import pandas as pd
@@ -21,6 +22,9 @@ Module doing all the postprocessing of the raw model output.
 It can be called as a function from sanity_check.py or directly
 as main().
 It contains:
+
+    - print_statistics_of_raw_files: infer from filenames what years
+            of model output is available, provide this info to user 
 
     - download_ref_to_stages_if_required: if no reference for pattern 
             is defined, download from ftp-link and store it 
@@ -60,6 +64,47 @@ C.Siegenthaler 2019 (C2SM)
 J.Jucker 12.2020 (C2SM)
 
 '''
+
+
+def print_statistics_of_raw_files(ifiles,stream,exp):
+
+    datepatterns = ['%Y_%m','%Y%m']
+    years_found = []
+    no_summary = False
+
+    for file in ifiles:
+        file = (os.path.basename(file))
+        strip_1 = file.strip('_{}_.nc'.format(stream))
+        strip_2 = strip_1.strip('{}_'.format(exp))
+        strip_3 = strip_2.strip('.')
+        datestring = strip_3
+
+        failed = True
+        for pattern in datepatterns:
+
+            if failed:
+                try:
+                    date = datetime.datetime.strptime(datestring, pattern)
+                    failed = False
+                except ValueError:
+                    failed = True
+
+        if failed:
+            no_summary = True
+
+        
+        else:
+            year = date.year
+            if year not in years_found:
+                years_found.append(year)
+
+    if no_summary:
+            log.warning('Could not determine years '
+                        'due to an unkown pattern in the filenames')
+    else:
+        log.info('{} files with model output found for years:'.format(len(ifiles)))
+        for year in years_found:
+            log.info(year)
 
 
 def download_ref_to_stages_if_required(f_pattern_ref,
@@ -232,6 +277,8 @@ returns:
     else:
         log.info('Analyse files in : {}'.format(p_raw_folder))
 
+    log.banner('Time for a coffee...')
+
     # loop over output stream
     for stream in df_vars['file'].unique():
 
@@ -254,6 +301,8 @@ returns:
         # sort files in chronoligcal order 
         # (this will be needed for doing yearmean properly)
         ifiles.sort()
+
+        print_statistics_of_raw_files(ifiles,stream,exp)
 
         # remove spin-up files
         log.info('Remove first {} months of data '
