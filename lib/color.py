@@ -13,7 +13,7 @@ J.Jucker 12.2020 (C2SM)
 colors = {
     'black': "\033[30m",
     'green': "\033[32m",
-    'orange': "\033[93m",
+    'orange': "\033[33m",
     'red': "\x1b[31;21m",
     'bold_red': "\x1b[31;1m",
     'red_highl': "\u001b[41m",
