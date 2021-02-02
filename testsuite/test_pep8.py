@@ -18,7 +18,7 @@ import testsuite.utils as utils
 # W504: line break after binary operator
 
 def test_main():
-    cmd = 'python testsuite/pycodestyle.py --ignore=E265,W291,E201,E221,E231,E241,E722,W504 *.py'
+    cmd = 'python testsuite/pycodestyle.py --exclude=prepare_csvfiles_ref_echam.py --ignore=E265,W291,E201,E221,E231,E241,E722,W504 *.py'
     status, _ =utils.shell_cmd(cmd)
     assert status == 0, 'Violations of Pep-8-standard found!'
 

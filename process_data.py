@@ -92,17 +92,17 @@ def print_statistics_of_raw_files(ifiles,stream,exp):
         if failed:
             no_summary = True
 
-        
         else:
             year = date.year
             if year not in years_found:
                 years_found.append(year)
 
     if no_summary:
-            log.warning('Could not determine years '
-                        'due to an unkown pattern in the filenames')
+        log.warning('Could not determine years '
+                    'due to an unkown pattern in the filenames')
     else:
-        log.info('{} files with model output found for years:'.format(len(ifiles)))
+        log.info('{} files with model output '
+                 'found for years:'.format(len(ifiles)))
         for year in years_found:
             log.info(year)
 
