@@ -1,7 +1,7 @@
 # Sanity Checker for climate model 
 
 This tool performs a statistical check of the output of a new climate simulation compared to a set of reference simulations 
-in order to identify systematic bias in the climatological results (due for example to a bug, or too aggressive compiler options). 
+in order to identify systematic bias in the climatological results (due for example to a bug, or changes/problems in the environmental setup). 
 
 This tool is based on a Excel tool David Neubauer (ETHZ) developed for ECHAM-HAMMOZ : 
 https://redmine.hammoz.ethz.ch/projects/hammoz/wiki/Reference_experiments_to_test_computing_platform 
