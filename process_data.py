@@ -597,11 +597,11 @@ def normalize_data(dataset):
 
     log.debug('Clean intermediate files for normalization')
     shell_cmd = 'rm {} {} {} {} {} {}'.format(std_data,
-                                        mean_data,
-                                        std_data_enlarged,
-                                        mean_data_enlarged,
-                                        sub_data,
-                                        normalized_data)
+                                              mean_data,
+                                              std_data_enlarged,
+                                              mean_data_enlarged,
+                                              sub_data,
+                                              normalized_data)
     utils.shell_cmd(shell_cmd,py_routine=__name__,lowarn=True)
 
     cdo_cmd = 'cdo -L fldstd {} {}'.format(dataset,std_data)

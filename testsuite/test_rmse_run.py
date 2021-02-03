@@ -9,13 +9,13 @@ def test_fldcor_embed():
 
     os.makedirs('stages',exist_ok=True)
 
-    standard_postproc = 'stages/standard_postproc_fldcor_{}.nc'\
+    standard_postproc = 'stages/standard_postproc_rmse_{}.nc'\
         .format(exp_name)
 
     files_generated.append(standard_postproc)
 
-    file_with_ftp_link = ('testsuite/variables_to_process/fldcor'
-                          '/ftp_fake_postproc.txt')
+    file_with_ftp_link = ('testsuite/variables_to_process/'
+                          'rmse/ftp_fake_postproc.txt')
 
     cmd = ('wget --quiet --input-file={} '
            '--output-document={}'.format(file_with_ftp_link,
@@ -29,9 +29,9 @@ def test_fldcor_embed():
 
     assert status == 0, 'paths_init.py failed'
 
-    cmd = 'python sanity_test.py -v -e {} -t fldcor  \
+    cmd = 'python sanity_test.py -v -e {} -t rmse  \
         --p_ref_csv_files testsuite/ref --f_vars_to_extract \
-        vars_fldcor_test.csv -ts'.format(exp_name)
+        vars_rmse_test.csv -ts'.format(exp_name)
 
     status, _ =utils.shell_cmd(cmd)
 
@@ -48,13 +48,13 @@ def test_fldcor_chained():
 
     os.makedirs('stages',exist_ok=True)
 
-    standard_postproc = 'stages/standard_postproc_fldcor_{}.nc'\
+    standard_postproc = 'stages/standard_postproc_rmse_{}.nc'\
         .format(exp_name)
 
     files_generated.append(standard_postproc)
 
-    file_with_ftp_link = ('testsuite/variables_to_process'
-                          'fldcor/ftp_fake_postproc.txt')
+    file_with_ftp_link = ('testsuite/variables_to_process/rmse'
+                          '/ftp_fake_postproc.txt')
 
     cmd = ('wget --quiet --input-file={} '
            '--output-document={}'.format(file_with_ftp_link,
@@ -68,16 +68,16 @@ def test_fldcor_chained():
 
     assert status == 0, 'paths_init.py failed'
 
-    cmd = 'python process_data.py -v -e {} -t fldcor \
-        --f_vars_to_extract vars_fldcor_test.csv '.format(exp_name)
+    cmd = 'python process_data.py -v -e {} -t rmse \
+        --f_vars_to_extract vars_rmse_test.csv '.format(exp_name)
 
     status, _ =utils.shell_cmd(cmd)
 
     assert status == 0, 'process_data.py failed'
 
-    cmd = 'python perform_test.py -v -e {} -t fldcor \
+    cmd = 'python perform_test.py -v -e {} -t rmse \
         --p_ref_csv_files testsuite/ref --f_vars_to_extract \
-        vars_fldcor_test.csv -ts'.format(exp_name)
+        vars_rmse_test.csv -ts'.format(exp_name)
 
     status, _ =utils.shell_cmd(cmd)
 

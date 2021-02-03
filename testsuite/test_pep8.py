@@ -40,7 +40,6 @@ def test_lib():
 
 def test_testsuite():
     cmd = 'python testsuite/pycodestyle.py \
-            --exclude=test_fldcor_run.py \
             --ignore=E225,E265,W291,E201,E221,E231,E241,E722,W504 \
             testsuite/*.py'
     status, _ =utils.shell_cmd(cmd)

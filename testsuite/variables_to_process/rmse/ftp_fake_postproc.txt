@@ -1,0 +1,1 @@
+ftp://iacftp.ethz.ch/pub_read/juckerj/clim-sanity_checker/standard_postproc_rmse_daint_REF_10y.nc

@@ -2,3 +2,6 @@ lib/paths.py
 testsuite/paths.py
 __pycache__
 logs/*.log
+testsuite/data/*
+stages/*
+wrkdir/*
