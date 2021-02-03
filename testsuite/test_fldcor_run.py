@@ -54,7 +54,7 @@ def test_fldcor_chained():
     files_generated.append(standard_postproc)
 
     file_with_ftp_link = ('testsuite/variables_to_process'
-                          'fldcor/ftp_fake_postproc.txt')
+                          '/fldcor/ftp_fake_postproc.txt')
 
     cmd = ('wget --quiet --input-file={} '
            '--output-document={}'.format(file_with_ftp_link,
