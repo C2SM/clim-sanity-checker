@@ -5,6 +5,7 @@ import xarray as xr
 import numpy as np
 import netCDF4 as nc
 
+
 def shell_cmd(cmd,lowarn=False):
 
     """ 
@@ -13,8 +14,9 @@ def shell_cmd(cmd,lowarn=False):
     """
 
     # send cmd to be executed
-    p = subprocess.Popen(cmd, shell=True, \
-                         stdout = subprocess.PIPE, stderr = subprocess.PIPE, \
+    p = subprocess.Popen(cmd, shell=True,
+                         stdout=subprocess.PIPE, 
+                         stderr=subprocess.PIPE,
                          universal_newlines=True)
 
     # gets the output of the cmd
@@ -22,7 +24,7 @@ def shell_cmd(cmd,lowarn=False):
     print(str(out))
     print(str(err))
 
-    return p.returncode,(str(out)+str(err))
+    return p.returncode,(str(out) + str(err))
 
 def generate_data(input_dir,folder,identifier,field):
 
@@ -31,15 +33,23 @@ def generate_data(input_dir,folder,identifier,field):
     os.makedirs(data_location,exist_ok=True)
 
     for year in range(2000,2006):
-        time = pd.date_range('{}-01-01'.format(year), freq="D", periods=365)
+        time = pd.date_range('{}-01-01'.format(year),
+                             freq="D", 
+                             periods=365)
         lat = np.arange(10,20,0.1)
         lon = np.arange(10,20,0.1)
 
-        test = xr.DataArray(np.random.rand(365,100,100), coords=[time,lat, lon], dims=['time','lat','lon'],name=field)
+        test = xr.DataArray(np.random.rand(365,100,100),
+                            coords=[time,lat, lon],
+                            dims=['time','lat','lon'],
+                            name=field)
         months = range(1,13)
         for m in months:
             month = '{:0>2d}'.format(m)
-            filename = '{}/{}_{}_{}.nc'.format(data_location,year,month,identifier)
+            filename = '{}/{}_{}_{}.nc'.format(data_location,
+                                               year,
+                                               month,
+                                               identifier)
             one_month = test.sel(time=test['time.month'] == m)
             one_month.to_netcdf(filename)
             files_generated.append(filename)
@@ -57,11 +67,16 @@ def generate_identical_data(input_dir,folder,identifier,field):
         lat = np.arange(10,20,0.1)
         lon = np.arange(10,20,0.1)
 
-        test = xr.dataarray(np.full((365,100,100),0.45), coords=[time,lat, lon], dims=['time','lat','lon'],name=field)
+        test = xr.dataarray(np.full((365,100,100),0.45), 
+                            coords=[time,lat, lon], 
+                            dims=['time','lat','lon'],
+                            name=field)
         months = range(1,13)
         for m in months:
             month = '{:0>2d}'.format(m)
-            filename = '{}/{}_{}_{}.nc'.format(data_location,year,month,identifier)
+            filename = '{}/{}_{}_{}.nc'.format(data_location,
+                                               year,month,
+                                               identifier)
             one_month = test.sel(time=test['time.month'] == m)
             one_month.to_netcdf(filename)
             files_generated.append(filename)
@@ -80,13 +95,11 @@ def generate_ref(ref_dir,name,fields):
     test = xr.DataArray()
     ds_to_merge = []
     for field in fields:
-        #test = xr.DataArray(np.random.rand(1,100,100), coords=[time,lat, lon], dims=['time','lat','lon'],name=field)
         data = np.full((1,100,100),0.45)
-        #for a in np.nditer(data,op_flags=['readwrite']):
-        #    a[...] = a + (0.49 - a)
-
-        #data = np.full((1,100,100),0.5)
-        test = xr.DataArray(data, coords=[time,lat, lon], dims=['time','lat','lon'],name=field)
+        test = xr.DataArray(data, 
+                            coords=[time,lat, lon], 
+                            dims=['time','lat','lon'],
+                            name=field)
         ds_to_merge.append(test)
 
     merged_ds = xr.merge(ds_to_merge)
@@ -118,10 +131,12 @@ def generate_test(input_dir,folder,identifier,field):
         for m in months:
 
             month = '{:0>2d}'.format(m)
-            filename = '{}/{}_{}_{}.nc'.format(data_location,year,month,identifier)
+            filename = '{}/{}_{}_{}.nc'.format(data_location,
+                                               year,
+                                               month,
+                                               identifier)
             timestring = '{}{}01'.format(year,month)
             time = np.float32(int(timestring))
-            print(time)
 
             netcdf = nc.Dataset(filename, "w", format='NETCDF4')
             netcdf.createDimension('lon',100)
@@ -132,14 +147,18 @@ def generate_test(input_dir,folder,identifier,field):
             time_var.calendar = 'proleptic_gregorian'
             time_var[0] = timestring
             nc.date2num(time,calendar='proleptic_gregorian')
-            field_var = netcdf.createVariable(field,np.float32,('time','lat','lon'))
+            field_var = netcdf.createVariable(field,
+                                              np.float32,('time',
+                                                          'lat',
+                                                          'lon'))
 
             field_var[0,:,:] = data
             netcdf.close()
-            
+
             files_generated.append(filename)
 
     return files_generated
+
 
 def delete_data(files_to_delete):
     for file in files_to_delete:
