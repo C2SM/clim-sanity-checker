@@ -238,6 +238,9 @@ returns:
             log.info('The alternative folder has been found instead: '
                      '{}'.format(p_altern_timeser_fold))
 
+            log.warning('This section of code is only tested for ECHAM! '
+                        'It is not recommended to use it for other cases')
+
             if len(time_series_altern_fold) == 1: 
                 index_ts = 0
             if len(time_series_altern_fold) > 1:
@@ -271,6 +274,8 @@ returns:
                 else:
                     skip_next_steps = False
 
+                log.warning('Leave ECHAM-only code-section! '
+                            'You are save again...')
                 return(ofile_tot,skip_next_steps)
 
     # NORMAL CASE
