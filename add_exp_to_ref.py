@@ -232,7 +232,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # init logger
-    logger_config.init_logger(args.lverbose)
+    logger_config.init_logger(args.lverbose,__file__)
 
     log.banner('Start execute {} as main()'.format(__file__))
 

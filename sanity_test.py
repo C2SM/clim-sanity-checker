@@ -53,7 +53,7 @@ def main(new_exp,
          lverbose):
 
     # init logger
-    logger_config.init_logger(lverbose)
+    logger_config.init_logger(lverbose,__file__)
 
     log.banner('Start sanity checker')
 

@@ -1,6 +1,7 @@
 # standard modules
 import logging
 import sys
+import os
 
 # standalone imports
 from lib.color import colors
@@ -11,7 +12,9 @@ related to logging. It contains:
 
     - log: logger instance used in all other modules
 
-    - CustomFormatter: format log-messages for each log-level
+    - FormatterColor: format log-messages for each log-level with color
+
+    - FormatterNoColor: format log-messages for each log-level without color
 
     - ShutdownHandler: define additional action for level "error"
 
@@ -26,7 +29,7 @@ J.Jucker 12.2020 (C2SM)
 
 log = logging.getLogger()
 
-class CustomFormatter(logging.Formatter):
+class FormatterColor(logging.Formatter):
 
     format_debug = "     %(levelname)s: %(message)s (%(filename)s)"
     format_info = "%(message)s"
@@ -47,6 +50,27 @@ class CustomFormatter(logging.Formatter):
         formatter = logging.Formatter(log_fmt)
         return formatter.format(record)
 
+class FormatterNoColor(logging.Formatter):
+
+    format_debug = "     %(levelname)s: %(message)s (%(filename)s)"
+    format_info = "%(message)s"
+    format_banner = "=========  %(message)s"
+    format_warning = "%(levelname)s: %(message)s (%(filename)s)"
+    format_error = "%(levelname)s: %(message)s (%(filename)s:%(lineno)d)"
+
+    FORMATS = {
+        logging.DEBUG: format_debug,
+        logging.INFO: format_info,
+        25: format_banner,
+        logging.WARNING: format_warning,
+        logging.ERROR: format_error,
+    }
+
+    def format(self, record):
+        log_fmt = self.FORMATS.get(record.levelno)
+        formatter = logging.Formatter(log_fmt)
+        return formatter.format(record)
+
 class ShutdownHandler(logging.Handler):
 
     def emit(self, record):
@@ -58,12 +82,19 @@ def banner(self, message, *args, **kws):
     self._log(25, message, args, **kws) 
 
 
-def init_logger(lverbose):
+def init_logger(lverbose,logfile):
 
     if lverbose:
         level = logging.DEBUG
     else:
         level = logging.INFO
+
+    # prepare logfile name
+    logfile = os.path.basename(logfile)
+    logfile = logfile.replace('.py','.log')
+
+    # logs are alway written to logs directory
+    logfile = os.path.join('logs',logfile)
 
     log.setLevel(level)
 
@@ -73,9 +104,14 @@ def init_logger(lverbose):
     ch = logging.StreamHandler()
     ch.setLevel(level)
 
-    ch.setFormatter(CustomFormatter())
+    ch.setFormatter(FormatterColor())
 
     log.addHandler(ch)
 
-    # shutdown in case of logging.ERROR
-    log.addHandler(ShutdownHandler(level=logging.ERROR)) 
+    fh = logging.FileHandler(logfile,mode='w')
+
+    fh.setLevel(level)
+
+    fh.setFormatter(FormatterNoColor())
+
+    log.addHandler(fh)
