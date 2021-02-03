@@ -115,3 +115,6 @@ def init_logger(lverbose,logfile):
     fh.setFormatter(FormatterNoColor())
 
     log.addHandler(fh)
+
+    # shutdown in case of logging.ERROR
+    log.addHandler(ShutdownHandler(level=logging.ERROR))

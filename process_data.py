@@ -589,13 +589,17 @@ def normalize_data(dataset):
 
     data = dataset.replace('.nc','')
     std_data = '{}_std.nc'.format(data)
+    std_data_enlarged = '{}_std_enlarged.nc'.format(data)
     mean_data = '{}_mean.nc'.format(data)
+    mean_data_enlarged = '{}_enlarged.nc'.format(data)
     sub_data = '{}_sub.nc'.format(data)
     normalized_data = '{}_normalized.nc'.format(data)
 
     log.debug('Clean intermediate files for normalization')
-    shell_cmd = 'rm {} {} {} {}'.format(std_data,
+    shell_cmd = 'rm {} {} {} {} {} {}'.format(std_data,
                                         mean_data,
+                                        std_data_enlarged,
+                                        mean_data_enlarged,
                                         sub_data,
                                         normalized_data)
     utils.shell_cmd(shell_cmd,py_routine=__name__,lowarn=True)
@@ -606,16 +610,23 @@ def normalize_data(dataset):
     cdo_cmd = 'cdo -L fldmean {} {}'.format(dataset,mean_data)
     utils.shell_cmd(cdo_cmd,py_routine=__name__)
 
-    cdo_cmd = 'cdo -L sub {} -enlarge,{} {} {}'.format(dataset,
-                                                       dataset,
-                                                       mean_data,
-                                                       sub_data)
+    #cdo_cmd = 'cdo -L sub {} -enlarge,{} {} {}'.format(dataset,
+    cdo_cmd = 'cdo -L -enlarge,{} {} {}'.format(dataset,
+                                                mean_data,
+                                                mean_data_enlarged)
     utils.shell_cmd(cdo_cmd,py_routine=__name__)
 
-    cdo_cmd = 'cdo -L div {} -enlarge,{} {} {}'.format(sub_data,
-                                                       sub_data,
-                                                       std_data, 
-                                                       normalized_data)
+    cdo_cmd = 'cdo -L -enlarge,{} {} {}'.format(dataset,
+                                                std_data,
+                                                std_data_enlarged)
+    utils.shell_cmd(cdo_cmd,py_routine=__name__)
+
+    cdo_cmd = 'cdo -L sub {} {} {}'.format(dataset,mean_data_enlarged,sub_data)
+    utils.shell_cmd(cdo_cmd,py_routine=__name__)
+
+    cdo_cmd = 'cdo -L div {} {} {}'.format(sub_data,
+                                           std_data_enlarged, 
+                                           normalized_data)
     utils.shell_cmd(cdo_cmd,py_routine=__name__)
 
     return normalized_data
