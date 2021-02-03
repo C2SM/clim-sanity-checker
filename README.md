@@ -95,7 +95,8 @@ The variable definitions for the Welch's t-Test are adapted from the file below 
 ![vars_icon](https://user-images.githubusercontent.com/39263956/103921491-dfbe8b80-5112-11eb-8ee7-abc19ac3ce2d.png)
 
 ## Reference Experiments
-A key component of this tool are the references (experiments that have correct results). By running the same experiment (identical namelists, input-data, emission-scenarios, etc.) but with different compilers or on different machines one can cross-compare and verify these installations.
+A key component of this tool are the references (experiments that have correct results). By running the same experiment (identical namelists, input-data, emission-scenarios, etc.) but with different compilers or on different machines one can cross-compare and verify these installations. 
+It is recommened to use at least a 10-year period as experiment duration, for shorter periods the tests could fail due to rounding error even in case of correct results.
 If one configuration, i.e. GCC on Piz Daint, does not give results within the statistical tolerance of each test, there is very likely a bug or a problem.
 Currently there are two sets of references available, see details below:
 
