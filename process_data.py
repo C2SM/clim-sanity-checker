@@ -256,7 +256,7 @@ returns:
                 log.info('File used : {}'.format(
                     time_series_altern_fold[index_ts]))
 
-                cdo_cmd = ('cdo -chname,CDNC,burden_CDNC '
+                cdo_cmd = ('cdo -L -chname,CDNC,burden_CDNC '
                            '-chname,ICNC,burden_ICNC '
                            '-chname,SCF,SCRE -chname,LCF,LCRE '
                            '{} {}'.format(time_series_altern_fold[index_ts],
