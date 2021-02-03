@@ -33,6 +33,27 @@ Detailed information about the structure of the clim-sanity-checker can be found
 
 ## Quick start
 
+### Prepare Environment
+The clim-sanity-checker needs a CDO executable as well as several non-standard Python-packages.
+The Python-dependencies can be found in [requirements.txt](requirements.txt).  
+
+#### Piz Daint
+*module load daint-gpu*    
+*module load cray-python*  
+*module load CDO*  
+*python -m venv path_to_your_env*  
+*source path_to_your_env/bin/activate*  
+*pip install -r requirements.txt*
+
+### Run
+**Run testsuite:**  
+There is a small testsuite to check if every test works as expected located in [testsuite](testsuite).
+To run, simply type:  
+
+*pytest* or *pytest -s* (for more verbosity) 
+
+**It is recommended to run the testsuite before any use of the clim-sanity-checker!** 
+
 **Configure paths with paths_init.py:**  
 *python paths_init.py -pr /project/s903/nedavid/plattform_comparison/*
 
@@ -40,7 +61,11 @@ This will create the file *paths.py* in the folder [lib](lib) for later use. Not
 can be overridden by command-line arguments.
 
 **Run sanity_test.py:**  
-*python sanity_test.py -exp your_experiment_name --f_vars_to_extract vars_echam-hammoz.csv --raw_f_subfold Raw*
+The clim-sanity-checker needs disk space in the order of 1 GB. It is therefore recommended to run this tool on *scratch* or 
+to pass a working directory with sufficient disk space through the argument *--wrkdir*.  
+
+*python sanity_test.py -exp your_experiment_name --f_vars_to_extract vars_echam-hammoz.csv --raw_f_subfold Raw*  
+
 
 This command will:
    * Launch the preprocessing for the model output (stored in the folder *Raw*) based on the *vars_echam-hammoz.csv* variable definitions.
@@ -65,21 +90,3 @@ For the Emission Test the variable definitions are taken from an Excel-sheet pro
 #### ICON
 The variable definitions for the Welch's t-Test are adapted from the file below provided by Colin Tully:  
 ![vars_icon](https://user-images.githubusercontent.com/39263956/103921491-dfbe8b80-5112-11eb-8ee7-abc19ac3ce2d.png)
-
-## Requirements
-The clim-sanity-checker needs a CDO executable as well as several non-standard Python-packages.
-To install the Python-dependencies run:  
-* pip install -r requirements.txt
-
-#### Piz Daint
-There is a virtual-environment available for this machine:  
-*source paths_to_come/bin/activate/* to get the right Python-environment  
-*module load daint-gpu ; module load CDO* to have CDO available
-
-## Testsuite
-There is a small testsuite to check if every test works as expected located in [testsuite](testsuite).
-To run, simply type:  
-*pytest* or *pytest -s* (for more verbosity)  
-**It is recommended to run the testsuite before any use of the clim-sanity-checker!**
-## Missing
-1. analysis of variables only over ocean
