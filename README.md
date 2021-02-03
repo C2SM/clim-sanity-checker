@@ -45,6 +45,13 @@ The Python-dependencies can be found in [requirements.txt](requirements.txt).
 *source path_to_your_env/bin/activate*  
 *pip install -r requirements.txt*
 
+#### Euler
+*module load python*  
+*module load climate*  
+*python -m venv path_to_your_env*    
+*source path_to_your_env/bin/activate*    
+*pip install -r requirements.txt*  
+
 ### Run
 **Run testsuite:**  
 There is a small testsuite to check if every test works as expected located in [testsuite](testsuite).
