@@ -228,6 +228,9 @@ def emissions(df_exp, df_ref, test_cfg,filename_student_test=''):
 
     row_list_df = []
 
+    # select base reference for emission
+    df_ref = df_ref.loc[df_ref['exp'] == 'emis_base_ref']
+
     for var in df_exp.keys():
         if 'exp' in var:
             continue

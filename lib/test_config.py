@@ -61,7 +61,7 @@ class EmissionsTest:
             threshold_prop('high', 0.01, 'Green'),
             threshold_prop('middle', 0.1, 'Orange'),
             threshold_prop('low', 1, 'Red'),
-            threshold_prop('very low', 10, 'DarkRed')]
+            threshold_prop('very low', 100, 'DarkRed')]
 
 
 class FldcorTest:
