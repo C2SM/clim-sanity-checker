@@ -7,7 +7,7 @@ Another way to get all possible arguments for each module is:
 
 #### Arguments for paths_init.py
 For convenience, long paths or arguments that usually stay the same can be set at the very beginning with the scripts *paths_init.py*.
-It creates a module called *paths.py* in [lib](lib), that is used by all modules to get default values for some arguments.
+It creates a module called *paths.py* in [lib](../lib), that is used by all modules to get default values for some arguments.
 
 |argument|description|default| 
 |---|---|---|
