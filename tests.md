@@ -39,7 +39,7 @@ and finally averages these values over the entire period (usually 10 years).
 This test is looking at the normalized RMSE of a reference and the experiment. To do so 
 the CDO operators *sqrt -fldmean -sqr -sub* are used.
 
-If the normalized RMSE is above 0.1 the test is not passed.
+If the normalized RMSE is above 0.15 the test is not passed.
 
 In order to apply this test, a reference netCDF is needed. The handling of the references is identical as for the Field Correlation Test.
 
@@ -52,7 +52,12 @@ data takes place. For the normalization the CDO operators *fldstd* and  *fldmean
 
 ## Emission Test
 This test checks if the emissions fed into the model as input are correctly processed during the model run. It computes
-the relative deviation of the averaged emissions over the entire simulated period.
+the relative deviation of the averaged emissions over the entire simulated period. As a reference, the .csv file [emis_base_ref.csv](ref/echam-hammoz/emi/emis_base_ref.csv) is taken. 
+
+**This is not ideal an should be removed at some point, see Issue 4
+https://github.com/C2SM-ICON/clim-sanity-checker/issues/14**
+
+
 In general a relative deviation of up to 1 % is still ok due to rounding errors of floating point operations.
 
 #### Additional processing for Emission Test
