@@ -41,3 +41,9 @@ This .csv file serves as described above as a reference if the experiment is add
 #### emis_proc_nc_to_df
 Process the netCDF produced in **standard_postproc** further using CDO to get a mean value over the entire period for each field.
 This .csv file serves as described above as a reference if the experiment is added to the reference pool.
+
+#### rmse_proc_nc_to_df
+Process the netCDF produced in **standard_postproc** further using CDO to get multi-annual means per gridcell for each field.
+In a second step, both the reference and the model output is normalized using mean and standard-deviation for each field. These two normalized
+2D-NetCDF are then used to compute the root mean square error.
+
