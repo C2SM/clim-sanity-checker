@@ -70,8 +70,8 @@ class FldcorTest:
         self.ref_name = 'fldcor'
         self.metric = 'R^2'
         self.metric_threshold = [
-            threshold_prop('very low', 0.97, 'DarkRed'),
-            threshold_prop('low', 0.98, 'Red'),
+            threshold_prop('very low', 0.98, 'DarkRed'),
+            threshold_prop('low', 0.985, 'Red'),
             threshold_prop('middle', 0.99, 'Orange'),
             threshold_prop('high', 1, 'Green')]
 
@@ -82,10 +82,10 @@ class RmseTest:
         self.ref_name = 'rmse'
         self.metric = 'normalized RMSE'
         self.metric_threshold = [
-            threshold_prop('high', 0.01, 'Green'),
-            threshold_prop('middle', 0.05, 'Orange'),
-            threshold_prop('low', 0.1, 'Red'),
-            threshold_prop('very low', 0.2, 'DarkRed')]
+            threshold_prop('high', 0.03, 'Green'),
+            threshold_prop('middle', 0.07, 'Orange'),
+            threshold_prop('low', 0.15, 'Red'),
+            threshold_prop('very low', 0.99, 'DarkRed')]
 
 
 class threshold_prop:
