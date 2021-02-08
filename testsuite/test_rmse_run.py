@@ -7,9 +7,9 @@ def test_fldcor_embed():
     exp_name = 'run_emded'
     files_generated = []
 
-    os.makedirs('stages',exist_ok=True)
+    os.makedirs('testsuite/stages',exist_ok=True)
 
-    standard_postproc = 'stages/standard_postproc_rmse_{}.nc'\
+    standard_postproc = 'testsuite/stages/standard_postproc_rmse_{}.nc'\
         .format(exp_name)
 
     files_generated.append(standard_postproc)
@@ -30,6 +30,8 @@ def test_fldcor_embed():
     assert status == 0, 'paths_init.py failed'
 
     cmd = 'python sanity_test.py -v -e {} -t rmse  \
+        --p_stages testsuite/stages \
+        --wrkdir testsuite/workdir \
         --p_ref_csv_files testsuite/ref --f_vars_to_extract \
         vars_rmse_test.csv -ts'.format(exp_name)
 
@@ -46,9 +48,9 @@ def test_fldcor_chained():
     exp_name = 'run_chained'
     files_generated = []
 
-    os.makedirs('stages',exist_ok=True)
+    os.makedirs('testsuite/stages',exist_ok=True)
 
-    standard_postproc = 'stages/standard_postproc_rmse_{}.nc'\
+    standard_postproc = 'testsuite/stages/standard_postproc_rmse_{}.nc'\
         .format(exp_name)
 
     files_generated.append(standard_postproc)
@@ -69,6 +71,8 @@ def test_fldcor_chained():
     assert status == 0, 'paths_init.py failed'
 
     cmd = 'python process_data.py -v -e {} -t rmse \
+        --p_stages testsuite/stages \
+        --wrkdir testsuite/workdir \
         --f_vars_to_extract vars_rmse_test.csv '.format(exp_name)
 
     status, _ =utils.shell_cmd(cmd)
@@ -76,6 +80,8 @@ def test_fldcor_chained():
     assert status == 0, 'process_data.py failed'
 
     cmd = 'python perform_test.py -v -e {} -t rmse \
+        --p_stages testsuite/stages \
+        --wrkdir testsuite/workdir \
         --p_ref_csv_files testsuite/ref --f_vars_to_extract \
         vars_rmse_test.csv -ts'.format(exp_name)
 

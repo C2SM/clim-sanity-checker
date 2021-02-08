@@ -20,6 +20,8 @@ def test_emi_embed():
     cmd = 'python sanity_test.py -v -e {} -t emi \
             --p_ref_csv_files testsuite/ref \
             --f_vars_to_extract vars_emi_test.csv \
+            --p_stages testsuite/stages \
+            --wrkdir testsuite/workdir \
             --spinup 0 -c -ts'.format(exp_name)
 
     status, _ = utils.shell_cmd(cmd)
@@ -47,6 +49,8 @@ def test_emi_chained():
 
     cmd = 'python process_data.py -v -e {} -t emi \
             --f_vars_to_extract vars_emi_test.csv \
+            --p_stages testsuite/stages \
+            --wrkdir testsuite/workdir \
             --spinup 0 -c'.format(exp_name)
 
     status, _ = utils.shell_cmd(cmd)
@@ -54,6 +58,8 @@ def test_emi_chained():
     assert status == 0, 'process_data.py failed'
 
     cmd = 'python perform_test.py -v -e {} -t emi \
+            --p_stages testsuite/stages \
+            --wrkdir testsuite/workdir \
             --p_ref_csv_files testsuite/ref \
             --f_vars_to_extract vars_emi_test.csv -ts'.format(exp_name)
 

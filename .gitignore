@@ -5,3 +5,6 @@ logs/*.log
 testsuite/data/*
 stages/*
 wrkdir/*
+testsuite/stages
+testsuite/workdir
+
