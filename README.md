@@ -103,29 +103,8 @@ For the Emission Test the variable definitions are taken from an Excel-sheet pro
 The variable definitions for the Welch's t-Test are adapted from the file below provided by Colin Tully:  
 ![vars_icon](https://user-images.githubusercontent.com/39263956/103921491-dfbe8b80-5112-11eb-8ee7-abc19ac3ce2d.png)
 
-## Reference Experiments
+## Reference Database
 A key component of this tool are the references (experiments that have correct results). By running the same experiment (identical namelists, input-data, emission-scenarios, etc.) but with different compilers or on different machines one can cross-compare and verify these installations. 
 It is recommened to use at least a 10-year period as experiment duration, for shorter periods the tests could fail due to rounding error even in case of correct results.
 If one configuration, i.e. GCC on Piz Daint, does not give results within the statistical tolerance of each test, there is very likely a bug or a problem.
-Currently there are two sets of references available, see details below:
-
-#### ICON
-The setting for the references in [icon](ref/icon) is [atm_amip](https://github.com/C2SM-ICON/icon/blob/master/run/exp.atm_amip). This is the standard
-configuration of ICON for climate-simulations. From the experiment description in the header of the runscript:  
-
-*This file describes an AMIP experiment based on the non-hydrostatic atmosphere and the
- ECHAM physics. The experiment is intialized from IFS analysis files and uses transient
-boundary conditions for:  
--SST and sea ice  
--spectral solar irradiation  
--well mixed greenhouse gases CO2, CH4, N2O, CFCs  
--O3 concentration  
--tropospheric aerosol optical properties  
--stratospheric volcanic aerosol optical properties*
-
-#### ECHAM-HAMMOZ
-The setting for the references in [echam-hammoz](ref/echam-hammoz) is the following (taken from David Neubauer):  
-ECHAM6.3-HAM2.3-MOZ1.0 release tag (https://redmine.hammoz.ethz.ch/projects/hammoz/repository/show/echam6-hammoz/tags/echam6.3.0-ham2.3-moz1.0)  
-Default run configuration for HAM-M7  
-v0002 Input file distribution (corresponding to setup_templates/run_examples/run_defaults_echam6-ham)  					
-(T63L47GR15; ACCMIP_interpolated emissions RCP45 transient emissions; 2003-2012; SST/SIC climatology 1979-2008,...)					
+For more information about the references see [reference_database](reference_database.md).
