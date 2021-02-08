@@ -23,7 +23,11 @@ There are two possible options to add experiments with the module
 or  
 * manually run add_exp_to_ref.py with the correct command-line arguments  
 
-The clim-sanity-checker prints out the correct command-line arguments in case on types *no*.
+The clim-sanity-checker prints out the correct command-line arguments in case on types *no*:  
+
+`If you want to add the experiment daint_REF_10y to the reference pool later on, type the following line when you are ready:`
+
+`python add_exp_to_ref.py --exp daint_REF_10y --tests emi --p_stages stages --p_ref_csv_files ref/echam-hammoz`
 
 You are then asked to enter some details about the experiment:  
 
