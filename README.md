@@ -57,7 +57,9 @@ The Python-dependencies can be found in [requirements.txt](requirements.txt).
 There is a small testsuite to check if every test works as expected located in [testsuite](testsuite).
 To run, simply type:  
 
-*pytest* or *pytest -s* (for more verbosity) 
+*pytest testsuite/\**   
+or   
+*pytest -s testsuite/\** (for more verbosity) 
 
 **It is recommended to run the testsuite before any use of the clim-sanity-checker!** 
 
