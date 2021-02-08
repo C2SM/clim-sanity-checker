@@ -24,7 +24,7 @@ If the R^2 values is below 0.98 the test is not passed.
 
 In order to apply this test, a reference netCDF is needed. Per default a reference is downloaded from the ftp-server of ETHZ.
 The link needs to be defined in a file having the same name and location as the desired f_vars_to_proc.
-As an example [vars_echam-hammoz.csv](variables_to_process/pattern_correlation/vars_echam-hammoz.csv) and [ftp_echam-hammoz.txt](variables_to_process/pattern_correlation/ftp_echam-hammoz.txt) is a matching pair.
+As an example [vars_echam-hammoz.csv](../variables_to_process/pattern_correlation/vars_echam-hammoz.csv) and [ftp_echam-hammoz.txt](../variables_to_process/pattern_correlation/ftp_echam-hammoz.txt) is a matching pair.
 
 In case one wants to use a custom reference file, the file can be passed with the *-f_pattern_ref* argument.
 
@@ -52,7 +52,7 @@ data takes place. For the normalization the CDO operators *fldstd* and  *fldmean
 
 ## Emission Test
 This test checks if the emissions fed into the model as input are correctly processed during the model run. It computes
-the relative deviation of the averaged emissions over the entire simulated period. As a reference, the .csv file [emis_base_ref.csv](ref/echam-hammoz/emi/emis_base_ref.csv) is taken. 
+the relative deviation of the averaged emissions over the entire simulated period. As a reference, the .csv file [emis_base_ref.csv](../ref/echam-hammoz/emi/emis_base_ref.csv) is taken. 
 
 **This is not ideal an should be removed at some point, see Issue 4
 https://github.com/C2SM-ICON/clim-sanity-checker/issues/14**
