@@ -16,7 +16,44 @@ The .csv files itself store either the global [mean-values](ref/echam-hammoz/wel
 respective test-metric like [R^2](ref/echam-hammoz/fldcor/fldcor_daint_REF_10y.csv) (all other tests).
 
 ### Adding experiments to the database
-In order to add a new experiment to the database please use the
+There are two possible options to add experiments with the module
+*[add_exp_to_ref.py](add_exp_to_ref.py)*:
+
+* Run sanity_test.py and type *yes* when asked by the clim-sanity-checker  
+or  
+* manually run add_exp_to_ref.py with the correct command-line arguments  
+
+The clim-sanity-checker prints out the correct command-line arguments in case on types *no*.
+
+You are then asked to enter some details about the experiment:  
+
+**Basic information**  
+
+* Experiment name
+* Platform;OS
+* Date of experiment (month yyyy)
+
+**Compiler Options**  
+
+* Compiler (with version)
+* Optimisation level (-OX)
+-fast-transcendentals (y/n)
+* -no-prec-sqrt (y/n)
+* -no-prec-div (y/n)
+
+**Test performed for this experiment**  
+
+* welch (y/n)
+* fldcor (y/n)
+* rmse (y/n)
+* emi (y/n)
+
+Finally a commit message needs to be defined. The clim-sanity-checker creates a new branch and commits all new files of this experiments
+into the reference database.
+
+**The final push to the remote needs to be done manually by the user!**
+
+
 ### Experiment Settings
 Currently there is one setting available for ECHAM-HAMMOZ and ICON.
 
