@@ -1,6 +1,8 @@
 ## Reference Database
+
 A key component of this tool are the references (experiments that have correct results). By running the same experiment (identical namelists, input-data, emission-scenarios, etc.) but with different compilers or on different machines one can cross-compare and verify these installations. 
-It is recommened to use at least a 10-year period as experiment duration, for shorter periods the tests could fail due to rounding error even in case of correct results.
+It is recommended to use at least a 10-year period as experiment duration, for shorter periods the tests could fail due to too large interannual variability even in case of correct results. For some variables even 10-years will be too short to average the interannual variability below the defined thresholds. Therefore it is recommended to have several reference experiments e.g. from different computing platforms or different compilers or compiler settings, to which a new experiment can then be compared to.  
+
 If one configuration, i.e. GCC on Piz Daint, does not give results within the statistical tolerance of each test, there is very likely a bug or a problem.
 
 ### Structure
@@ -81,4 +83,6 @@ The setting for the references in [echam-hammoz](../ref/echam-hammoz) is the fol
 ECHAM6.3-HAM2.3-MOZ1.0 release tag (https://redmine.hammoz.ethz.ch/projects/hammoz/repository/show/echam6-hammoz/tags/echam6.3.0-ham2.3-moz1.0)  
 Default run configuration for HAM-M7  
 v0002 Input file distribution (corresponding to setup_templates/run_examples/run_defaults_echam6-ham)  					
-(T63L47GR15; ACCMIP_interpolated emissions RCP45 transient emissions; 2003-2012; SST/SIC climatology 1979-2008,...)					
+(T63L47GR15; ACCMIP_interpolated emissions RCP45 transient emissions; 2003-2012; SST/SIC climatology 1979-2008,...)	
+
+**Note that the chemistry module MOZ is not used and tested in this experiment.**
