@@ -70,6 +70,10 @@ This will create the file *paths.py* in the folder [lib](lib) for later use. Not
 can be overridden by command-line arguments.
 
 **Run sanity_test.py:**  
+
+**Important:**  
+Remove all restart files from the directory that contains the raw model output. It can corrupt your statistics.
+
 The clim-sanity-checker needs disk space in the order of 1 GB. It is therefore recommended to run this tool on *scratch* or 
 to pass a working directory with sufficient disk space through the argument *--wrkdir*.  
 
