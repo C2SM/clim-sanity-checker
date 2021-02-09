@@ -1,6 +1,8 @@
 # Description of tests available in clim-sanity-checker
 Below you can find a brief description about each test available in
-this tool.
+this tool. 
+
+Note that each test only checks for a single metric. It is therefore important to compare results across tests to get a good overall impression of the confidence level for each field-
 
 ## Welch's t-Test
 This test compares the annual mean values against a set of references. It is able to detect whether
