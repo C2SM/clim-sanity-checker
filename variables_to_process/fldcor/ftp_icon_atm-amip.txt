@@ -1,0 +1,1 @@
+ftp://iacftp.ethz.ch/pub_read/juckerj/clim-sanity_checker/ref_pattern_amip_Daint_GCC_Nov20.nc

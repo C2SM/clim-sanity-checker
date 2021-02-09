@@ -1,0 +1,1 @@
+../fldcor/ftp_echam-hammoz.txt

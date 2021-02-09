@@ -1,132 +1,927 @@
-#
+# standard modules
 import os
-import xarray as xr
-import paths                    # the file paths.py is written by paths_init.py
-import std_avrg_using_cdo
 import argparse
+import glob
+import datetime
 
-def ts_nc_to_df(exp, \
-        filename, \
-        p_output           = paths.p_ref_csv_files, \
-        lo_export_csvfile = False):
+# aliased standard modules
+import pandas as pd
+import xarray as xr
+import numpy as np
+
+# modules of sanity checker
+import lib.paths as paths
+import lib.utils as utils
+import lib.logger_config as logger_config
+
+# standalone imports
+from lib.logger_config import log
+
+'''
+Module doing all the postprocessing of the raw model output.
+It can be called as a function from sanity_check.py or directly
+as main().
+It contains:
+
+    - print_statistics_of_raw_files: infer from filenames what years
+            of model output is available, provide this info to user 
+
+    - download_ref_to_stages_if_required: if no reference for pattern 
+            is defined, download from ftp-link and store it 
+            in directory stages
+
+    - variables_to_extract: Infer list of variables to extract from 
+            the list of expressions which contain the variables
+
+    - standard_postproc: process all raw data into a global annual mean 
+            netCDF, used in all test,
+            contains hack for already processed data (ECHAM only)
+
+    - timeser_proc_nc_to_df: Read netCDF with global mean values 
+            timeseries and transform it into dataframe, 
+            used for Welch's-Test
+
+    - pattern_proc_nc_to_df: Read netCDF with global mean values 
+            and transform it into dataframe, 
+            used for field correlation test
+
+    - emis_proc_nc_to_df: Read netCDF with global mean values 
+            and transform it into dataframe, used for emissions test
+
+    - rmse_proc_nc_to_df: Read netCDF with global mean values 
+            and normalize it with mean and standard 
+            deviation, same for the reference. 
+            Calculate RMSE using these normalize fields and store 
+            result into dataframe, used for rmse test
+
+    - normalize_data: normalize netCDF with mean and standard deviation
+
+    - main: main function that combines the different processing steps
+
+            Help: python process_data.py --help
+
+C.Siegenthaler 2019 (C2SM)
+J.Jucker 12.2020 (C2SM)
+
+'''
+
+
+def print_statistics_of_raw_files(ifiles,stream,exp):
+
+    datepatterns = ['%Y_%m','%Y%m']
+    years_found = []
+    no_summary = False
+
+    for file in ifiles:
+        file = (os.path.basename(file))
+        strip_1 = file.strip('_{}_.nc'.format(stream))
+        strip_2 = strip_1.strip('{}_'.format(exp))
+        strip_3 = strip_2.strip('.')
+        datestring = strip_3
+
+        failed = True
+        for pattern in datepatterns:
+
+            if failed:
+                try:
+                    date = datetime.datetime.strptime(datestring, pattern)
+                    failed = False
+                except ValueError:
+                    failed = True
+
+        if failed:
+            no_summary = True
+
+        else:
+            year = date.year
+            if year not in years_found:
+                years_found.append(year)
+
+    if no_summary:
+        log.warning('Could not determine years '
+                    'due to an unkown pattern in the filenames')
+    else:
+        log.info('{} files with model output '
+                 'found for years:'.format(len(ifiles)))
+        for year in years_found:
+            log.info(year)
+
+
+def download_ref_to_stages_if_required(f_pattern_ref,
+                                       p_stages,
+                                       f_vars_to_extract,
+                                       test):
+
+    # no ref-file passed as argument of process_data
+    if f_pattern_ref == paths.rootdir:
+        log.info('Download reference file from ftp-server')
+
+        filename_ftp_link = f_vars_to_extract.replace(
+            '.csv','.txt').replace('vars_','ftp_')
+
+        path_to_ftp_link = os.path.join(paths.p_f_vars_proc,test)
+        file_with_ftp_link = utils.clean_path(path_to_ftp_link,
+                                              filename_ftp_link)
+
+        output_file = os.path.join(p_stages,'ftp_ref_pattern.nc')
+
+        cmd = ('wget --input-file={} '
+               '--output-document={}'.format(file_with_ftp_link,
+                                             output_file))
+        log.debug('ftp-command: {}'.format(cmd))
+        utils.shell_cmd(cmd,py_routine=__name__)
+
+        f_pattern_ref = output_file
+
+    else:
+        log.info('Using user-defined reference file for test '
+                 '{}'.format(test))
+
+    return f_pattern_ref
+
+
+def variables_to_extract(vars_in_expr):
+
+    # split expressions around =,-,*,/ and remove numbers
+    for op_str in ['*','-','+','/']:
+        vars_in_expr = [s.strip('().') for sl in 
+                        vars_in_expr for s in sl.split(op_str)]
+
+    # only keep unique entries
+    vars_uniq = list(np.unique(np.array(vars_in_expr)))
+
+    # keep only meaningfull variables, multiplication factors are removed,
+    # '' and 'e' (rest for 8e1) are removed
+    variables = []
+    for v in vars_uniq:
+        if len(v.strip('1234567890.')) > 1: 
+            variables.append(v)
+
+    return(variables)
+
+
+def standard_postproc(exp,
+                      test,
+                      spinup,
+                      p_raw_files,
+                      raw_f_subfold,
+                      p_stages,
+                      f_vars_to_extract):
 
     '''
-Read netcdf file containing global mean values timeseries and transforms into dataframe.
-
+Perfom standard post-processing using cdo 
 
 Arguments: 
-exp               = experiment name
-filename          = filename (incl path) to the global means time series file
-p_output          = Definition folder where to write output files (only used if lo_export_csvfile = True)
-lo_export_csvfile = if True, export the data into a csv file
+    exp            = experiment name
+    test           = name of current test to process data
+    spinup         = number of files (from begining of simulation) 
+                     to ignore du to model spinup
+    p_raw_files    = path to raw model output
+    raw_f_subfold  = subfolder in p_raw_files with model output 
+                     [p_raw_files]/[raw_f_subfold]
+    p_stages       = directory where processing steps are stored
+    f_vars_to_extract =  csv file containg the variables to proceed
 
-C. Siegenthaler, C2SM(ETHZ) , 2019-10
- 
+returns: 
+   netCDF filename containing the fields as defined in f_vars_to_extract
     '''
-    
-    # list of variables in the timeserie netcdf file to drop (not to put into the dataframe)
+
+    log.info('Postprocess data using CDO for test {}'.format(test))
+
+    # check that exp is defined
+    if exp is None:
+        log.error('Experiment is not defined.\n exp = {}'.format(exp))
+
+    # get variables to process:
+    p_test_vars_proc = os.path.join(paths.p_f_vars_proc, test)
+    full_p_f_vars = utils.clean_path(p_test_vars_proc,f_vars_to_extract)
+    df_vars = pd.read_csv(full_p_f_vars, sep=',')
+
+    # define expressions
+    df_vars['expr'] = df_vars['var'] + '=' + df_vars['formula']
+
+    # name of output file
+    ofile_tot = os.path.join(p_stages,
+                             'standard_postproc_{}_{}.nc'.format(test,
+                                                                 exp))
+
+    # initialisation
+    files_error = []      # list files giving error
+    files_proceed = []    # list of files where data are collected 
+
+    # sometimes data is stored in a folder called Raw
+    p_raw_folder = os.path.join(p_raw_files,exp,raw_f_subfold)
+
+    # SPECIAL CASE, echam specific : 
+    # if the folder containing the Raw files have been deleted, 
+    # but folder 'Data' contains already global annual means 
+    if not os.path.isdir(p_raw_folder):
+        log.warning('The folder containing the raw data '
+                    'has been deleted : {}'.format(p_raw_folder))
+
+        p_altern_timeser_fold = os.path.join(p_raw_files,exp,'Data')
+        if test == 'welch':
+            time_series_altern_fold = glob.glob(
+                os.path.join(p_altern_timeser_fold,'timeser_daint_*.nc'))
+
+        if test == 'fldcor' or test == 'rmse':
+            time_series_altern_fold = glob.glob(
+                os.path.join(p_altern_timeser_fold,'multi_annual_means_*.nc'))
+        if test == 'emi':
+            time_series_altern_fold = glob.glob(
+                os.path.join(p_altern_timeser_fold,'emi_*.nc'))
+
+        if len(time_series_altern_fold) < 1:
+            log.error('Could not find files in alternative directory '
+                      '{}'.format(time_series_altern_fold))
+        else:
+            log.info('The alternative folder has been found instead: '
+                     '{}'.format(p_altern_timeser_fold))
+
+            log.warning('This section of code is only tested for ECHAM! '
+                        'It is not recommended to use it for other cases')
+
+            if len(time_series_altern_fold) == 1: 
+                index_ts = 0
+            if len(time_series_altern_fold) > 1:
+
+                for (i, item) in enumerate(time_series_altern_fold):
+                    print(i, item)
+                index_ts = int(input('Please type the index of the file'
+                                     ' to use (negative means '
+                                     'none of them) : '))
+
+            # If index positive, copy the time serie and exit
+            if index_ts >= 0:
+                log.info('File used : {}'.format(
+                    time_series_altern_fold[index_ts]))
+
+                cdo_cmd = ('cdo -L -chname,CDNC,burden_CDNC '
+                           '-chname,ICNC,burden_ICNC '
+                           '-chname,SCF,SCRE -chname,LCF,LCRE '
+                           '{} {}'.format(time_series_altern_fold[index_ts],
+                                          ofile_tot))
+                utils.shell_cmd(cdo_cmd,py_routine=__name__)
+
+                # convert netCDF to dataframe, 
+                # therefore skip next processing step
+                if test == 'welch':
+                    timeser_proc_nc_to_df(exp,
+                                          ofile_tot,
+                                          p_stages,
+                                          already_a_timeseries=True)
+                    skip_next_steps = True
+                else:
+                    skip_next_steps = False
+
+                log.warning('Leave ECHAM-only code-section! '
+                            'You are save again...')
+                return(ofile_tot,skip_next_steps)
+
+    # NORMAL CASE
+    else:
+        log.info('Analyse files in : {}'.format(p_raw_folder))
+
+    log.banner('Time for a coffee...')
+
+    # loop over output stream
+    for stream in df_vars['file'].unique():
+
+        # extract all lines with file f
+        df_file = df_vars[df_vars.file == stream]
+
+        # list all available files in p_raw_files/exp/raw_f_subfold 
+        #which have stream f
+        # restart files and {}m.format(stream) e.g. echamm.nc 
+        # files are not considered
+        final_p_raw_files = os.path.join(p_raw_folder,
+                                         '*_*{}*.nc'.format(stream))
+        ifiles = [fn for fn in glob.glob(final_p_raw_files)
+                  if sum([s in os.path.basename(fn) 
+                          for s in ['stream','{}m'.format(stream)]]) == 0]
+        if len(ifiles) == 0: 
+            log.warning('No raw files found for stream {} at address : \n'
+                        '{}'.format(stream,final_p_raw_files))         
+
+        # sort files in chronoligcal order 
+        # (this will be needed for doing yearmean properly)
+        ifiles.sort()
+
+        print_statistics_of_raw_files(ifiles,stream,exp)
+
+        # remove spin-up files
+        log.info('Remove first {} months of data '
+                 'due to model spinup'.format(spinup)) 
+        ifiles = ifiles[int(spinup):]
+
+        # output file for stream f
+        ofile_str = '{}_{}.nc'.format(exp,stream)
+
+        # variables to extract form netcdf 
+        # files (this is needed for optimization)
+        variables = variables_to_extract(
+            vars_in_expr=df_file.formula.values)
+
+        # Extract variables needed from big files 
+        log.info('Extract variables from file: {}'.format(stream))
+
+        # initialization
+        tmp_selvar_files = []       # list to store the ifiles
+
+        for ifile in ifiles: 
+            # basename of ifile
+            ifile_bsn = os.path.basename(ifile)
+            log.debug('File {}'.format(ifile_bsn))
+            tmp_selvar_file = 'tmp_extract_{}'.format(ifile_bsn) 
+
+            cdo_cmd = 'cdo selvar,{} {} {}'.format(','.join(variables),
+                                                   ifile,
+                                                   tmp_selvar_file) 
+            out_status,out_mess = utils.shell_cmd(cdo_cmd,
+                                                  py_routine=__name__,
+                                                  lowarn=True)
+
+            if out_status == 0:
+                tmp_selvar_files.append(tmp_selvar_file)
+            else:
+                files_error.append(ifile_bsn)
+
+        # Merge all the monthly files together 
+        log.info('Copy {} files'.format(stream))
+        tmp_merged = 'tmp_{}_{}.nc'.format(exp,stream)
+        if os.path.isfile(tmp_merged):
+            os.remove(tmp_merged)
+
+        cdo_cmd = 'cdo -copy {} {}'.format(' '.join(tmp_selvar_files), 
+                                           tmp_merged)
+        utils.shell_cmd(cdo_cmd,py_routine=__name__)
+
+        # compute needed variables
+        log.info('Compute variables for file : {}'.format(stream))
+        if os.path.isfile(ofile_str):
+            os.remove(ofile_str)
+
+        expr_str = ';'.join((df_file.expr.values))
+        cdo_cmd = 'cdo -L -setctomiss,-9e+33 -expr,"{}" {} {}'.format(
+            expr_str,
+            tmp_merged,
+            ofile_str) 
+        utils.shell_cmd(cdo_cmd,py_routine=__name__)
+
+        # keep trace of output file per stream
+        files_proceed.append(ofile_str)
+
+        # cleaning
+        [os.remove(f) for f in tmp_selvar_files]
+        os.remove(tmp_merged)
+
+    # merge all stream files
+    if os.path.isfile(ofile_tot):
+        os.remove(ofile_tot)
+    cdo_cmd = 'cdo merge {} {}'.format(' '.join(files_proceed),ofile_tot)
+    utils.shell_cmd(cdo_cmd,py_routine=__name__)
+
+    [os.remove(f) for f in files_proceed]
+
+    # Finish
+    if len(files_error) != 0: 
+        log.warning('Files with a problem: {}'
+                    .format(','.join(files_error)))
+
+    log.info('Postprocess data using CDO for test {} finished. \n '
+             'Output here : {}'.format(test,ofile_tot))
+
+    # return name of output file
+    return(ofile_tot,False)
+
+
+def timeser_proc_nc_to_df(exp,
+                          filename,
+                          p_stages,
+                          already_a_timeseries=False):
+
+    '''
+Arguments: 
+    exp      = experiment name
+    filename = filename of the netCDF returned by function standard_postproc
+    p_stages = directory where processing steps are stored
+
+returns:
+    dataframe with processed data for welchstest
+    '''
+
+    test = 'welch'
+
+    if not already_a_timeseries:
+        timeser_filename = 'test_postproc_{}_{}.nc'.format(test,exp)
+        cdo_cmd = 'cdo -L yearmean -fldmean -vertsum {} {}'.format(
+            filename,
+            timeser_filename) 
+        utils.shell_cmd(cdo_cmd,py_routine=__name__)
+    else:
+        log.debug('Skipping CDO-processing step')
+        timeser_filename = filename
+
+    # list of variables in the timeserie netcdf 
+    # file to drop (not to put into the dataframe)
     vars_to_drop = []
 
-    # print warnings
-    if not os.path.isfile(filename): 
-        print('ts_nc_to_df : File {} does not exists'.format(filename))
-        return None
-    if not os.access(filename,os.R_OK):
-        print('ts_nc_to_df : No reading permissions for file {}'.format(filename))
-        return None
-    # print info
-    print('ts_nc_to_df : Processing file : {}'.format(filename))
-
+    log.info('Processing netCDF: {}'.format(timeser_filename))
 
     # open dataset
-    data = xr.open_dataset(filename)
+    data = xr.open_dataset(timeser_filename)
 
     # Delete variables
     # useless variable time_bnds
     if ('time_bnds' in data.keys()):
         data = data.drop('time_bnds')
     # 3D vars
-    if len(vars_to_drop)>0:
-        data.drop(labels = vars_to_drop)
+    if len(vars_to_drop) > 0:
+        data.drop(labels=vars_to_drop)
 
     # removed degenerated dimensions
-    data = data.squeeze(drop = True)
+    data = data.squeeze(drop=True)
 
     # transforms into dataframe
     df_data = data.to_dataframe()
 
-    print('Finished ts_nc_to_df for file {}'.format(filename))
+    # export in a file
+    os.makedirs(p_stages, exist_ok=True)
+    csv_filename = os.path.join(p_stages,
+                                'test_postproc_{}_{}.csv'.format(test,
+                                                                 exp))
+    df_data.to_csv(csv_filename, index=None, header=True, sep=';')
+    log.info('CSV file can be found here: {}'.format(csv_filename))     
+
+    log.info('Finished {} for file {}'.format(__name__,timeser_filename))
+
+    return(df_data)
+
+
+def pattern_proc_nc_to_df(exp,
+                          filename,
+                          reference,
+                          p_stages):
+
+    '''
+Arguments: 
+    exp       = experiment name
+    filename  = filename of the netCDF returned 
+                by function standard_postproc
+    reference = filename to the reference
+    p_stages  = directory where processing steps are stored
+
+returns:
+    dataframe with processed data for pattern correlation test
+    '''
+
+    test = 'fldcor'
+    pattern_filename = 'test_postproc_intermediate_{}_{}.nc'.format(test,
+                                                                    exp)
+
+    field_correlation_filename = 'test_proc_{}_{}.nc'.format(test,exp)
+
+    cdo_cmd = 'cdo -L timmean -yearmean -vertsum {} {}'.format(
+        filename,
+        pattern_filename) 
+    utils.shell_cmd(cdo_cmd,py_routine=__name__)
+
+    # list of variables in the timeserie netcdf 
+    # file to drop (not to put into the dataframe)
+    vars_to_drop = []
+
+    log.info('Compute field-correlation '
+             'between {} and {} (reference)'.format(pattern_filename,
+                                                    reference))
+
+    cdo_cmd = 'cdo -L -sqr -fldcor {} {} {}'.format(
+        pattern_filename,
+        reference,
+        field_correlation_filename) 
+    utils.shell_cmd(cdo_cmd,py_routine=__name__)
+
+    # open dataset
+    data = xr.open_dataset(field_correlation_filename)
+
+    # Delete variables
+    # useless variable time_bnds
+    if ('time_bnds' in data.keys()):
+        data = data.drop('time_bnds')
+    # 3D vars
+    if len(vars_to_drop) > 0:
+        data.drop(labels=vars_to_drop)
+
+    # transforms into dataframe
+    df_data = data.to_dataframe()
+
+    os.makedirs(p_stages, exist_ok=True)
+    csv_filename = os.path.join(p_stages,
+                                'test_postproc_{}_{}.csv'.format(test,
+                                                                 exp))
+    df_data.to_csv(csv_filename, index=None, header=True, sep=';')
+    log.info('CSV file can be found here: {}'.format(csv_filename))     
+
+    log.info('Finished {} for file {}'.format(__name__,
+                                              field_correlation_filename))
+
+    return(df_data)
+
+
+def emis_proc_nc_to_df(exp,
+                       filename,
+                       p_stages):
+
+    '''
+Arguments: 
+    exp      = experiment name
+    filename = filename of the netCDF 
+                returned by function standard_postproc
+    p_stages = directory where processing steps are stored
+
+returns:
+    dataframe with processed data
+    '''
+
+    test = 'emi'
+    emis_filename = 'test_postproc_{}_{}.nc'.format(test,exp)
+
+    cdo_cmd = 'cdo -L timmean -fldmean -vertsum {} {}'.format(
+        filename,
+        emis_filename) 
+    utils.shell_cmd(cdo_cmd,py_routine=__name__)
+    # list of variables in the timeserie netcdf 
+    # file to drop (not to put into the dataframe)
+    vars_to_drop = []
+
+    log.info('Processing netCDF: {}'.format(emis_filename))
+
+    # open dataset
+    data = xr.open_dataset(emis_filename)
+
+    # Delete variables
+    # useless variable time_bnds
+    if ('time_bnds' in data.keys()):
+        data = data.drop('time_bnds')
+    # 3D vars
+    if len(vars_to_drop) > 0:
+        data.drop(labels=vars_to_drop)
+
+    # transforms into dataframe
+    df_data = data.to_dataframe()
 
     # export in a file
-    if lo_export_csvfile:
-        os.makedirs(p_output, exist_ok=True)
-        csv_filename = os.path.join(p_output,'glob_means_{}.csv'.format(exp))
-        df_data.to_csv(csv_filename, index = None, header=True, sep = ';')
-        print('ts_nc_to_df : CSV file can be found here: {}'.format(csv_filename))     
-    
+    os.makedirs(p_stages, exist_ok=True)
+    csv_filename = os.path.join(p_stages,
+                                'test_postproc_{}_{}.csv'.format(test,
+                                                                 exp))
+    df_data.to_csv(csv_filename, index=None, header=True, sep=';')
+    log.info('CSV file can be found here: {}'.format(csv_filename))     
+
+    log.info('Finished {} for file {}'.format(__name__,emis_filename))
 
     return(df_data)
 
 
-def main(exp,\
-       p_raw_files  = paths.p_raw_files,\
-       p_output     = paths.p_out_new_exp,\
-       raw_f_subfold     = '',\
-       f_vars_to_extract = 'vars_echam-hammoz.csv',\
-       lo_export_csvfile = True,\
-       lverbose = False):
+def normalize_data(dataset):
+
+    log.info('Normalize fields in {} with mean and '
+             'standard deviation'.format(dataset))
+
+    data = dataset.replace('.nc','')
+    std_data = '{}_std.nc'.format(data)
+    std_data_enlarged = '{}_std_enlarged.nc'.format(data)
+    mean_data = '{}_mean.nc'.format(data)
+    mean_data_enlarged = '{}_enlarged.nc'.format(data)
+    sub_data = '{}_sub.nc'.format(data)
+    normalized_data = '{}_normalized.nc'.format(data)
+
+    log.debug('Clean intermediate files for normalization')
+    shell_cmd = 'rm {} {} {} {} {} {}'.format(std_data,
+                                              mean_data,
+                                              std_data_enlarged,
+                                              mean_data_enlarged,
+                                              sub_data,
+                                              normalized_data)
+    utils.shell_cmd(shell_cmd,py_routine=__name__,lowarn=True)
+
+    cdo_cmd = 'cdo -L fldstd {} {}'.format(dataset,std_data)
+    utils.shell_cmd(cdo_cmd,py_routine=__name__)
+
+    cdo_cmd = 'cdo -L fldmean {} {}'.format(dataset,mean_data)
+    utils.shell_cmd(cdo_cmd,py_routine=__name__)
+
+    #cdo_cmd = 'cdo -L sub {} -enlarge,{} {} {}'.format(dataset,
+    cdo_cmd = 'cdo -L -enlarge,{} {} {}'.format(dataset,
+                                                mean_data,
+                                                mean_data_enlarged)
+    utils.shell_cmd(cdo_cmd,py_routine=__name__)
+
+    cdo_cmd = 'cdo -L -enlarge,{} {} {}'.format(dataset,
+                                                std_data,
+                                                std_data_enlarged)
+    utils.shell_cmd(cdo_cmd,py_routine=__name__)
+
+    cdo_cmd = 'cdo -L sub {} {} {}'.format(dataset,mean_data_enlarged,sub_data)
+    utils.shell_cmd(cdo_cmd,py_routine=__name__)
+
+    cdo_cmd = 'cdo -L div {} {} {}'.format(sub_data,
+                                           std_data_enlarged, 
+                                           normalized_data)
+    utils.shell_cmd(cdo_cmd,py_routine=__name__)
+
+    return normalized_data
+
+
+def rmse_proc_nc_to_df(exp,
+                       filename,
+                       reference,
+                       p_stages):
+
     '''
-Process exp 
+Arguments: 
+    exp       = experiment name
+    filename  = filename of the netCDF returned by 
+                function standard_postproc
+    reference = filename to the reference
+    p_stages  = directory where processing steps are stored
+
+returns:
+    dataframe with processed data for pattern correlation test
     '''
 
-# transform Raw output into netcdf timeserie using cdo commands
-    timeser_filename = std_avrg_using_cdo.main(exp,\
-                             p_raw_files       = p_raw_files, \
-                             raw_f_subfold     = raw_f_subfold,\
-                             f_vars_to_extract = f_vars_to_extract,\
-                             lverbose          = lverbose)
+    test = 'rmse'
+    rmse_interim = 'test_postproc_intermediate_{}_{}.nc'.format(test,exp)
 
-# transforming netcdf timeseries into csv file
-    df_data = ts_nc_to_df(exp, \
-        filename     = timeser_filename,\
-        p_output     = p_output,
-        lo_export_csvfile = lo_export_csvfile)
+    rmse_filename = 'test_proc_{}_{}.nc'.format(test,exp)
+
+    cdo_cmd = 'cdo -L timmean -yearmean -vertsum {} {}'.format(
+        filename,
+        rmse_interim) 
+    utils.shell_cmd(cdo_cmd,py_routine=__name__)
+
+    reference_normalized = normalize_data(reference)
+    rmse_interim_normalized = normalize_data(rmse_interim)
+
+    # list of variables in the timeserie netcdf file to drop 
+    # (not to put into the dataframe)
+    vars_to_drop = []
+
+    log.info('Compute root mean square error '
+             'between {} and {} (reference)'.format(
+                 rmse_interim_normalized,reference_normalized))
+
+    cdo_cmd = 'cdo -L sqrt -fldmean -sqr -sub {} {} {}'.format(
+        rmse_interim_normalized,reference_normalized, rmse_filename)
+    utils.shell_cmd(cdo_cmd,py_routine=__name__)
+
+    # open dataset
+    data = xr.open_dataset(rmse_filename)
+
+    # Delete variables
+    # useless variable time_bnds
+    if ('time_bnds' in data.keys()):
+        data = data.drop('time_bnds')
+    # 3D vars
+    if len(vars_to_drop) > 0:
+        data.drop(labels=vars_to_drop)
+
+    # transforms into dataframe
+    df_data = data.to_dataframe()
+
+    os.makedirs(p_stages, exist_ok=True)
+    csv_filename = os.path.join(p_stages,
+                                'test_postproc_{}_{}.csv'.format(test,
+                                                                 exp))
+    df_data.to_csv(csv_filename, index=None, header=True, sep=';')
+    log.info('CSV file can be found here: {}'.format(csv_filename))     
+
+    log.info('Finished {} for file {}'.format(__name__,rmse_filename))
 
     return(df_data)
+
+
+def main(exp,
+         actions,
+         tests,
+         spinup,
+         p_raw_files,
+         p_stages,
+         raw_f_subfold,
+         f_vars_to_extract,
+         f_pattern_ref):
+
+    log.banner('Start standard-postprocessing')
+
+    results_data_processing = {}
+    processed_netcdf_filename = {}
+    skip_next_step = {}
+
+    # init in case standard_postproc is skipped
+    for test in tests:
+        skip_next_step[test] = False
+
+    for test in tests:
+        if (actions['standard_postproc'][test]): 
+            processed_netcdf_filename[test], skip_next_step[test] = \
+                standard_postproc(exp,
+                                  test=test,
+                                  spinup=spinup,
+                                  p_raw_files=p_raw_files,
+                                  raw_f_subfold=raw_f_subfold,
+                                  p_stages=p_stages,
+                                  f_vars_to_extract=f_vars_to_extract)
+        else:
+            log.info('Data already processed for test {}'.format(test))
+            processed_netcdf_filename[test] = utils.clean_path(
+                p_stages, 
+                'standard_postproc_{}_{}.nc'.format(test,exp))
+
+    log.banner('End standard-postprocessing')
+
+    log.banner('Start conversion from NetCDF to dataframe')
+
+    if 'welch' in tests:
+
+        test = 'welch'
+
+        if (actions['test_postproc'][test] and not skip_next_step[test]):
+            # transforming netcdf timeseries into csv file
+            results_data_processing[test] = timeser_proc_nc_to_df(
+                exp,
+                filename=processed_netcdf_filename[test],
+                p_stages=p_stages)
+        else:
+            log.info('Processing for test {} already done'.format(test))
+            f_csv = os.path.join(p_stages, 
+                                 'test_postproc_{}_{}.csv'.format(test,
+                                                                  exp))
+            results_data_processing[test] = pd.read_csv(f_csv, sep=';')
+    else:
+        log.warning("Skip Welch's-Test")
+
+    if 'emi' in tests:
+
+        test = 'emi'
+
+        if (actions['test_postproc'][test] and not skip_next_step[test]):
+            results_data_processing[test] = emis_proc_nc_to_df(
+                exp,
+                filename=processed_netcdf_filename[test],
+                p_stages=p_stages)
+        else:
+            log.info('Processing for test {} already done'.format(test))
+            f_csv = os.path.join(p_stages, 
+                                 'test_postproc_{}_{}.csv'.format(test,
+                                                                  exp))
+            results_data_processing[test] = pd.read_csv(f_csv, sep=';')
+    else:
+        log.warning('Skip emission test')
+
+    if 'fldcor' in tests:
+
+        test = 'fldcor'
+
+        if (actions['test_postproc'][test] and not skip_next_step[test]):
+
+            f_pattern_ref = download_ref_to_stages_if_required(
+                f_pattern_ref,
+                p_stages,
+                f_vars_to_extract,
+                test)
+
+            results_data_processing[test] = pattern_proc_nc_to_df(
+                exp,
+                filename=processed_netcdf_filename[test],
+                p_stages=p_stages,
+                reference=f_pattern_ref)
+        else:
+            log.info('Processing for test {} already done'.format(test))
+            f_csv = os.path.join(p_stages, 
+                                 'test_postproc_{}_{}.csv'.format(test,
+                                                                  exp))
+            results_data_processing[test] = pd.read_csv(f_csv, sep=';')
+    else:
+        log.warning('Skip pattern correlation test')
+
+    if 'rmse' in tests:
+
+        test = 'rmse'
+
+        if (actions['test_postproc'][test] and not skip_next_step[test]):
+            test = 'rmse'
+
+            f_pattern_ref = download_ref_to_stages_if_required(
+                f_pattern_ref,
+                p_stages,
+                f_vars_to_extract,
+                test)
+
+            results_data_processing[test] = rmse_proc_nc_to_df(
+                exp,
+                filename=processed_netcdf_filename[test],
+                p_stages=p_stages,
+                reference=f_pattern_ref)
+        else:
+            log.info('Processing for test {} already done'.format(test))
+            f_csv = os.path.join(p_stages, 
+                                 'test_postproc_{}_{}.csv'.format(test,exp))
+            results_data_processing[test] = pd.read_csv(f_csv, sep=';')
+    else:
+        log.warning('Skip Rmse test')
+
+    log.banner('End conversion from NetCDF to dataframe')
+
+    return(results_data_processing)
 
 
 if __name__ == '__main__':
 
     # parsing arguments
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument('--exp','-e', dest = 'exp',\
-                            required = True,\
-                            help = 'exp to proceed')
-    parser.add_argument('--p_raw_files', dest = 'p_raw_files',\
-                            default = paths.p_raw_files,\
-                            help = 'path to raw files')
-    parser.add_argument('--p_output', dest='p_output', \
-                            default=paths.p_ref_csv_files, \
-                            help='path to write csv file')
-    parser.add_argument('--raw_f_subfold', dest= 'raw_f_subfold',\
-                            default='',\
-                            help='Subfolder where the raw data are ')
-    parser.add_argument('--f_vars_to_extract',dest='f_vars_to_extract',\
-                           default='vars_echam-hammoz.csv',\
-                           help = 'File containing variables to anaylse')
-    parser.add_argument('--lo_export_csvfile', dest = 'lo_export_csvfile',\
-                            default =  True,\
-                            help = 'Should a csv file be created')
+    parser.add_argument('--exp','-e', dest='exp',
+                        required=True,
+                        help='exp to proceed')
 
-    parser.add_argument('--lverbose', dest='lverbose', action='store_true')
+    parser.add_argument('--p_raw_files', dest='p_raw_files',
+                        default=paths.p_raw_files,
+                        help='absolute path to raw files')
+
+    parser.add_argument('--p_stages', dest='p_stages',
+                        default=paths.p_stages,
+                        help='relative or absolute path '
+                        'to write csv files of the testresults')
+
+    parser.add_argument('--raw_f_subfold', dest='raw_f_subfold',
+                        default='',
+                        help='Subfolder where the raw data are ')
+
+    parser.add_argument('--wrkdir','-w', dest='wrk_dir',
+                        default=paths.p_wrkdir,
+                        help='relative or absolute path to working directory')
+
+    parser.add_argument('--f_vars_to_extract',dest='f_vars_to_extract',
+                        default='vars_echam-hammoz.csv',
+                        help='File containing variables to anaylse')
+
+    parser.add_argument('--verbose','-v', dest='lverbose',
+                        action='store_true',
+                        help='Debug output')
+
+    parser.add_argument('--clean','-c', dest='lclean',
+                        action='store_true',
+                        help='Redo all processing steps')
+
+    parser.add_argument('--spinup', dest='spinup',
+                        type=int,
+                        default=3,
+                        help='Do not consider first month '
+                        'of the data due to model spinup')
+
+    parser.add_argument('--tests','-t', dest='tests',
+                        default=['welch','fldcor','rmse','emi'],
+                        nargs='+',
+                        help='Tests to apply on your data')
+
+    parser.add_argument('--f_pattern_ref', dest='f_pattern_ref',
+                        default='',
+                        help='Absolute or relative path to reference '
+                        'netCDF for spatial correlation tests')
 
     args = parser.parse_args()
 
-    main(exp=args.exp,\
-         p_raw_files=args.p_raw_files,\
-         raw_f_subfold=args.raw_f_subfold,\
-         p_output=args.p_output,\
-         f_vars_to_extract=args.f_vars_to_extract,\
-         lo_export_csvfile=args.lo_export_csvfile,\
-         lverbose=args.lverbose)
+    logger_config.init_logger(args.lverbose,__file__)
+
+    log.banner('Start execute {} as main()'.format(__file__))
+
+    # make all paths from user to absolute paths
+    args.wrk_dir = utils.abs_path(args.wrk_dir)
+    args.p_stages = utils.abs_path(args.p_stages)
+    args.f_pattern_ref = utils.abs_path(args.f_pattern_ref)
+
+    # data processing takes a while, check that no step is done twice
+    actions = utils.determine_actions_for_data_processing(args.exp,
+                                                          args.tests,
+                                                          args.p_stages,
+                                                          args.lclean)
+
+    # create directories
+    os.makedirs(args.p_stages,exist_ok=True)
+    os.makedirs(args.wrk_dir,exist_ok=True)
+
+    # go to working directory
+    os.chdir((args.wrk_dir))
+    log.info('Current directory is {}'.format(args.wrk_dir))
+
+    main(exp=args.exp,
+         actions=actions,
+         tests=args.tests,
+         spinup=args.spinup,
+         p_raw_files=args.p_raw_files,
+         raw_f_subfold=args.raw_f_subfold,
+         p_stages=args.p_stages,
+         f_vars_to_extract=args.f_vars_to_extract,
+         f_pattern_ref=args.f_pattern_ref)
+
+    log.banner('End execute {} as main()'.format(__file__))

@@ -1,3 +1,10 @@
-results*
-paths.py
+lib/paths.py
+testsuite/paths.py
 __pycache__
+logs/*.log
+testsuite/data/*
+stages/*
+wrkdir/*
+testsuite/stages
+testsuite/workdir
+
