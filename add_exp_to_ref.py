@@ -120,6 +120,7 @@ def main(exp,
          tests,
          p_stages=paths.p_stages,
          p_ref_csv_files=paths.p_ref_csv_files,
+         ltestsuite=False,
          lverbose=False):
 
     # initialisation
@@ -129,7 +130,8 @@ def main(exp,
     # fill up file 'Exps_description.csv' with additional 
     # information via user input
     f_exp_descr = os.path.join(p_ref_csv_files,'Exps_description.csv')
-    add_line_descr_f(exp=exp,f_exp_descr=f_exp_descr)
+    if not ltestsuite:
+        add_line_descr_f(exp=exp,f_exp_descr=f_exp_descr)
     files_to_commit.append(f_exp_descr)
 
     for test in tests:
@@ -137,7 +139,7 @@ def main(exp,
 
         csv_file = utils.clean_path(p_stages,
                                     'test_postproc_{}_{}.csv'
-                                    .format(test_cfg.name,exp))
+                                    .format(test,exp))
 
         # what is the filename in the reference pool
         filename_in_ref_dir = '{}_{}.csv'.format(test_cfg.ref_name,exp)
@@ -147,11 +149,14 @@ def main(exp,
                                            filename_in_ref_dir)
 
         log.debug('Copy {} to {}'.format(csv_file,place_for_reference))
-        shutil.copy(csv_file,place_for_reference)
+
+        if not ltestsuite:
+            shutil.copy(csv_file,place_for_reference)
+
         files_to_commit.append(place_for_reference)
 
         # copy pdf with bar-plots from Welch's-test
-        if test_cfg.name == 'welchstest':
+        if test == 'welch':
 
             pdf_file = utils.clean_path(p_stages,
                                         '{}_{}.pdf'.format(test_cfg.ref_name,
@@ -166,26 +171,29 @@ def main(exp,
 
             log.debug('Copy {} to {}'.format(csv_file,place_for_reference))
             files_to_commit.append(place_for_reference)
-            shutil.copy(pdf_file,place_for_reference)
+
+            if not ltestsuite:
+                shutil.copy(pdf_file,place_for_reference)
 
     # root is important to not fail during git commands
     os.chdir(paths.rootdir)
 
     # checkout new branch
-    log.info('Create and checkout new branch {}'.format(new_branch_name))
-    git_cmd = 'git checkout -B {}'.format(new_branch_name)
-    utils.shell_cmd(git_cmd,py_routine='add_exp_to_ref.py')
+    if not ltestsuite:
+        log.info('Create and checkout new branch {}'.format(new_branch_name))
+        git_cmd = 'git checkout -B {}'.format(new_branch_name)
+        utils.shell_cmd(git_cmd,py_routine='add_exp_to_ref.py')
 
-    # commit all modified files prior in the function to git
-    for file in files_to_commit:
-        git_cmd = 'git add {}'.format(file)
-        log.debug(git_cmd)
+        # commit all modified files prior in the function to git
+        for file in files_to_commit:
+            git_cmd = 'git add {}'.format(file)
+            log.debug(git_cmd)
+            utils.shell_cmd(git_cmd, py_routine=__name__)
+
+        log.debug('Commit files {}'.format(files_to_commit))
+        commit_message = input('Please type your commit message :')
+        git_cmd = 'git commit -m "{}"'.format(commit_message)
         utils.shell_cmd(git_cmd, py_routine=__name__)
-
-    log.debug('Commit files {}'.format(files_to_commit))
-    commit_message = input('Please type your commit message :')
-    git_cmd = 'git commit -m "{}"'.format(commit_message)
-    utils.shell_cmd(git_cmd, py_routine=__name__)
 
     # Finish
     log.info(Style.GREEN('Files are added in the new branch: '
@@ -229,6 +237,10 @@ if __name__ == '__main__':
                         action='store_true',
                         help='Debug output')
 
+    parser.add_argument('--testsuite','-ts', dest='ltestsuite',
+                        action='store_true',
+                        help='Run of testsuite')
+
     args = parser.parse_args()
 
     # init logger
@@ -244,6 +256,7 @@ if __name__ == '__main__':
          tests=args.tests,
          p_stages=args.p_stages,
          p_ref_csv_files=args.p_ref_csv_files,
+         ltestsuite=args.ltestsuite,
          lverbose=args.lverbose)
 
     log.banner('End execute {} as main()'.format(__file__))
