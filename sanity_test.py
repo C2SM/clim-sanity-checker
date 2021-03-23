@@ -121,7 +121,7 @@ def main(new_exp,
             test_cfg.metric_threshold,test_cfg.metric)
 
     if ltestsuite:
-        asw= 'YES'
+        asw = 'YES'
     else:
         asw = input('If you are happy with this experiment, '
                     'do you want to add it to the reference pool ?'
