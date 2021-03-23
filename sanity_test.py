@@ -107,46 +107,49 @@ def main(new_exp,
             results_test[test],
             p_stages=p_stages)
 
-    if not ltestsuite:
-        # Add experiment to the reference pool
-        #--------------------------------------------------------------------
-        log.banner('')
-        log.banner('Check results again before adding to reference pool')
-        log.banner('')
+    # Add experiment to the reference pool
+    #--------------------------------------------------------------------
+    log.banner('')
+    log.banner('Check results again before adding to reference pool')
+    log.banner('')
 
-        for test in tests:
-            test_cfg = test_config.get_config_of_current_test(test)
-            utils.print_warning_if_testresult_is_bad(
-                test,
-                results_test[test],
-                test_cfg.metric_threshold,test_cfg.metric)
+    for test in tests:
+        test_cfg = test_config.get_config_of_current_test(test)
+        utils.print_warning_if_testresult_is_bad(
+            test,
+            results_test[test],
+            test_cfg.metric_threshold,test_cfg.metric)
 
+    if ltestsuite:
+        asw = 'YES'
+    else:
         asw = input('If you are happy with this experiment, '
                     'do you want to add it to the reference pool ?'
                     '(yes/[No])\n')
 
-        if (asw.strip().upper() == 'YES') or (asw.strip().upper() == 'Y'):
-            add_exp_to_ref.main(new_exp,
-                                tests,
-                                p_stages=p_stages,
-                                p_ref_csv_files=p_ref_csv_files)
-        else:
-            args_for_manual_execution = \
-                utils.derive_arguments_for_add_exp_to_ref(new_exp, 
-                                                          tests, 
-                                                          p_stages,
-                                                          p_ref_csv_files)
+    if (asw.strip().upper() == 'YES') or (asw.strip().upper() == 'Y'):
+        add_exp_to_ref.main(new_exp,
+                            tests,
+                            p_stages=p_stages,
+                            ltestsuite=ltestsuite,
+                            p_ref_csv_files=p_ref_csv_files)
+    else:
+        args_for_manual_execution = \
+            utils.derive_arguments_for_add_exp_to_ref(new_exp, 
+                                                      tests, 
+                                                      p_stages,
+                                                      p_ref_csv_files)
 
-            log.info('The experiment {} is NOT added to '
-                     'the reference pool \n'.format(new_exp))
-            log.info('If you want to add the experiment {} '
-                     'to the reference pool later on, type '
-                     'the following line when you are ready:'
-                     .format(new_exp, new_exp))
+        log.info('The experiment {} is NOT added to '
+                 'the reference pool \n'.format(new_exp))
+        log.info('If you want to add the experiment {} '
+                 'to the reference pool later on, type '
+                 'the following line when you are ready:'
+                 .format(new_exp, new_exp))
 
-            log.info('')
-            log.info('python add_exp_to_ref.py {}'
-                     .format(args_for_manual_execution))
+        log.info('')
+        log.info('python add_exp_to_ref.py {}'
+                 .format(args_for_manual_execution))
 
     log.banner('')
     log.banner('Sanity test finished')

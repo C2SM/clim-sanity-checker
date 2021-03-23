@@ -42,7 +42,6 @@ def get_config_of_current_test(testname):
 
 class WelchsTest:
     def __init__(self):
-        self.name = 'welch'
         self.ref_name = 'glob_means'
         self.metric = 'p-value [%]'
         self.metric_threshold = [
@@ -54,7 +53,6 @@ class WelchsTest:
 
 class EmissionsTest:
     def __init__(self):
-        self.name = 'emi'
         self.ref_name = 'emis'
         self.metric = 'relative deviation [%]'
         self.metric_threshold = [
@@ -66,7 +64,6 @@ class EmissionsTest:
 
 class FldcorTest:
     def __init__(self):
-        self.name = 'pattern_correlation'
         self.ref_name = 'fldcor'
         self.metric = 'R^2'
         self.metric_threshold = [
@@ -78,7 +75,6 @@ class FldcorTest:
 
 class RmseTest:
     def __init__(self):
-        self.name = 'rmse'
         self.ref_name = 'rmse'
         self.metric = 'normalized RMSE'
         self.metric_threshold = [
