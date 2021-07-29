@@ -38,8 +38,8 @@ class FormatterColor(logging.Formatter):
     format_error = "%(levelname)s: %(message)s (%(filename)s:%(lineno)d)"
 
     FORMATS = {
-        logging.DEBUG: colors['black'] + format_debug + colors['reset'],
-        logging.INFO: colors['black'] + format_info + colors['reset'],
+        logging.DEBUG: colors['reset'] + format_debug,
+        logging.INFO: colors['reset'] + format_info,
         25: colors['green'] + format_banner + colors['reset'],
         logging.WARNING: colors['orange'] + format_warning + colors['reset'],
         logging.ERROR: colors['bold_red'] + format_error + colors['reset'],
