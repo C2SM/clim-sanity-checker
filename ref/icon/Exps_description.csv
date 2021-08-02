@@ -7,4 +7,4 @@ amip_Daint_GCC_Nov20;CSCS Piz Daint;SUSE Linux Enterprise Server 15;gcc/9.3.0;O2
 amip_Daint_PGI_Nov20;CSCS Piz Daint;SUSE Linux Enterprise Server 15;pgi/20.1.1;O2;n;n;n;y;n;n;n;November 2020
 amip_Euler_GCC_Nov20;Euler ETHZ;CentOS Linux 7 (Core);gcc/6.3.0;O2;n;n;n;y;n;n;n;November 2020
 amip_Daint_GCC_Jul21;CSCS Piz Daint;SUSE Linux Enterprise Server 15;gcc/9.3.0;O2;n;n;n;y;n;n;n;July 2021
-amip_Daint_PGI_Jul21;CSCS Piz Daint;SUSE Linux Enterprise Server 15;pgi;O2;n;n;n;y;n;n;n;July 2021
+amip_Daint_PGI_Jul21;CSCS Piz Daint;SUSE Linux Enterprise Server 15;pgi/20.1.1;O2;n;n;n;y;n;n;n;July 2021
