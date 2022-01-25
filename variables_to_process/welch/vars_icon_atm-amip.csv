@@ -23,3 +23,5 @@ Prcp_snow,(prls+prcs)*8.64e4,atm_2d_ml
 Prcp_rain,(prlr+prcr)*8.64e4,atm_2d_ml
 Temp_srf,ts,atm_2d_ml
 Temp_2m,tas,atm_2d_ml
+Evap,evspsbl*8.64e4,atm_2d_ml
+Prcp_tot_minus_evap,(pr+evspsbl)*8.64e4,atm_2d_ml
